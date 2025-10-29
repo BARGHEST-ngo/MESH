@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/tailscale/wireguard-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/device"
 	"tailscale.com/envknob"
 	"tailscale.com/syncs"
 	"tailscale.com/types/key"

@@ -88,13 +88,13 @@ func goroutines() (int, []byte) {
 //	#   0x13797f9   gvisor.dev/gvisor/pkg/tcpip/transport/tcp.(*processor).start+0x99   gvisor.dev/gvisor@v0.0.0-20250205023644-9414b50a5633/pkg/tcpip/transport/tcp/dispatcher.go:291
 //
 //	48 @ 0x47bc0e 0x413705 0x4132b2 0x10fc905 0x483da1
-//	#   0x10fc904   github.com/tailscale/wireguard-go/device.(*Device).RoutineDecryption+0x184  github.com/tailscale/wireguard-go@v0.0.0-20250107165329-0b8b35511f19/device/receive.go:245
+//	#   0x10fc904   github.com/amnezia-vpn/amneziawg-go/device.(*Device).RoutineDecryption+0x184  github.com/amnezia-vpn/amneziawg-go@v0.0.0-20250107165329-0b8b35511f19/device/receive.go:245
 //
 //	48 @ 0x47bc0e 0x413705 0x4132b2 0x10fcd2a 0x483da1
-//	#   0x10fcd29   github.com/tailscale/wireguard-go/device.(*Device).RoutineHandshake+0x169   github.com/tailscale/wireguard-go@v0.0.0-20250107165329-0b8b35511f19/device/receive.go:279
+//	#   0x10fcd29   github.com/amnezia-vpn/amneziawg-go/device.(*Device).RoutineHandshake+0x169   github.com/amnezia-vpn/amneziawg-go@v0.0.0-20250107165329-0b8b35511f19/device/receive.go:279
 //
 //	48 @ 0x47bc0e 0x413705 0x4132b2 0x1100ba7 0x483da1
-//	#   0x1100ba6   github.com/tailscale/wireguard-go/device.(*Device).RoutineEncryption+0x186  github.com/tailscale/wireguard-go@v0.0.0-20250107165329-0b8b35511f19/device/send.go:451
+//	#   0x1100ba6   github.com/amnezia-vpn/amneziawg-go/device.(*Device).RoutineEncryption+0x186  github.com/amnezia-vpn/amneziawg-go@v0.0.0-20250107165329-0b8b35511f19/device/send.go:451
 //
 //	26 @ 0x47bc0e 0x458e57 0x847587 0x483da1
 //	#   0x847586    database/sql.(*DB).connectionOpener+0x86    database/sql/sql.go:1261
@@ -103,7 +103,7 @@ func goroutines() (int, []byte) {
 //	#   0x754926    net/http.(*persistConn).writeLoop+0xe6  net/http/transport.go:2596
 //
 //	7 @ 0x47bc0e 0x413705 0x4132b2 0x10fda4d 0x483da1
-//	#   0x10fda4c   github.com/tailscale/wireguard-go/device.(*Peer).RoutineSequentialReceiver+0x16c    github.com/tailscale/wireguard-go@v0.0.0-20250107165329-0b8b35511f19/device/receive.go:443
+//	#   0x10fda4c   github.com/amnezia-vpn/amneziawg-go/device.(*Peer).RoutineSequentialReceiver+0x16c    github.com/amnezia-vpn/amneziawg-go@v0.0.0-20250107165329-0b8b35511f19/device/receive.go:443
 func parseGoroutines(g []byte) goroutineDump {
 	head, tail, ok := bytes.Cut(g, []byte("\n"))
 	if !ok {

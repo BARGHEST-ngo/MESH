@@ -9,7 +9,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/tailscale/wireguard-go/conn"
+	"github.com/amnezia-vpn/amneziawg-go/conn"
 	"golang.org/x/net/ipv6"
 	"tailscale.com/net/packet"
 )

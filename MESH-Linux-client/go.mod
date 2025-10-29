@@ -371,7 +371,7 @@ require (
 )
 
 replace (
-	github.com/mvt-project/androidqf_ward => ./third_party/androidqf_ward
 	github.com/amnezia-vpn/amneziawg-go => ./third_party/amneziawg-go-fork
+	github.com/mvt-project/androidqf_ward => ./third_party/androidqf_ward
 	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
 )

@@ -13,7 +13,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/tailscale/wireguard-go/tun"
+	"github.com/amnezia-vpn/amneziawg-go/tun"
 
 	"tailscale.com/net/dns"
 	"tailscale.com/tailcfg"

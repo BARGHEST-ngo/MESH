@@ -21,7 +21,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/tailscale/netlink"
-	"github.com/tailscale/wireguard-go/tun"
+	"github.com/amnezia-vpn/amneziawg-go/tun"
 	"go4.org/netipx"
 	"tailscale.com/health"
 	"tailscale.com/net/netmon"
