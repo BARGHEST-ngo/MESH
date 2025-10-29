@@ -1,0 +1,16 @@
+#!/bin/bash
+
+SOCKET_PATH="/tmp/tailscale/tailscaled.sock"
+
+if [ ! -S "$SOCKET_PATH" ]; then
+    echo "Error: daemon not running at $SOCKET_PATH"
+    echo ""
+    echo "Start the daemon first with:"
+    echo "  ./start_mesh_daemon.sh"
+    echo ""
+    echo "Or run meshcli directly with:"
+    echo "  ./meshcli --socket=$SOCKET_PATH [command]"
+    exit 1
+fi
+
+exec ./meshcli --socket="$SOCKET_PATH" "$@"
