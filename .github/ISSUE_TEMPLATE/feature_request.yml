@@ -1,42 +1,66 @@
 name: Feature request
-description: Propose a new feature
+description: Propose a new feature for MESH
 title: "FR: "
-labels: [needs-triage, fr]
+labels: [needs-triage, enhancement]
 body:
   - type: markdown
     attributes:
       value: |
-        Please check if your feature request is [already filed](https://github.com/tailscale/tailscale/issues).
-        Tell us about your idea!
+        **MESH** is a custom fork of Tailscale with DPI protection and additional forensics and security features.
+
+        Please check if your feature request is [already filed](https://github.com/BARGHEST-ngo/MESH/issues).
+
+        **Note:** For general Tailscale features, consider requesting them in the [upstream Tailscale repository](https://github.com/tailscale/tailscale/issues) instead.
+  - type: dropdown
+    id: feature-type
+    attributes:
+      label: Feature type
+      description: What type of feature are you requesting?
+      multiple: false
+      options:
+        - Forensics/ADB functionality
+        - Censorship or DPI issues
+        - Security enhancement
+        - CLI improvement
+        - Networking features
+        - Performance optimization
+        - Documentation
+        - Other
+    validations:
+      required: false
   - type: textarea
     id: problem
     attributes:
       label: What are you trying to do?
-      description: Tell us about the problem you're trying to solve.
+      description: Tell us about the problem you're trying to solve or the use case you have.
+      placeholder: |
+        I'm trying to collect forensics data from multiple Android devices simultaneously...
     validations:
-      required: false
+      required: true
   - type: textarea
     id: solution
     attributes:
       label: How should we solve this?
       description: If you have an idea of how you'd like to see this feature work, let us know.
+      placeholder: |
+        Add a `meshcli adbcollect --batch` flag that accepts multiple device IPs...
     validations:
       required: false
   - type: textarea
     id: alternative
     attributes:
       label: What is the impact of not solving this?
-      description: (How) Are you currently working around the issue?
+      description: How are you currently working around the issue? What's the impact on your workflow?
     validations:
       required: false
   - type: textarea
     id: context
     attributes:
       label: Anything else?
-      description: Any additional context to share, e.g., links
+      description: Any additional context to share, e.g., links, screenshots, related issues
     validations:
       required: false
   - type: markdown
     attributes:
       value: |
-        Thanks for filing a feature request!
+        Thanks for filing a feature request. We appreciate your input in making MESH better.
