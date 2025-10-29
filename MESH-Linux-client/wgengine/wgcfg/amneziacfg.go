@@ -63,10 +63,14 @@ func LoadAmneziaConfig(logf logger.Logf) AmneziaConfig {
 	if err != nil {
 		if !os.IsNotExist(err) {
 			logf("amneziawg: failed to open config file %s: %v", path, err)
+		} else {
+			logf("amneziawg: config file not found at %s, using defaults (backward compatible mode)", path)
 		}
 		return cfg
 	}
 	defer file.Close()
+
+	logf("amneziawg: loading config from %s", path)
 
 	scanner := bufio.NewScanner(file)
 	inInterface := false
@@ -166,6 +170,14 @@ func LoadAmneziaConfig(logf logger.Logf) AmneziaConfig {
 		return DefaultAmneziaConfig()
 	}
 
+	// Log the loaded configuration
+	if cfg.IsObfuscationEnabled() {
+		logf("amneziawg: obfuscation ENABLED - Jc=%d Jmin=%d Jmax=%d S1=%d S2=%d H1=%d H2=%d H3=%d H4=%d",
+			cfg.Jc, cfg.Jmin, cfg.Jmax, cfg.S1, cfg.S2, cfg.H1, cfg.H2, cfg.H3, cfg.H4)
+	} else {
+		logf("amneziawg: obfuscation DISABLED (backward compatible mode)")
+	}
+
 	return cfg
 }
 
@@ -224,6 +236,20 @@ func (c *AmneziaConfig) Validate() error {
 	}
 
 	return nil
+}
+
+// IsObfuscationEnabled returns true if any obfuscation parameters are non-default
+func (c *AmneziaConfig) IsObfuscationEnabled() bool {
+	defaults := DefaultAmneziaConfig()
+	return c.Jc != defaults.Jc ||
+		c.Jmin != defaults.Jmin ||
+		c.Jmax != defaults.Jmax ||
+		c.S1 != defaults.S1 ||
+		c.S2 != defaults.S2 ||
+		c.H1 != defaults.H1 ||
+		c.H2 != defaults.H2 ||
+		c.H3 != defaults.H3 ||
+		c.H4 != defaults.H4
 }
 
 func (c *AmneziaConfig) ApplyTo(cfg *Config) {
