@@ -1,6 +1,6 @@
 module tailscale.com
 
-go 1.25.2
+go 1.24.4
 
 require (
 	filippo.io/mkcert v1.4.4
@@ -123,9 +123,6 @@ require (
 	github.com/ccojocar/zxcvbn-go v1.0.2 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/ckaznocha/intrange v0.1.0 // indirect
-	github.com/containerd/typeurl/v2 v2.2.3 // indirect
-	github.com/cyphar/filepath-securejoin v0.3.6 // indirect
-	github.com/deckarep/golang-set/v2 v2.8.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
@@ -138,23 +135,19 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golangci/plugin-module-register v0.1.1 // indirect
 	github.com/google/go-containerregistry v0.20.3 // indirect
-	github.com/google/go-github/v66 v66.0.0 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
 	github.com/jjti/go-spancheck v0.5.3 // indirect
 	github.com/karamaru-alpha/copyloopvar v1.0.8 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/macabu/inamedparam v0.1.3 // indirect
 	github.com/manifoldco/promptui v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/moby/buildkit v0.20.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
+	github.com/moby/term v0.5.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
-	github.com/puzpuzpuz/xsync v1.5.2 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
-	github.com/stacklok/frizbee v0.1.7 // indirect
 	github.com/tevino/abool v1.2.0 // indirect
 	github.com/xen0n/gosmopolitan v1.2.2 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
@@ -164,12 +157,16 @@ require (
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 // indirect
 	go.opentelemetry.io/otel v1.33.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.31.0 // indirect
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/automaxprocs v1.5.3 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20241021214115-324edc3d5d38 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241021214115-324edc3d5d38 // indirect
+	google.golang.org/grpc v1.69.4 // indirect
 	k8s.io/api v0.32.0 // indirect
 	k8s.io/apimachinery v0.32.0 // indirect
 )
@@ -229,7 +226,6 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/go-critic/go-critic v0.11.2 // indirect
-	github.com/go-git/go-billy/v5 v5.6.2 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-toolsmith/astcast v1.1.0 // indirect
 	github.com/go-toolsmith/astcopy v1.1.0 // indirect
@@ -374,9 +370,8 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
 )
 
-tool github.com/stacklok/frizbee
-
 replace (
 	github.com/mvt-project/androidqf_ward => ./third_party/androidqf_ward
+	github.com/amnezia-vpn/amneziawg-go => ./third_party/amneziawg-go-fork
 	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
 )
