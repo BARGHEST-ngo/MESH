@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 // Package truncate provides a utility function for safely truncating UTF-8
 // strings to a fixed length, respecting multi-byte codepoints.

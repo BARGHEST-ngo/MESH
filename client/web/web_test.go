@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 package web
 
@@ -1420,7 +1421,7 @@ func TestPeerCapabilities(t *testing.T) {
 }
 
 var (
-	defaultControlURL   = "https://controlplane.tailscale.com"
+	defaultControlURL   = "https://controlplane.barghest.asia"
 	testAuthPath        = "/a/12345"
 	testAuthPathSuccess = "/a/will-succeed"
 	testAuthPathError   = "/a/will-error"

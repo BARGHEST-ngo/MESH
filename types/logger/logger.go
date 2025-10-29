@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 // Package logger defines a type for writing to logs. It's just a
 // convenience type so that we don't have to pass verbose func(...)

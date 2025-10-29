@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 // Package ts2021 handles the details of the Tailscale 2021 control protocol
 // that are after (above) the Noise layer. In particular, the

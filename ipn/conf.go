@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 package ipn
 
@@ -16,7 +17,7 @@ type ConfigVAlpha struct {
 	Version string   // "alpha0" for now
 	Locked  opt.Bool `json:",omitempty"` // whether the config is locked from being changed by 'tailscale set'; it defaults to true
 
-	ServerURL *string  `json:",omitempty"` // defaults to https://controlplane.tailscale.com
+	ServerURL *string  `json:",omitempty"` // defaults to https://controlplane.barghest.asia
 	AuthKey   *string  `json:",omitempty"` // as needed if NeedsLogin. either key or path to a file (if prefixed with "file:")
 	Enabled   opt.Bool `json:",omitempty"` // wantRunning; empty string defaults to true
 

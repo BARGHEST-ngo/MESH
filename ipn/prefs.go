@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 package ipn
 
@@ -37,8 +38,9 @@ import (
 
 // DefaultControlURL is the URL base of the control plane
 // ("coordination server") for use when no explicit one is configured.
-// The default control plane is the hosted version run by Tailscale.com.
-const DefaultControlURL = "https://controlplane.tailscale.com"
+// The default control plane is self hosted. We have to remove the tailscale control plane and add our own.
+// The issue here is that domain takeover can cause issues.
+const DefaultControlURL = "https://135b10cb7b1c.ngrok-free.app"
 
 var (
 	// ErrExitNodeIDAlreadySet is returned from (*Prefs).SetExitNodeIP when the

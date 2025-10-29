@@ -1,13 +1,4 @@
 #!/usr/bin/env sh
-#
-# Runs `go build` with flags configured for binary distribution. All
-# it does differently from `go build` is burn git commit and version
-# information into the binaries, so that we can track down user
-# issues.
-#
-# If you're packaging Tailscale for a distro, please consider using
-# this script, or executing equivalent commands in your
-# distro-specific build system.
 
 set -eu
 
@@ -58,6 +49,15 @@ while [ "$#" -gt 1 ]; do
 		fi
 		shift
 		tags="${tags:+$tags,}ts_include_cli"
+		;;
+	--custom-tailscaled)
+		if [ ! -z "${TAGS:-}" ]; then
+			echo "set either --custom-tailscaled or \$TAGS, but not both"
+			exit 1
+		fi
+		shift
+		# Custom build with most features but omitting cloud/platform integrations, CLI, and specialized features
+		tags="${tags:+$tags,}ts_omit_aws,ts_omit_cloud,ts_omit_kube,ts_omit_synology,ts_omit_appconnectors,ts_omit_cli,ts_omit_completion,ts_omit_cliconndiag,ts_omit_clientupdate,ts_omit_c2n,ts_omit_oauthkey,ts_omit_outboundproxy,ts_omit_peerapiclient,ts_omit_peerapiserver,ts_omit_portlist,ts_omit_relayserver,ts_omit_wakeonlan,ts_omit_tap,ts_omit_bird"
 		;;
 	*)
 		break

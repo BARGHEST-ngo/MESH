@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 // Package codegen contains shared utilities for generating code.
 package codegen
@@ -69,8 +70,9 @@ func HasNoClone(structTag string) bool {
 	return false
 }
 
-const copyrightHeader = `// Copyright (c) Tailscale Inc & AUTHORS
+const copyrightHeader = `// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 `
 

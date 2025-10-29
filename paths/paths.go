@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 // Package paths returns platform and user-specific default paths to
 // Tailscale files and directories.
@@ -26,7 +27,7 @@ func DefaultTailscaledSocket() string {
 		return `\\.\pipe\ProtectedPrefix\Administrators\Tailscale\tailscaled`
 	}
 	if runtime.GOOS == "darwin" {
-		return "/var/run/tailscaled.socket"
+		return "/tmp/tailscale/tailscaled.socket"
 	}
 	if runtime.GOOS == "plan9" {
 		return "/srv/tailscaled.sock"
@@ -34,7 +35,7 @@ func DefaultTailscaledSocket() string {
 	switch distro.Get() {
 	case distro.Synology:
 		if distro.DSMVersion() == 6 {
-			return "/var/packages/Tailscale/etc/tailscaled.sock"
+			return "/tmp/tailscale/tailscaled.sock"
 		}
 		// DSM 7 (and higher? or failure to detect.)
 		return "/var/packages/Tailscale/var/tailscaled.sock"
@@ -44,7 +45,7 @@ func DefaultTailscaledSocket() string {
 		return "/tmp/tailscale/tailscaled.sock"
 	}
 	if fi, err := os.Stat("/var/run"); err == nil && fi.IsDir() {
-		return "/var/run/tailscale/tailscaled.sock"
+		return "/tmp/tailscale/tailscaled.sock"
 	}
 	return "tailscaled.sock"
 }

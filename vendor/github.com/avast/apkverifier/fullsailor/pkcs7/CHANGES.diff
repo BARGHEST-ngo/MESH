@@ -1,0 +1,275 @@
+diff --git a/ber.go b/ber.go
+index 89e96d3..3f56ea6 100644
+--- a/ber.go
++++ b/ber.go
+@@ -171,7 +171,9 @@ func readObject(ber []byte, offset int) (asn1Object, int, error) {
+ 			return nil, 0, errors.New("ber2der: BER tag length is negative")
+ 		}
+ 		if 0x0 == (int)(ber[offset]) {
+-			return nil, 0, errors.New("ber2der: BER tag length has leading zero")
++			offset++
++			numberOfBytes--
++			//return nil, 0, errors.New("ber2der: BER tag length has leading zero")
+ 		}
+ 		//fmt.Printf("--> (compute length) indicator byte: %x\n", l)
+ 		//fmt.Printf("--> (compute length) length bytes: % X\n", ber[offset:offset+numberOfBytes])
+@@ -240,7 +242,7 @@ func readObject(ber []byte, offset int) (asn1Object, int, error) {
+ }
+ 
+ func isIndefiniteTermination(ber []byte, offset int) (bool, error) {
+-	if len(ber) - offset < 2 {
++	if len(ber)-offset < 2 {
+ 		return false, errors.New("ber2der: Invalid BER format")
+ 	}
+ 
+diff --git a/ber_test.go b/ber_test.go
+index 19a0f51..7cf9e8e 100644
+--- a/ber_test.go
++++ b/ber_test.go
+@@ -44,7 +44,7 @@ func TestBer2Der_Negatives(t *testing.T) {
+ 	}{
+ 		{[]byte{0x30, 0x85}, "length too long"},
+ 		{[]byte{0x30, 0x84, 0x80, 0x0, 0x0, 0x0}, "length is negative"},
+-		{[]byte{0x30, 0x82, 0x0, 0x1}, "length has leading zero"},
++		//{[]byte{0x30, 0x82, 0x0, 0x1}, "length has leading zero"},
+ 		{[]byte{0x30, 0x80, 0x1, 0x2, 0x1, 0x2}, "Invalid BER format"},
+ 		{[]byte{0x30, 0x03, 0x01, 0x02}, "length is more than available data"},
+ 	}
+diff --git a/pkcs7.go b/pkcs7.go
+index 0264466..a3351b7 100644
+--- a/pkcs7.go
++++ b/pkcs7.go
+@@ -19,6 +19,10 @@ import (
+ 	"sort"
+ 	"time"
+ 
++	"github.com/avast/apkverifier/internal/asn1andr"
++
++	"github.com/avast/apkverifier/internal/x509andr"
++
+ 	_ "crypto/sha1" // for crypto.SHA1
+ )
+ 
+@@ -28,6 +32,7 @@ type PKCS7 struct {
+ 	Certificates []*x509.Certificate
+ 	CRLs         []pkix.CertificateList
+ 	Signers      []signerInfo
++	ContentType  asn1.ObjectIdentifier
+ 	raw          interface{}
+ }
+ 
+@@ -92,11 +97,21 @@ type attribute struct {
+ 	Value asn1.RawValue `asn1:"set"`
+ }
+ 
++type SignerAttribute struct {
++	Type  asn1.ObjectIdentifier
++	Value asn1.RawValue `asn1:"set"`
++}
++
+ type issuerAndSerial struct {
+ 	IssuerName   asn1.RawValue
+ 	SerialNumber *big.Int
+ }
+ 
++type IssuerAndSerial struct {
++	IssuerName   asn1.RawValue
++	SerialNumber *big.Int
++}
++
+ // MessageDigestMismatchError is returned when the signer data digest does not
+ // match the computed digest for the contained content
+ type MessageDigestMismatchError struct {
+@@ -118,6 +133,16 @@ type signerInfo struct {
+ 	UnauthenticatedAttributes []attribute `asn1:"optional,tag:1"`
+ }
+ 
++type SignerInfo struct {
++	Version                   int `asn1:"default:1"`
++	IssuerAndSerialNumber     IssuerAndSerial
++	DigestAlgorithm           pkix.AlgorithmIdentifier
++	AuthenticatedAttributes   []SignerAttribute `asn1:"optional,tag:0"`
++	DigestEncryptionAlgorithm pkix.AlgorithmIdentifier
++	EncryptedDigest           []byte
++	UnauthenticatedAttributes []SignerAttribute `asn1:"optional,tag:1"`
++}
++
+ // Parse decodes a DER encoded PKCS7 package
+ func Parse(data []byte) (p7 *PKCS7, err error) {
+ 	if len(data) == 0 {
+@@ -128,7 +153,7 @@ func Parse(data []byte) (p7 *PKCS7, err error) {
+ 	if err != nil {
+ 		return nil, err
+ 	}
+-	rest, err := asn1.Unmarshal(der, &info)
++	rest, err := asn1andr.Unmarshal(der, &info)
+ 	if len(rest) > 0 {
+ 		err = asn1.SyntaxError{Msg: "trailing data"}
+ 		return
+@@ -149,7 +174,7 @@ func Parse(data []byte) (p7 *PKCS7, err error) {
+ 
+ func parseSignedData(data []byte) (*PKCS7, error) {
+ 	var sd signedData
+-	asn1.Unmarshal(data, &sd)
++	asn1andr.Unmarshal(data, &sd)
+ 	certs, err := sd.Certificates.Parse()
+ 	if err != nil {
+ 		return nil, err
+@@ -161,13 +186,13 @@ func parseSignedData(data []byte) (*PKCS7, error) {
+ 
+ 	// The Content.Bytes maybe empty on PKI responses.
+ 	if len(sd.ContentInfo.Content.Bytes) > 0 {
+-		if _, err := asn1.Unmarshal(sd.ContentInfo.Content.Bytes, &compound); err != nil {
++		if _, err := asn1andr.Unmarshal(sd.ContentInfo.Content.Bytes, &compound); err != nil {
+ 			return nil, err
+ 		}
+ 	}
+ 	// Compound octet string
+ 	if compound.IsCompound {
+-		if _, err = asn1.Unmarshal(compound.Bytes, &content); err != nil {
++		if _, err = asn1andr.Unmarshal(compound.Bytes, &content); err != nil {
+ 			return nil, err
+ 		}
+ 	} else {
+@@ -179,6 +204,7 @@ func parseSignedData(data []byte) (*PKCS7, error) {
+ 		Certificates: certs,
+ 		CRLs:         sd.CRLs,
+ 		Signers:      sd.SignerInfos,
++		ContentType:  sd.ContentInfo.ContentType,
+ 		raw:          sd}, nil
+ }
+ 
+@@ -188,16 +214,16 @@ func (raw rawCertificates) Parse() ([]*x509.Certificate, error) {
+ 	}
+ 
+ 	var val asn1.RawValue
+-	if _, err := asn1.Unmarshal(raw.Raw, &val); err != nil {
++	if _, err := asn1andr.Unmarshal(raw.Raw, &val); err != nil {
+ 		return nil, err
+ 	}
+ 
+-	return x509.ParseCertificates(val.Bytes)
++	return x509andr.ParseCertificatesForGo(val.Bytes)
+ }
+ 
+ func parseEnvelopedData(data []byte) (*PKCS7, error) {
+ 	var ed envelopedData
+-	if _, err := asn1.Unmarshal(data, &ed); err != nil {
++	if _, err := asn1andr.Unmarshal(data, &ed); err != nil {
+ 		return nil, err
+ 	}
+ 	return &PKCS7{
+@@ -279,7 +305,7 @@ func marshalAttributes(attrs []attribute) ([]byte, error) {
+ 
+ 	// Remove the leading sequence octets
+ 	var raw asn1.RawValue
+-	asn1.Unmarshal(encodedAttributes, &raw)
++	asn1andr.Unmarshal(encodedAttributes, &raw)
+ 	return raw.Bytes, nil
+ }
+ 
+@@ -301,8 +327,8 @@ func getHashForOID(oid asn1.ObjectIdentifier) (crypto.Hash, error) {
+ 	switch {
+ 	case oid.Equal(oidDigestAlgorithmSHA1):
+ 		return crypto.SHA1, nil
+-  case oid.Equal(oidSHA256):
+-    return crypto.SHA256, nil
++	case oid.Equal(oidSHA256):
++		return crypto.SHA256, nil
+ 	}
+ 	return crypto.Hash(0), ErrUnsupportedAlgorithm
+ }
+@@ -380,7 +406,7 @@ func (eci encryptedContentInfo) decrypt(key []byte) ([]byte, error) {
+ 		cypherbytes := eci.EncryptedContent.Bytes
+ 		for {
+ 			var part []byte
+-			cypherbytes, _ = asn1.Unmarshal(cypherbytes, &part)
++			cypherbytes, _ = asn1andr.Unmarshal(cypherbytes, &part)
+ 			buf.Write(part)
+ 			if cypherbytes == nil {
+ 				break
+@@ -414,7 +440,7 @@ func (eci encryptedContentInfo) decrypt(key []byte) ([]byte, error) {
+ 		params := aesGCMParameters{}
+ 		paramBytes := eci.ContentEncryptionAlgorithm.Parameters.Bytes
+ 
+-		_, err := asn1.Unmarshal(paramBytes, &params)
++		_, err := asn1andr.Unmarshal(paramBytes, &params)
+ 		if err != nil {
+ 			return nil, err
+ 		}
+@@ -502,7 +528,7 @@ func unpad(data []byte, blocklen int) ([]byte, error) {
+ func unmarshalAttribute(attrs []attribute, attributeType asn1.ObjectIdentifier, out interface{}) error {
+ 	for _, attr := range attrs {
+ 		if attr.Type.Equal(attributeType) {
+-			_, err := asn1.Unmarshal(attr.Value.Bytes, out)
++			_, err := asn1andr.Unmarshal(attr.Value.Bytes, out)
+ 			return err
+ 		}
+ 	}
+@@ -960,3 +986,66 @@ func encryptKey(key []byte, recipient *x509.Certificate) ([]byte, error) {
+ 	}
+ 	return nil, ErrUnsupportedAlgorithm
+ }
++
++// Author of this library is a gosh-darned ass.
++func (p7 *PKCS7) GetSignerInfos() []SignerInfo {
++	res := make([]SignerInfo, len(p7.Signers))
++	for i := range p7.Signers {
++		s := &p7.Signers[i]
++
++		AuthenticatedAttributes := make([]SignerAttribute, len(s.AuthenticatedAttributes))
++		for i := range s.AuthenticatedAttributes {
++			AuthenticatedAttributes[i] = SignerAttribute(s.AuthenticatedAttributes[i])
++		}
++
++		UnauthenticatedAttributes := make([]SignerAttribute, len(s.UnauthenticatedAttributes))
++		for i := range s.UnauthenticatedAttributes {
++			UnauthenticatedAttributes[i] = SignerAttribute(s.UnauthenticatedAttributes[i])
++		}
++		res[i] = SignerInfo{
++			s.Version,
++			IssuerAndSerial(s.IssuerAndSerialNumber),
++			s.DigestAlgorithm,
++			AuthenticatedAttributes,
++			s.DigestEncryptionAlgorithm,
++			s.EncryptedDigest,
++			UnauthenticatedAttributes,
++		}
++	}
++	return res
++}
++
++func (si *SignerInfo) UnmarshalSignedAttribute(attributeType asn1.ObjectIdentifier, out interface{}) error {
++	found := false
++	for _, attr := range si.AuthenticatedAttributes {
++		if attr.Type.Equal(attributeType) {
++			if found {
++				return errors.New("pkcs7: attribute type has multiple values")
++			}
++
++			found = true
++			if _, err := asn1andr.Unmarshal(attr.Value.Bytes, out); err != nil {
++				return err
++			}
++		}
++	}
++
++	if !found {
++		return errors.New("pkcs7: attribute type not in attributes")
++	}
++	return nil
++}
++
++func (si *SignerInfo) MarshalAuthenticatedAttributes() ([]byte, error) {
++	encodedAttributes, err := asn1.Marshal(struct {
++		A []SignerAttribute `asn1:"set"`
++	}{A: si.AuthenticatedAttributes})
++	if err != nil {
++		return nil, err
++	}
++
++	// Remove the leading sequence octets
++	var raw asn1.RawValue
++	asn1andr.Unmarshal(encodedAttributes, &raw)
++	return raw.Bytes, nil
++}

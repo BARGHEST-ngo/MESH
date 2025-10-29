@@ -1,5 +1,6 @@
-// Copyright (c) Tailscale Inc & AUTHORS
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 // testwrapper is a wrapper for retrying flaky tests. It is an alternative to
 // `go test` and re-runs failed marked flaky tests (using the flakytest pkg). It
