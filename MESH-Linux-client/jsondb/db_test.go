@@ -1,0 +1,56 @@
+// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
+// SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
+
+package jsondb
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+)
+
+func TestDB(t *testing.T) {
+	dir, err := os.MkdirTemp("", "db-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	path := filepath.Join(dir, "db.json")
+	db, err := Open[testDB](path)
+	if err != nil {
+		t.Fatalf("creating empty DB: %v", err)
+	}
+
+	if diff := cmp.Diff(db.Data, &testDB{}, cmp.AllowUnexported(testDB{})); diff != "" {
+		t.Fatalf("unexpected empty DB content (-got+want):\n%s", diff)
+	}
+	db.Data.MyString = "test"
+	db.Data.unexported = "don't keep"
+	db.Data.AnInt = 42
+	if err := db.Save(); err != nil {
+		t.Fatalf("saving database: %v", err)
+	}
+
+	db2, err := Open[testDB](path)
+	if err != nil {
+		log.Fatalf("opening DB again: %v", err)
+	}
+	want := &testDB{
+		MyString: "test",
+		AnInt:    42,
+	}
+	if diff := cmp.Diff(db2.Data, want, cmp.AllowUnexported(testDB{})); diff != "" {
+		t.Fatalf("unexpected saved DB content (-got+want):\n%s", diff)
+	}
+}
+
+type testDB struct {
+	MyString   string
+	unexported string
+	AnInt      int64
+}

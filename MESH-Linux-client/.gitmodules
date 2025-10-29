@@ -1,0 +1,9 @@
+[submodule "androidqf_ward"]
+	path = androidqf_ward
+	url = https://github.com/0x0v1/androidqf_ward.git
+[submodule "vendor/androidqf"]
+	path = vendor/androidqf
+	url = https://github.com/0x0v1/androidqf_ward.git
+[submodule "vendor/androidqf_ward"]
+	path = vendor/androidqf_ward
+	url = https://github.com/0x0v1/androidqf_ward.git
