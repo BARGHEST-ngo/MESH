@@ -1451,7 +1451,9 @@ func (c *Conn) networkDown() bool { return !c.networkUp.Load() }
 //
 // See https://pkg.go.dev/github.com/amnezia-vpn/amneziawg-go/conn#Bind.Send
 func (c *Conn) Send(buffs [][]byte, ep conn.Endpoint) (err error) {
-	// amneziawg-go doesn't use offset parameter, so we use 0
+	// amneziawg-go doesn't allocate buffers with offset for Geneve headers,
+	// so we use offset=0. The WriteWireGuardBatchTo function handles this
+	// by skipping the offset when Geneve VNI is not set.
 	const offset = 0
 	n := int64(len(buffs))
 	defer func() {
