@@ -119,14 +119,66 @@ func FromUAPI(r io.Reader) (*Config, error) {
 func (cfg *Config) handleDeviceLine(k, value mem.RO, valueBytes []byte) error {
 	switch {
 	case k.EqualString("private_key"):
-		// wireguard-go guarantees not to send zero value; private keys are already clamped.
 		var err error
 		cfg.PrivateKey, err = key.ParseNodePrivateUntyped(value)
 		if err != nil {
 			return err
 		}
+	case k.EqualString("jc"):
+		n, err := mem.ParseUint(value, 10, 8)
+		if err != nil {
+			return err
+		}
+		cfg.Jc = uint8(n)
+	case k.EqualString("jmin"):
+		n, err := mem.ParseUint(value, 10, 16)
+		if err != nil {
+			return err
+		}
+		cfg.Jmin = uint16(n)
+	case k.EqualString("jmax"):
+		n, err := mem.ParseUint(value, 10, 16)
+		if err != nil {
+			return err
+		}
+		cfg.Jmax = uint16(n)
+	case k.EqualString("s1"):
+		n, err := mem.ParseUint(value, 10, 16)
+		if err != nil {
+			return err
+		}
+		cfg.S1 = uint16(n)
+	case k.EqualString("s2"):
+		n, err := mem.ParseUint(value, 10, 16)
+		if err != nil {
+			return err
+		}
+		cfg.S2 = uint16(n)
+	case k.EqualString("h1"):
+		n, err := mem.ParseUint(value, 10, 32)
+		if err != nil {
+			return err
+		}
+		cfg.H1 = uint32(n)
+	case k.EqualString("h2"):
+		n, err := mem.ParseUint(value, 10, 32)
+		if err != nil {
+			return err
+		}
+		cfg.H2 = uint32(n)
+	case k.EqualString("h3"):
+		n, err := mem.ParseUint(value, 10, 32)
+		if err != nil {
+			return err
+		}
+		cfg.H3 = uint32(n)
+	case k.EqualString("h4"):
+		n, err := mem.ParseUint(value, 10, 32)
+		if err != nil {
+			return err
+		}
+		cfg.H4 = uint32(n)
 	case k.EqualString("listen_port") || k.EqualString("fwmark"):
-	// ignore
 	default:
 		return fmt.Errorf("unexpected IpcGetOperation key: %q", k.StringCopy())
 	}

@@ -25,8 +25,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tailscale/wireguard-go/conn"
-	"github.com/tailscale/wireguard-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/conn"
+	"github.com/amnezia-vpn/amneziawg-go/device"
 	"go4.org/mem"
 	"golang.org/x/net/ipv6"
 	"tailscale.com/control/controlknobs"
@@ -1449,8 +1449,10 @@ func (c *Conn) networkDown() bool { return !c.networkUp.Load() }
 
 // Send implements conn.Bind.
 //
-// See https://pkg.go.dev/github.com/tailscale/wireguard-go/conn#Bind.Send
-func (c *Conn) Send(buffs [][]byte, ep conn.Endpoint, offset int) (err error) {
+// See https://pkg.go.dev/github.com/amnezia-vpn/amneziawg-go/conn#Bind.Send
+func (c *Conn) Send(buffs [][]byte, ep conn.Endpoint) (err error) {
+	// amneziawg-go doesn't use offset parameter, so we use 0
+	const offset = 0
 	n := int64(len(buffs))
 	defer func() {
 		if err != nil {
@@ -1836,7 +1838,7 @@ func (c *Conn) receiveIP(b []byte, ipp netip.AddrPort, cache *epAddrEndpointCach
 		// Strip away the Geneve header before returning the packet to
 		// wireguard-go.
 		//
-		// TODO(jwhited): update [github.com/tailscale/wireguard-go/conn.ReceiveFunc]
+		// TODO(jwhited): update [github.com/amnezia-vpn/amneziawg-go/conn.ReceiveFunc]
 		//  to support returning start offset in order to get rid of this memmove perf
 		//  penalty.
 		size = copy(b, b[packet.GeneveFixedHeaderLength:])
@@ -4127,8 +4129,9 @@ type lazyEndpoint struct {
 	src     epAddr
 }
 
-var _ conn.InitiationAwareEndpoint = (*lazyEndpoint)(nil)
-var _ conn.PeerAwareEndpoint = (*lazyEndpoint)(nil)
+// Note: amneziawg-go has different interface signatures than Tailscale's wireguard-go fork
+// var _ conn.InitiationAwareEndpoint = (*lazyEndpoint)(nil)
+// var _ conn.PeerAwareEndpoint = (*lazyEndpoint)(nil)
 var _ conn.Endpoint = (*lazyEndpoint)(nil)
 
 // InitiationMessagePublicKey implements [conn.InitiationAwareEndpoint].

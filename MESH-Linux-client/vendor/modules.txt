@@ -101,6 +101,20 @@ github.com/alexkohler/prealloc/pkg
 # github.com/alingse/asasalint v0.0.11
 ## explicit; go 1.18
 github.com/alingse/asasalint
+# github.com/amnezia-vpn/amneziawg-go v1.0.4
+## explicit; go 1.24.4
+github.com/amnezia-vpn/amneziawg-go/conn
+github.com/amnezia-vpn/amneziawg-go/conn/winrio
+github.com/amnezia-vpn/amneziawg-go/device
+github.com/amnezia-vpn/amneziawg-go/device/awg
+github.com/amnezia-vpn/amneziawg-go/ipc
+github.com/amnezia-vpn/amneziawg-go/ipc/namedpipe
+github.com/amnezia-vpn/amneziawg-go/ratelimiter
+github.com/amnezia-vpn/amneziawg-go/replay
+github.com/amnezia-vpn/amneziawg-go/rwcancel
+github.com/amnezia-vpn/amneziawg-go/tai64n
+github.com/amnezia-vpn/amneziawg-go/tun
+github.com/amnezia-vpn/amneziawg-go/tun/tuntest
 # github.com/andybalholm/brotli v1.1.0
 ## explicit; go 1.13
 github.com/andybalholm/brotli
@@ -657,7 +671,7 @@ github.com/golangci/revgrep
 # github.com/golangci/unconvert v0.0.0-20240309020433-c5143eacb3ed
 ## explicit; go 1.20
 github.com/golangci/unconvert
-# github.com/google/btree v1.1.2
+# github.com/google/btree v1.1.3
 ## explicit; go 1.18
 github.com/google/btree
 # github.com/google/go-cmp v0.6.0
@@ -1297,19 +1311,6 @@ github.com/tailscale/web-client-prebuilt
 # github.com/tailscale/wf v0.0.0-20240214030419-6fbb0a674ee6
 ## explicit; go 1.18
 github.com/tailscale/wf
-# github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da
-## explicit; go 1.20
-github.com/tailscale/wireguard-go/conn
-github.com/tailscale/wireguard-go/conn/winrio
-github.com/tailscale/wireguard-go/device
-github.com/tailscale/wireguard-go/ipc
-github.com/tailscale/wireguard-go/ipc/namedpipe
-github.com/tailscale/wireguard-go/ratelimiter
-github.com/tailscale/wireguard-go/replay
-github.com/tailscale/wireguard-go/rwcancel
-github.com/tailscale/wireguard-go/tai64n
-github.com/tailscale/wireguard-go/tun
-github.com/tailscale/wireguard-go/tun/tuntest
 # github.com/tailscale/xnet v0.0.0-20240729143630-8497ac4dab2e
 ## explicit; go 1.18
 github.com/tailscale/xnet/webdav
@@ -1320,6 +1321,9 @@ github.com/tdakkota/asciicheck
 # github.com/tetafro/godot v1.4.16
 ## explicit; go 1.20
 github.com/tetafro/godot
+# github.com/tevino/abool v1.2.0
+## explicit; go 1.14
+github.com/tevino/abool
 # github.com/timakin/bodyclose v0.0.0-20230421092635-574207250966
 ## explicit; go 1.12
 github.com/timakin/bodyclose/passes/bodyclose
@@ -1427,6 +1431,9 @@ go.opentelemetry.io/otel/metric/noop
 go.opentelemetry.io/otel/trace
 go.opentelemetry.io/otel/trace/embedded
 go.opentelemetry.io/otel/trace/noop
+# go.uber.org/atomic v1.11.0
+## explicit; go 1.18
+go.uber.org/atomic
 # go.uber.org/automaxprocs v1.5.3
 ## explicit; go 1.18
 go.uber.org/automaxprocs/internal/cgroups
@@ -1689,7 +1696,7 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
+# gvisor.dev/gvisor v0.0.0-20250606233247-e3c4c4cad86f => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
 ## explicit; go 1.23.1
 gvisor.dev/gvisor/pkg/atomicbitops
 gvisor.dev/gvisor/pkg/bits
@@ -2037,3 +2044,4 @@ sigs.k8s.io/yaml/goyaml.v2
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
 # github.com/mvt-project/androidqf_ward => ./third_party/androidqf_ward
+# gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633

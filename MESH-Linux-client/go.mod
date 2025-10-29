@@ -8,6 +8,7 @@ require (
 	github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9
 	github.com/akutz/memconn v0.1.0
 	github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa
+	github.com/amnezia-vpn/amneziawg-go v1.0.4
 	github.com/andybalholm/brotli v1.1.0
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be
 	github.com/atotto/clipboard v0.1.4
@@ -77,7 +78,6 @@ require (
 	github.com/tailscale/peercred v0.0.0-20250107143737-35a0c7bd7edc
 	github.com/tailscale/web-client-prebuilt v0.0.0-20250124233751-d4cd19a26976
 	github.com/tailscale/wf v0.0.0-20240214030419-6fbb0a674ee6
-	github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da
 	github.com/tailscale/xnet v0.0.0-20240729143630-8497ac4dab2e
 	github.com/toqueteos/webbrowser v1.2.0
 	github.com/u-root/u-root v0.14.0
@@ -96,7 +96,7 @@ require (
 	golang.org/x/tools v0.34.0
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2
 	golang.zx2c4.com/wireguard/windows v0.5.3
-	gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
+	gvisor.dev/gvisor v0.0.0-20250606233247-e3c4c4cad86f
 	honnef.co/go/tools v0.5.1
 	k8s.io/client-go v0.32.0
 	sigs.k8s.io/controller-tools v0.17.0
@@ -155,6 +155,7 @@ require (
 	github.com/puzpuzpuz/xsync v1.5.2 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/stacklok/frizbee v0.1.7 // indirect
+	github.com/tevino/abool v1.2.0 // indirect
 	github.com/xen0n/gosmopolitan v1.2.2 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/ykadowak/zerologlint v0.1.5 // indirect
@@ -165,6 +166,7 @@ require (
 	go.opentelemetry.io/otel v1.33.0 // indirect
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/automaxprocs v1.5.3 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
@@ -245,7 +247,7 @@ require (
 	github.com/golangci/misspell v0.4.1 // indirect
 	github.com/golangci/revgrep v0.5.2 // indirect
 	github.com/golangci/unconvert v0.0.0-20240309020433-c5143eacb3ed // indirect
-	github.com/google/btree v1.1.2 // indirect
+	github.com/google/btree v1.1.3 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/goterm v0.0.0-20200907032337-555d40f16ae2 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
@@ -374,4 +376,7 @@ require (
 
 tool github.com/stacklok/frizbee
 
-replace github.com/mvt-project/androidqf_ward => ./third_party/androidqf_ward
+replace (
+	github.com/mvt-project/androidqf_ward => ./third_party/androidqf_ward
+	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
+)

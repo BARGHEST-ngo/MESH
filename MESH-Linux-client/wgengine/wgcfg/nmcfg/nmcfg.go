@@ -49,7 +49,6 @@ func cidrIsSubnet(node tailcfg.NodeView, cidr netip.Prefix) bool {
 	return true
 }
 
-// WGCfg returns the NetworkMaps's WireGuard configuration.
 func WGCfg(nm *netmap.NetworkMap, logf logger.Logf, flags netmap.WGConfigFlags, exitNode tailcfg.StableNodeID) (*wgcfg.Config, error) {
 	cfg := &wgcfg.Config{
 		Name:       "tailscale",
@@ -58,7 +57,9 @@ func WGCfg(nm *netmap.NetworkMap, logf logger.Logf, flags netmap.WGConfigFlags, 
 		Peers:      make([]wgcfg.Peer, 0, len(nm.Peers)),
 	}
 
-	// Setup log IDs for data plane audit logging.
+	amneziaCfg := wgcfg.LoadAmneziaConfig(logf)
+	amneziaCfg.ApplyTo(cfg)
+
 	if nm.SelfNode.Valid() {
 		cfg.NodeID = nm.SelfNode.StableID()
 		canNetworkLog := nm.SelfNode.HasCap(tailcfg.CapabilityDataPlaneAuditLogs)

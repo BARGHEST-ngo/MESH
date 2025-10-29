@@ -35,13 +35,46 @@ func (cfg *Config) ToUAPI(logf logger.Logf, w io.Writer, prev *Config) error {
 	setUint16 := func(key string, value uint16) {
 		set(key, strconv.FormatUint(uint64(value), 10))
 	}
+	setUint8 := func(key string, value uint8) {
+		set(key, strconv.FormatUint(uint64(value), 10))
+	}
+	setUint32 := func(key string, value uint32) {
+		set(key, strconv.FormatUint(uint64(value), 10))
+	}
 	setPeer := func(peer Peer) {
 		set("public_key", peer.PublicKey.UntypedHexString())
 	}
 
-	// Device config.
 	if !prev.PrivateKey.Equal(cfg.PrivateKey) {
 		set("private_key", cfg.PrivateKey.UntypedHexString())
+	}
+
+	if prev.Jc != cfg.Jc {
+		setUint8("jc", cfg.Jc)
+	}
+	if prev.Jmin != cfg.Jmin {
+		setUint16("jmin", cfg.Jmin)
+	}
+	if prev.Jmax != cfg.Jmax {
+		setUint16("jmax", cfg.Jmax)
+	}
+	if prev.S1 != cfg.S1 {
+		setUint16("s1", cfg.S1)
+	}
+	if prev.S2 != cfg.S2 {
+		setUint16("s2", cfg.S2)
+	}
+	if prev.H1 != cfg.H1 {
+		setUint32("h1", cfg.H1)
+	}
+	if prev.H2 != cfg.H2 {
+		setUint32("h2", cfg.H2)
+	}
+	if prev.H3 != cfg.H3 {
+		setUint32("h3", cfg.H3)
+	}
+	if prev.H4 != cfg.H4 {
+		setUint32("h4", cfg.H4)
 	}
 
 	old := make(map[key.NodePublic]Peer)

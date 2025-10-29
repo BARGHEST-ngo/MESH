@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/gaissmai/bart"
-	"github.com/tailscale/wireguard-go/conn"
-	"github.com/tailscale/wireguard-go/device"
-	"github.com/tailscale/wireguard-go/tun"
+	"github.com/amnezia-vpn/amneziawg-go/conn"
+	"github.com/amnezia-vpn/amneziawg-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/tun"
 	"go4.org/mem"
 	"tailscale.com/disco"
 	"tailscale.com/feature/buildfeatures"
