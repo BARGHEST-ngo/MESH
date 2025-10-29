@@ -1,4 +1,4 @@
-# AmneziaWG Integration
+# MESH AmneziaWG intergration
 
 This document describes the AmneziaWG integration in MESH, which provides DPI (Deep Packet Inspection) evasion capabilities.
 
