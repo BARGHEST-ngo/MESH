@@ -29,25 +29,27 @@
 
 MESH is a censorship-resisting, peer-to-peer, end-to-end encrypted overlay network for digital forensics.
 
-It runs on top of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
+It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
 
-MESH adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked.
+MESH adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked. This offers protection against GFW and detection by Deep Packet Inspection (DPI) systems.
 
 It can create and tear down end-to-end mesh links between a locked-down analyst host and forensic clients (for example, Android devices) in seconds.
 
-By removing hub-and-spoke topologies, MESH lets you spin up a forensics peer-to-peer mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
+By removing hub-and-spoke topologies, MESH lets you spin up a forensics mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
 
-Remote investigations that just work.
+Remote investigations that work.
 
-Key functions:
+Key functions
 
-- Builds P2P subnets for device analysis.
-- End-to-end encrypts using WireGuard.
-- Enabled a control plane to manage mesh networks between analysts, control mesh ACLs, and restrict access for compromised nodes on connection.
-- Advertise LAN routes or an exit nodes for network monitoring or further forensics use cases. 
-- Allows for ephemeral deployment and teardown on disconnection.
-- Creates a virtual TUN interface (assigning an address from CGNAT ranges)
-- Transfers forensic artifacts such as ADB bug reports and dumpsys data.
+- Builds peer-to-peer subnets for device analysis.
+- Provides end-to-end encryption via WireGuard.
+- Runs a self-hostable control plane to create and manage meshes between analysts, enforce ACLs, and block compromised nodes on connection.
+- Advertises LAN routes or exit nodes for monitoring and extended forensics.
+- Supports ephemeral deployment and teardown on disconnect.
+- Creates a virtual TUN interface and assigns CGNAT-range addresses for use with ADB-over-Wifi & [Libimobile](https://github.com/libimobiledevice/libimobiledevice).
+- Transfers forensic artifacts such as ADB bug reports and `dumpsys` output.
+- Intergrates directly with [AndroidQF](https://github.com/mvt-project/androidqf) for spyware IOC checks with [MVT](https://github.com/mvt-project/mvt)
+- Supports kill-switch capabilities to block a device’s other network traffic while the forensics link remains active.
 - Enables rapid creation, isolation, and teardown of remote investigation nodes.
 
 ## Encryption, P2P & Censorship resistance.
@@ -59,4 +61,10 @@ If UDP hole punching is unavailable or UDP is blocked, MESH falls back to the **
 Because WireGuard is actively censored in regions such as Russia and China, MESH uses WireGuard by default but can be configured to use [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) by adding an AmneziaWG config to your client. This obfuscates WireGuard packet fingerprints.
 
 When UDP is blocked and the connection fails over to DERP, all encrypted traffic is sent over HTTPS via relays, providing a censorship-resilient mesh network.
+
+
+## Get started
+
+Docs coming soon.
+
 
