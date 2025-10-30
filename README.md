@@ -27,12 +27,13 @@
 
 ## What is MESH
 
-MESH is a peer-to-peer encrypted overlay network that uses UDP-hole punching for secure live state mobile forensics & network monitoring when physical or direct network access is not possible.
-It creates and tearsdown end-to-end mesh networks between a locked down analyst host and untrusted Android or iOS devices in a matter of seconds.
+MESH is a peer-to-peer encrypted overlay network built on top of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but heavily adapted for civil society and digital forensics use cases. It adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) to operate in hostile or censored networks.
 
-Build a forensics mesh and acquire the data in seconds, teardown down and restart without complicated configurations. 
-This is remote forensic & network capture without hub-and-spoke topology. 
-Remote investigations, that just work. 
+It creates and tears down end-to-end mesh networks between a locked-down analyst host and untrusted Android or iOS devices in seconds.
+
+Build a forensics mesh, acquire the data, tear it down, and restart without complex configuration. This is remote forensic and network capture without a hub-and-spoke topology.
+
+Remote investigations that work.
 
 Key functions:
 
@@ -44,3 +45,14 @@ Key functions:
 - Creates a virtual TUN interface (assigning an address from CGNAT ranges)
 - Transfers forensic artifacts such as ADB bug reports and dumpsys data.
 - Enables rapid creation, isolation, and teardown of remote investigation nodes.
+
+## Encryption, P2P & Censorship resistance.
+
+MESH uses a self-hostable control plane to coordinate the sharing of WireGuard keys between nodes. Each node then attempts NAT traversal using UDP hole punching and STUN-like techniques so two peers can exchange encrypted WireGuard packets directly. When hole punching succeeds, traffic is fully end-to-end encrypted WireGuard between the two endpoints.
+
+If UDP hole punching is unavailable or UDP is blocked, MESH falls back to the **DERP (Detoured Encrypted Relay for Packets)** protocol, which provides a relay network for failed or asymmetric NAT traversal. It relays already-encrypted WireGuard packets through DERP servers, so the relay sees metadata but never plaintext. Relays can be self-hosted by anyone. See [DERP servers](https://tailscale.com/kb/1232/derp-servers).
+
+Because WireGuard is actively censored in regions such as Russia and China, MESH uses WireGuard by default but can be configured to use [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) by adding an AmneziaWG config to your client. This obfuscates WireGuard packet fingerprints.
+
+When UDP is blocked and the connection fails over to DERP, all encrypted traffic is sent over HTTPS via relays, providing a censorship-resilient mesh network.
+
