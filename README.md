@@ -55,7 +55,7 @@ Key functions
 - Supports kill-switch capabilities to block a device’s other network traffic while the forensics link remains active.
 - Enables rapid creation, isolation, and teardown of remote investigation nodes.
 
-## Forensics
+## Remote mobile forensics and auditing
 
 MESH creates an encrypted overlay network and assigns addresses from CGNAT ranges to connected devices. This makes mobile devices reachable over the mesh without exposing them to the wider network.
 
