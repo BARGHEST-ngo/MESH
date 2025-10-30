@@ -17,7 +17,7 @@
     <a href="https://meshforensics.org">
       MESH Docs
     </a>
-    <span> | </span>
+    <span>  |  </span>
     <a href="https://Barghest.asia">
       BARGHEST
     </a>
@@ -27,13 +27,17 @@
 
 ## What is MESH
 
-MESH is a peer-to-peer encrypted overlay network built on top of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but heavily adapted for civil society and digital forensics use cases. It adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) to operate in hostile or censored networks.
+MESH is a censorship-resisting, peer-to-peer, end-to-end encrypted overlay network for digital forensics.
 
-It creates and tears down end-to-end mesh networks between a locked-down analyst host and untrusted Android or iOS devices in seconds.
+It runs on top of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
 
-Build a forensics mesh, acquire the data, tear it down, and restart without complex configuration. This is remote forensic and network capture without a hub-and-spoke topology.
+MESH adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked.
 
-Remote investigations that work.
+It can create and tear down end-to-end mesh links between a locked-down analyst host and forensic clients (for example, Android devices) in seconds.
+
+By removing hub-and-spoke topologies, MESH lets you spin up a forensics peer-to-peer mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
+
+Remote investigations that just work.
 
 Key functions:
 
