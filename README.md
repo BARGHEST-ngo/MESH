@@ -55,7 +55,7 @@ Key functions
 - Supports kill-switch capabilities to block a device’s other network traffic while the forensics link remains active.
 - Enables rapid creation, isolation, and teardown of remote investigation nodes.
 
-## Encryption, P2P & Censorship resistance.
+## Encryption, P2P & censorship resistance.
 
 MESH uses a self-hostable control plane to coordinate the sharing of WireGuard keys between nodes letting you establish direct peer-to-peer connections whenever possible. Each node attempts NAT traversal using UDP hole punching and STUN-like techniques so two peers can exchange encrypted WireGuard packets directly. When hole punching succeeds, traffic is fully peer-to-peer and end-to-end encrypted between the two endpoints.
 
