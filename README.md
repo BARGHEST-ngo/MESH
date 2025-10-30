@@ -27,7 +27,7 @@
 
 ## MESH - Public Alpha
 
-> [!PUBLIC ALPHA]
+> [!IMPORTANT]
 > Please be aware this project is currently in public alpha.
 
 MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics.
