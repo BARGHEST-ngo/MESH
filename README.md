@@ -55,6 +55,16 @@ Key functions
 - Supports kill-switch capabilities to block a device’s other network traffic while the forensics link remains active.
 - Enables rapid creation, isolation, and teardown of remote investigation nodes.
 
+## Forensics
+
+MESH creates an encrypted overlay network and assigns addresses from CGNAT ranges to connected devices. This makes mobile devices reachable over the mesh without exposing them to the wider network.
+
+With a CGNAT-assigned address, Android devices can be accessed over ADB-over-WiFi for collection of artifacts such as bug reports and `dumpsys` output, using tools like [AndroidQF](https://github.com/mvt-project/androidqf). iOS devices can be reached over the same mesh for use with tools like [libimobiledevice](https://github.com/libimobiledevice/libimobiledevice), enabling remote acquisition and analysis workflows even when the devices are not on the same physical LAN.
+
+Because the overlay is ephemeral, analysts can bring devices into the mesh, perform live-state collection, and tear the network down immediately after. 
+
+ACL configuration on the control plane lets analysts lock down services for suspected or compromised devices, restrict who can reach them, and enforce strict access controls for the duration of the investigation.
+
 ## Encryption, P2P & censorship resistance.
 
 MESH uses a self-hostable control plane to coordinate the sharing of WireGuard keys between nodes letting you establish direct peer-to-peer connections whenever possible. Each node attempts NAT traversal using UDP hole punching and STUN-like techniques so two peers can exchange encrypted WireGuard packets directly. When hole punching succeeds, traffic is fully peer-to-peer and end-to-end encrypted between the two endpoints.
