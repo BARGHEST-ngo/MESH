@@ -25,7 +25,7 @@
 </div>
 <br/>
 
-## MESH - Public Alpha
+## MESH
 
 > [!IMPORTANT]
 > Please be aware this project is currently in public alpha.
