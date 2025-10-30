@@ -25,9 +25,12 @@
 </div>
 <br/>
 
-## What is MESH
+## MESH - Public Alpha
 
-MESH is a censorship-resisting, peer-to-peer, end-to-end encrypted overlay network for digital forensics.
+> [!PUBLIC ALPHA]
+> Please be aware this project is currently in public alpha.
+
+MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics.
 
 It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
 
@@ -54,13 +57,13 @@ Key functions
 
 ## Encryption, P2P & Censorship resistance.
 
-MESH uses a self-hostable control plane to coordinate the sharing of WireGuard keys between nodes. Each node then attempts NAT traversal using UDP hole punching and STUN-like techniques so two peers can exchange encrypted WireGuard packets directly. When hole punching succeeds, traffic is fully end-to-end encrypted WireGuard between the two endpoints.
+MESH uses a self-hostable control plane to coordinate the sharing of WireGuard keys between nodes letting you establish direct peer-to-peer connections whenever possible. Each node attempts NAT traversal using UDP hole punching and STUN-like techniques so two peers can exchange encrypted WireGuard packets directly. When hole punching succeeds, traffic is fully peer-to-peer and end-to-end encrypted between the two endpoints.
 
-If UDP hole punching is unavailable or UDP is blocked, MESH falls back to the **DERP (Detoured Encrypted Relay for Packets)** protocol, which provides a relay network for failed or asymmetric NAT traversal. It relays already-encrypted WireGuard packets through DERP servers, so the relay sees metadata but never plaintext. Relays can be self-hosted by anyone. See [DERP servers](https://tailscale.com/kb/1232/derp-servers).
+If UDP hole punching is unavailable or UDP is blocked, MESH falls back to the **DERP (Detoured Encrypted Relay for Packets)** protocol, which provides a relay network for failed or asymmetric NAT traversal. It relays already-encrypted WireGuard packets through DERP servers, so the relay sees metadata but never plaintext. DERP relays can be self-hosted by anyone and is fully open-source. See [DERP](https://github.com/tailscale/tailscale/tree/main/cmd/derper#derp).
 
-Because WireGuard is actively censored in regions such as Russia and China, MESH uses WireGuard by default but can be configured to use [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) by adding an AmneziaWG config to your client. This obfuscates WireGuard packet fingerprints.
+Because WireGuard is actively censored in regions such as Russia and China, MESH can be configured to use [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) by simply adding an AmneziaWG config to your client (but also offers backward compatability). This obfuscates WireGuard packet fingerprints.
 
-When UDP is blocked and the connection fails over to DERP, all encrypted traffic is sent over HTTPS via relays, providing a censorship-resilient mesh network.
+When UDP is blocked and the connection fails over to DERP, all encrypted traffic is sent over HTTPS via relays, which still support end-to-end encryption, providing a censorship-resilient mesh network.
 
 
 ## Get started
