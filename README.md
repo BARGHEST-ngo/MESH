@@ -1,4 +1,4 @@
-<h1 align="center">MESH</h1>
+<img width="392" height="71" alt="MESH" src="https://github.com/user-attachments/assets/9e10956f-e8a7-46d4-8920-43e488169ba2" />
 
 <div align="center">
   <p>
