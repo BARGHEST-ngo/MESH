@@ -28,7 +28,7 @@ services:
 
   mesh_ui:
     build:
-      context: ./MESH-UI
+      context: ./mesh-ui
       dockerfile: Dockerfile
     restart: unless-stopped
     container_name: mesh_ui
