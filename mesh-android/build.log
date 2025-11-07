@@ -1,0 +1,30 @@
+Using ANDROID_HOME: /home/ovi/Android/Sdk
+Using NDK_ROOT: /home/ovi/Android/Sdk/ndk/29.0.14033849
+Using STRIP_TOOL: /home/ovi/Android/Sdk/ndk/29.0.14033849/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  9 48.1M    9 4895k    0     0  4565k      0  0:00:10  0:00:01  0:00:09 4565k 25 48.1M   25 12.3M    0     0  6088k      0  0:00:08  0:00:02  0:00:06 7725k 41 48.1M   41 19.9M    0     0  6651k      0  0:00:07  0:00:03  0:00:04 7772k 57 48.1M   57 27.5M    0     0  6937k      0  0:00:07  0:00:04  0:00:03 7785k 73 48.1M   73 35.1M    0     0  7105k      0  0:00:06  0:00:05  0:00:01 7787k 88 48.1M   88 42.8M    0     0  7222k      0  0:00:06  0:00:06 --:--:-- 7791k100 48.1M  100 48.1M    0     0  7282k      0  0:00:06  0:00:06 --:--:-- 7809k
+./tool/go install golang.org/x/mobile/cmd/gobind
+./tool/go install golang.org/x/mobile/cmd/gomobile
+Running gomobile bind to generate unstripped AAR...
+Output file: /home/ovi/tailscale/mesh-android/android/libs/libtailscale_unstripped.aar
+mkdir -p /home/ovi/tailscale/mesh-android/android/libs/
+rm -f /home/ovi/tailscale/mesh-android/android/libs/libtailscale_unstripped.aar
+# The -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 is specific to NDK 23
+# to support 16kb page sizes.  Your mileage may vary with other NDK versions.
+/home/ovi/tailscale/mesh-android/android/build/go/bin/gomobile bind -target android -androidapi 26 \
+	-tags "$(./build-tags.sh)" \
+	-ldflags "-linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $(./version-ldflags.sh)" \
+	-o /home/ovi/tailscale/mesh-android/android/libs/libtailscale_unstripped.aar ./libtailscale || { echo "gomobile bind failed"; exit 1; }
+/home/ovi/tailscale/mesh-android/android/build/go/bin/gomobile: go build -tags tailscale_go -ldflags -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 -X tailscale.com/version.longStamp=1.87.154-t77250a301-g11869b00c
+-X tailscale.com/version.shortStamp=1.87.154
+-X tailscale.com/version.gitCommitStamp=77250a301aee83d67c1bbe497391500f7c70e7b4
+-X tailscale.com/version.extraGitCommitStamp=11869b00c56850c9b9c6a6d25794e5ec33484490-dirty -buildmode=c-shared -o=/tmp/gomobile-work-1276658586/android/src/main/jniLibs/x86_64/libgojni.so ./gobind failed: exit status 1
+# tailscale.com/wgengine/netstack/gro
+/home/ovi/go/pkg/mod/tailscale.com@v1.87.0-pre.0.20250909160301-77250a301aee/wgengine/netstack/gro/gro.go:43:11: undefined: tun.Checksum
+/home/ovi/go/pkg/mod/tailscale.com@v1.87.0-pre.0.20250909160301-77250a301aee/wgengine/netstack/gro/gro.go:83:15: undefined: tun.PseudoHeaderChecksum
+/home/ovi/go/pkg/mod/tailscale.com@v1.87.0-pre.0.20250909160301-77250a301aee/wgengine/netstack/gro/gro.go:88:14: undefined: tun.Checksum
+
+gomobile bind failed
+make: *** [Makefile:185: build-unstripped-aar] Error 1
