@@ -139,9 +139,7 @@ func (a *App) runBackend(ctx context.Context) error {
 		return err
 	}
 	a.logIDPublicAtomic.Store(&b.logIDPublic)
-	// Ensure App.backend is set before signaling readiness; WatchNotifications depends on it.
-	a.backend = b.backend
-	log.Printf("runBackend: assigned a.backend=%p (a=%p)", a.backend, a)
+	// a.backend = b.backend
 	defer b.CloseTUNs()
 
 	hc := localapi.HandlerConfig{
@@ -344,14 +342,12 @@ func (a *App) newBackend(dataDir string, appCtx AppContext, store *stateStore,
 	b.engine = engine
 	b.backend = lb
 	b.sys = sys
-	log.Printf("newBackend: created LocalBackend lb=%p; app=%p", lb, a)
 	go func() {
 		err := lb.Start(ipn.Options{})
 		if err != nil {
 			log.Printf("Failed to start LocalBackend, panicking: %s", err)
 			panic(err)
 		}
-		log.Printf("newBackend: LocalBackend.Start() returned; signaling a.ready.Done(); app=%p", a)
 		a.ready.Done()
 	}()
 	return b, nil

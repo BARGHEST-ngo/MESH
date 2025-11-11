@@ -1,4 +1,4 @@
-# MESH AmneziaWG intergration
+# AmneziaWG Integration
 
 This document describes the AmneziaWG integration in MESH, which provides DPI (Deep Packet Inspection) evasion capabilities.
 
@@ -139,9 +139,9 @@ sudo -E ./tailscaled-amnezia \
 ```bash
 # Connect to headscale server
 sudo ./meshcli up \
-  --login-server=https://your-headscale-server.com \
-  -auth-server 12387129837918 \
-  --accept-dns=false
+  --login-server=https://controlplane.com \
+  -auth-key 12387129837918 \
+  --accept-dns=false ## VERY IMPORTANT, using the control server DNS will often cause issues on standard networks
 ```
 
 ### 3. Enable Obfuscation (Optional)
@@ -231,14 +231,7 @@ sudo -E ./tailscaled-amnezia ...
 When all obfuscation parameters are set to default values (Jc=0, S1=0, S2=0, H1=1, H2=2, H3=3, H4=4), AmneziaWG produces identical packets to standard WireGuard, ensuring compatibility with:
 
 - Standard WireGuard peers
-- Tailscale control plane (headscale)
 - Existing WireGuard infrastructure
-
-### Performance
-
-- **No obfuscation**: Zero overhead, identical to standard WireGuard
-- **Light obfuscation**: <5% overhead
-- **Heavy obfuscation**: 5-15% overhead depending on parameters
 
 ## Security Considerations
 
@@ -258,8 +251,7 @@ When all obfuscation parameters are set to default values (Jc=0, S1=0, S2=0, H1=
 
 ## License
 
-AmneziaWG integration code is dedicated to the public domain under CC0 1.0.
+MESH code is dedicated to the public domain under CC0 1.0
 
 Original Tailscale code remains under BSD-3-Clause license.
 AmneziaWG code is under MIT license.
-

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
+
 package libtailscale
 
 import (
@@ -34,17 +35,11 @@ const (
 )
 
 func newApp(dataDir, directFileRoot string, appCtx AppContext) Application {
-	// Emit full Go panic stack traces to logcat instead of triggering a native crash handler.
-	// Using "all" prints stacks of all goroutines on panic. This is more useful on Android
-	// where "crash" often hands off to the system tombstone before Go finishes logging.
-	debug.SetTraceback("all")
-	log.Printf("debug.SetTraceback('all') enabled")
 	a := &App{
 		directFileRoot: directFileRoot,
 		dataDir:        dataDir,
 		appCtx:         appCtx,
 	}
-	log.Printf("newApp: App created a=%p dataDir=%s directFileRoot=%s", a, dataDir, directFileRoot)
 	a.ready.Add(2)
 
 	a.store = newStateStore(a.appCtx)

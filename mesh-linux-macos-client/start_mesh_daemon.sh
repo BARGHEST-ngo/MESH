@@ -3,8 +3,8 @@
 
 set -e
 MESH_DIR="/tmp/tailscale"
-SOCKET_PATH="$MESH_DIR/tailscaled.sock"
-STATE_PATH="$MESH_DIR/tailscaled.state"
+SOCKET_PATH="/tmp/tailscale/tailscaled.sock"
+STATE_PATH="/tmp/tailscale/tailscaled.state"
 echo "Starting Tailscale daemon..."
 mkdir -p "$MESH_DIR"
 rm -f "$SOCKET_PATH"
@@ -18,10 +18,10 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-./tailscaled-nodrive \
+./tailscaled-amnezia \
     --socket="$SOCKET_PATH" \
     --state="$STATE_PATH" \
     --statedir="$MESH_DIR" \
     --verbose=1
 
-echo "Tailscale daemon stopped."
+echo "Tailscale daemon stopped." 

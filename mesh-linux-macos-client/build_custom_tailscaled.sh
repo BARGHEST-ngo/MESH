@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
-#
-# Build script for custom tailscaled with selected features
-# This builds tailscaled with most features enabled except:
-# - Cloud/platform integrations (aws, cloud, kube, synology, appconnectors)  
-# - CLI features (cli, completion, cliconndiag)
-# - Client update features (clientupdate)
-# - Advanced/specialized features (c2n, oauthkey, outboundproxy, etc.)
 
 set -eu
 

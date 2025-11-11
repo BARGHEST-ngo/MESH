@@ -1,5 +1,4 @@
 #!/bin/bash
-# Build script for your custom MESH CLI
 
 set -e
 

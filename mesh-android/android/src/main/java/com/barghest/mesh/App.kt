@@ -66,18 +66,15 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
     // Key to store the SAF URI in EncryptedSharedPreferences.
     private val PREF_KEY_SAF_URI = "saf_directory_uri"
     private const val TAG = "App"
-    private var appInstance: App? = null
+    private lateinit var appInstance: App
     /**
      * Initializes the app (if necessary) and returns the singleton app instance. Always use this
      * function to obtain an App reference to make sure the app initializes.
      */
     @JvmStatic
     fun get(): App {
-      if (appInstance == null) {
-        throw RuntimeException("App.get() called before Application.onCreate(). This is a fatal error.")
-      }
-      appInstance!!.initOnce()
-      return appInstance!!
+      appInstance.initOnce()
+      return appInstance
     }
   }
 
@@ -110,10 +107,7 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
 
   override fun onCreate() {
     super.onCreate()
-    Log.d(TAG, "App.onCreate() called")
-    synchronized(App.Companion) {
-      appInstance = this
-    }
+    appInstance = this
     setUnprotectedInstance(this)
     mdmChangeReceiver = MDMSettingsChangedReceiver()
     val filter = IntentFilter(Intent.ACTION_APPLICATION_RESTRICTIONS_CHANGED)

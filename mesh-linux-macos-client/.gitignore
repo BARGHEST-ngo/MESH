@@ -53,10 +53,11 @@ client/web/build/assets
 # Ignore personal IntelliJ settings
 .idea/
 
-# meshcli custom binaries
+# meshcli custom binaries and stuff
 /meshcli
 /mesh
 cmd/meshcli/meshcli
+adbconf.json
 
 # tailscaled custom binaries
 /tailscaled-amnezia
