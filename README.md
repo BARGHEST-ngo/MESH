@@ -30,15 +30,13 @@
 > [!IMPORTANT]
 > Please be aware this project is currently in public alpha.
 
-MESH makes remote mobile forensics secure, scalable and easy. 
-
-It’s a censorship-resisting, peer-to-peer, end-to-end encrypted overlay network for digital forensics. It’s a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is completely self-hostable and heavily modified for civil society and forensic operations.
+MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics. It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
 
 MESH adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked. This offers protection against the GFW and detection by Deep Packet Inspection (DPI) systems.
 
-It can create and tear down end-to-end peer-to-peer links between a locked-down analyst host and forensic clients (for example, Android devices) in seconds, without time consuming configurations that rely on hub-and-spoke topologies. It provides automated, segregated networks/namespaces for each investigation or analyst, making it easy to conduct multiple investigations at once for helplines. MESH lets you spin up a forensic mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
+It can create and tear down end-to-end mesh links between a locked-down analyst host and forensic clients (for example, Android devices) in seconds by removing hub-and-spoke topologies. MESH lets you spin up a forensics mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
 
-It’s remote investigations that work and scale to meet the needs of civil society.
+Remote investigations that work.
 
 Key functions
 
