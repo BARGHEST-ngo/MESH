@@ -1,0 +1,99 @@
+# SPDX-License-Identifier: CC0-1.0
+# Authored by BARGHEST. Dedicated to the public domain under CC0 1.0.
+#
+# AmneziaWG Configuration File
+# 
+# This file configures AmneziaWG obfuscation parameters for DPI evasion.
+# Place this file at:
+#   Linux:   /etc/mesh/amneziawg.conf
+#   macOS:   /usr/local/etc/mesh/amneziawg.conf
+#   Windows: C:\ProgramData\MESH\amneziawg.conf
+#   Android: /data/data/com.barghest.mesh/files/amneziawg.conf
+#
+# When all parameters are set to their default values (shown below),
+# AmneziaWG behaves identically to standard WireGuard, ensuring
+# backward compatibility with non-AmneziaWG peers.
+
+[Interface]
+
+# Jc: Number of junk packets to send before the handshake
+# Range: 0-128
+# Recommended: 3-10 for DPI evasion, 0 for standard WireGuard mode
+# Default: 0 (disabled, standard WireGuard behavior)
+Jc = 0
+
+# Jmin: Minimum size of junk packets in bytes
+# Range: 0-65535
+# Recommended: 50 or 10 (depending on network conditions)
+# Default: 0 (disabled)
+Jmin = 0
+
+# Jmax: Maximum size of junk packets in bytes
+# Range: 0-1280 (must be <= 1280 to fit in MTU)
+# Recommended: 1000 or 50 (depending on network conditions)
+# Note: Jmax must be >= Jmin
+# Default: 0 (disabled)
+Jmax = 0
+
+# S1: Number of junk bytes to add to handshake initiation message
+# Range: 0 or 15-150
+# Recommended: 15-150 for DPI evasion, 0 for standard WireGuard mode
+# Note: S1+56 must not equal S2
+# Default: 0 (disabled, standard WireGuard behavior)
+S1 = 0
+
+# S2: Number of junk bytes to add to handshake response message
+# Range: 0 or 15-150
+# Recommended: 15-150 for DPI evasion, 0 for standard WireGuard mode
+# Note: S1+56 must not equal S2
+# Default: 0 (disabled, standard WireGuard behavior)
+S2 = 0
+
+# H1, H2, H3, H4: Custom message type identifiers
+# Range: 1 to 2147483647 (2^31-1)
+# Recommended: Any values >= 5, all must be different
+# These replace WireGuard's standard message type identifiers to avoid DPI detection
+# Default: 1, 2, 3, 4 (standard WireGuard message types)
+H1 = 1
+H2 = 2
+H3 = 3
+H4 = 4
+
+# Example configurations for different scenarios:
+
+# SCENARIO 1: Standard WireGuard mode (backward compatible)
+# Use the defaults shown above (all zeros except H1-H4)
+
+# SCENARIO 2: Light obfuscation (minimal overhead)
+# Jc = 3
+# Jmin = 10
+# Jmax = 50
+# S1 = 15
+# S2 = 20
+# H1 = 5
+# H2 = 6
+# H3 = 7
+# H4 = 8
+
+# SCENARIO 3: Heavy obfuscation (maximum DPI evasion)
+# Jc = 10
+# Jmin = 50
+# Jmax = 1000
+# S1 = 100
+# S2 = 150
+# H1 = 1234567
+# H2 = 2345678
+# H3 = 3456789
+# H4 = 4567890
+
+# SCENARIO 4: Recommended balanced configuration
+# Jc = 5
+# Jmin = 50
+# Jmax = 1000
+# S1 = 30
+# S2 = 40
+# H1 = 100
+# H2 = 200
+# H3 = 300
+# H4 = 400
+

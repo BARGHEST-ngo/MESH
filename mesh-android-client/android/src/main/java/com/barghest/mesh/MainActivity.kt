@@ -1,0 +1,653 @@
+// Copyright (c) Tailscale Inc & AUTHORS
+// SPDX-License-Identifier: BSD-3-Clause
+// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
+
+package com.barghest.mesh
+
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
+import android.content.RestrictionsManager
+import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
+import android.content.res.Configuration.SCREENLAYOUT_SIZE_LARGE
+import android.content.res.Configuration.SCREENLAYOUT_SIZE_MASK
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.os.Process
+import android.provider.Settings
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.barghest.mesh.mdm.MDMSettings
+import com.barghest.mesh.mdm.ShowHide
+import com.barghest.mesh.ui.model.Ipn
+import com.barghest.mesh.ui.notifier.Notifier
+import com.barghest.mesh.ui.theme.AppTheme
+import com.barghest.mesh.ui.util.AndroidTVUtil
+import com.barghest.mesh.ui.util.set
+import com.barghest.mesh.ui.util.universalFit
+import com.barghest.mesh.ui.view.ADBSetup
+import com.barghest.mesh.ui.view.AboutView
+import com.barghest.mesh.ui.view.DNSSettingsView
+import com.barghest.mesh.ui.view.ExitNodePicker
+import com.barghest.mesh.ui.view.HealthView
+import com.barghest.mesh.ui.view.LoginQRView
+import com.barghest.mesh.ui.view.LoginWithAuthKeyView
+import com.barghest.mesh.ui.view.LoginWithCustomControlURLView
+import com.barghest.mesh.ui.view.MDMSettingsDebugView
+import com.barghest.mesh.ui.view.MainView
+import com.barghest.mesh.ui.view.MainViewNavigation
+import com.barghest.mesh.ui.view.MeshHomeNavigation
+import com.barghest.mesh.ui.view.MeshHomeView
+import com.barghest.mesh.ui.view.MullvadExitNodePicker
+import com.barghest.mesh.ui.view.MullvadExitNodePickerList
+import com.barghest.mesh.ui.view.MullvadInfoView
+import com.barghest.mesh.ui.view.NotificationsView
+import com.barghest.mesh.ui.view.PeerDetails
+import com.barghest.mesh.ui.view.PermissionsView
+import com.barghest.mesh.ui.view.PrimaryActionButton
+import com.barghest.mesh.ui.view.RunExitNodeView
+import com.barghest.mesh.ui.view.SearchView
+import com.barghest.mesh.ui.view.SettingsView
+import com.barghest.mesh.ui.view.SplitTunnelAppPickerView
+import com.barghest.mesh.ui.view.SubnetRoutingView
+import com.barghest.mesh.ui.view.TaildropDirView
+import com.barghest.mesh.ui.view.TaildropDirectoryPickerPrompt
+import com.barghest.mesh.ui.view.TailnetLockSetupView
+import com.barghest.mesh.ui.view.UserSwitcherNav
+import com.barghest.mesh.ui.view.UserSwitcherView
+import com.barghest.mesh.ui.viewModel.AppViewModel
+import com.barghest.mesh.ui.viewModel.ExitNodePickerNav
+import com.barghest.mesh.ui.viewModel.MainViewModel
+import com.barghest.mesh.ui.viewModel.MainViewModelFactory
+import com.barghest.mesh.ui.viewModel.PermissionsViewModel
+import com.barghest.mesh.ui.viewModel.PingViewModel
+import com.barghest.mesh.ui.viewModel.SettingsNav
+import com.barghest.mesh.util.ShareFileHelper
+import com.barghest.mesh.util.TSLog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
+import java.nio.Buffer
+
+
+class MainActivity : ComponentActivity() {
+    private lateinit var navController: NavHostController
+    private lateinit var vpnPermissionLauncher: ActivityResultLauncher<Intent>
+    private lateinit var appViewModel: AppViewModel
+    private lateinit var viewModel: MainViewModel
+
+    val permissionsViewModel: PermissionsViewModel by viewModels()
+
+    companion object {
+        private const val TAG = "Main Activity"
+        private const val START_AT_ROOT = "startAtRoot"
+    }
+
+    private fun Context.isLandscapeCapable(): Boolean {
+        return (resources.configuration.screenLayout and SCREENLAYOUT_SIZE_MASK) >=
+                SCREENLAYOUT_SIZE_LARGE
+    }
+
+    // The loginQRCode is used to track whether or not we should be rendering a QR code
+    // to the user.  This is used only on TV platforms with no browser in lieu of
+    // simply opening the URL.  This should be consumed once it has been handled.
+    private val loginQRCode: StateFlow<String?> = MutableStateFlow(null)
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    @SuppressLint("SourceLockedOrientationActivity")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // grab app to make sure it initializes
+        App.get()
+        appViewModel = (application as App).getAppScopedViewModel()
+        viewModel =
+            ViewModelProvider(
+                this,
+                MainViewModelFactory(appViewModel)
+            ).get(MainViewModel::class.java)
+
+        val rm = getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
+        MDMSettings.update(App.get(), rm)
+        if (MDMSettings.onboardingFlow.flow.value.value == ShowHide.Hide ||
+            MDMSettings.authKey.flow.value.value != null
+        ) {
+            setIntroScreenViewed(true)
+        }
+        // (jonathan) TODO: Force the app to be portrait on small screens until we have
+        // proper landscape layout support
+        if (!isLandscapeCapable()) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        installSplashScreen()
+        vpnPermissionLauncher =
+            registerForActivityResult(VpnPermissionContract()) { granted ->
+                if (granted) {
+                    TSLog.d("VpnPermission", "VPN permission granted")
+                    appViewModel.setVpnPrepared(true)
+                    App.get().startVPN()
+                } else {
+                    if (isAnotherVpnActive(this)) {
+                        TSLog.d("VpnPermission", "Another VPN is likely active")
+                        showOtherVPNConflictDialog()
+                    } else {
+                        TSLog.d("VpnPermission", "Permission was denied by the user")
+                        appViewModel.setVpnPrepared(false)
+
+                        AlertDialog.Builder(this)
+                            .setTitle(R.string.vpn_permission_needed)
+                            .setMessage(R.string.vpn_explainer)
+                            .setPositiveButton(R.string.try_again) { _, _ ->
+                                viewModel.showVPNPermissionLauncherIfUnauthorized()
+                            }
+                            .setNegativeButton(R.string.cancel, null)
+                            .show()
+                    }
+                }
+            }
+        viewModel.setVpnPermissionLauncher(vpnPermissionLauncher)
+        val directoryPickerLauncher =
+            registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
+                if (uri != null) {
+                    try {
+                        // Try to take persistable permissions for both read and write.
+                        contentResolver.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        )
+                    } catch (e: SecurityException) {
+                        TSLog.e("MainActivity", "Failed to persist permissions: $e")
+                    }
+                    // Check if write permission is actually granted.
+                    val writePermission =
+                        this.checkUriPermission(
+                            uri,
+                            Process.myPid(),
+                            Process.myUid(),
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        )
+                    if (writePermission == PackageManager.PERMISSION_GRANTED) {
+                        TSLog.d("MainActivity", "Write permission granted for $uri")
+
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            try {
+                                TaildropDirectoryStore.saveFileDirectory(uri)
+                                permissionsViewModel.refreshCurrentDir()
+                                ShareFileHelper.notifyDirectoryReady()
+                                ShareFileHelper.setUri(uri.toString())
+                            } catch (e: Exception) {
+                                TSLog.e("MainActivity", "Failed to set Taildrop root: $e")
+                            }
+                        }
+                    } else {
+                        TSLog.d(
+                            "MainActivity",
+                            "Write access not granted for $uri. Falling back to internal storage."
+                        )
+                        // Don't save directory URI and fall back to internal storage.
+                    }
+                } else {
+                    TSLog.d(
+                        "MainActivity",
+                        "Taildrop directory not saved. Will fall back to internal storage."
+                    )
+                    // Fall back to internal storage.
+                }
+            }
+
+        appViewModel.directoryPickerLauncher = directoryPickerLauncher
+
+        //Check if device is rooted and alert if so
+        //We do not want to abort, but we do want the analyst to be able to decide what to do next
+        val rooted = RootUtil.isDeviceRooted
+        val builder = AlertDialog.Builder(this)
+
+        setContent {
+            var showDialog by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                appViewModel.triggerDirectoryPicker.collect {
+                    showDialog = true
+                }
+            }
+
+            if (rooted) {
+                builder.setTitle("Device is rooted")
+                builder.setMessage("Please contact your helpline/investigator for next steps, if this is expected, please continue")
+                builder.show()
+            }
+
+            if (showDialog) {
+                AppTheme {
+                    AlertDialog(
+                        onDismissRequest = {
+                            showDialog = false
+                            appViewModel.directoryPickerLauncher?.launch(null)
+                        },
+                        title = {
+                            Text(text = stringResource(id = R.string.taildrop_directory_picker_title))
+                        },
+                        text = { TaildropDirectoryPickerPrompt() },
+                        confirmButton = {
+                            PrimaryActionButton(
+                                onClick = {
+                                    showDialog = false
+                                    appViewModel.directoryPickerLauncher?.launch(null)
+                                }) {
+                                Text(text = stringResource(id = R.string.taildrop_directory_picker_button))
+                            }
+                        })
+                }
+            }
+
+            navController = rememberNavController()
+
+            AppTheme {
+                Surface(color = MaterialTheme.colorScheme.inverseSurface) { // Background for the letterbox
+                    Surface(modifier = Modifier.universalFit()) { // Letterbox for AndroidTV
+                        NavHost(
+                            navController = navController,
+                            startDestination = "main",
+                            enterTransition = {
+                                slideInHorizontally(
+                                    animationSpec = tween(250, easing = LinearOutSlowInEasing),
+                                    initialOffsetX = { it }) +
+                                        fadeIn(
+                                            animationSpec = tween(
+                                                500,
+                                                easing = LinearOutSlowInEasing
+                                            )
+                                        )
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(
+                                    animationSpec = tween(250, easing = LinearOutSlowInEasing),
+                                    targetOffsetX = { -it }) +
+                                        fadeOut(
+                                            animationSpec = tween(
+                                                500,
+                                                easing = LinearOutSlowInEasing
+                                            )
+                                        )
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(
+                                    animationSpec = tween(250, easing = LinearOutSlowInEasing),
+                                    initialOffsetX = { -it }) +
+                                        fadeIn(
+                                            animationSpec = tween(
+                                                500,
+                                                easing = LinearOutSlowInEasing
+                                            )
+                                        )
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(
+                                    animationSpec = tween(250, easing = LinearOutSlowInEasing),
+                                    targetOffsetX = { it }) +
+                                        fadeOut(
+                                            animationSpec = tween(
+                                                500,
+                                                easing = LinearOutSlowInEasing
+                                            )
+                                        )
+                            }) {
+                            fun backTo(route: String): () -> Unit = {
+                                navController.popBackStack(route = route, inclusive = false)
+                            }
+
+                            val mainViewNav =
+                                MainViewNavigation(
+                                    onNavigateToSettings = { navController.navigate("settings") },
+                                    onNavigateToPeerDetails = {
+                                        navController.navigate("peerDetails/${it.StableID}")
+                                    },
+                                    onNavigateToExitNodes = { navController.navigate("exitNodes") },
+                                    onNavigateToHealth = { navController.navigate("health") },
+                                    onNavigateToSearch = {
+                                        viewModel.enableSearchAutoFocus()
+                                        navController.navigate("search")
+                                    },
+                                    onNavigateToAuthKey = { navController.navigate("loginWithAuthKey") },
+                                    onNavigateToCustomControl = { navController.navigate("loginWithCustomControl") },
+                                    onNavigateToADBSetup = { navController.navigate("ADBSetup") })
+                            val settingsNav =
+                                SettingsNav(
+                                    onNavigateToBugReport = { navController.navigate("bugReport") },
+                                    onNavigateToAbout = { navController.navigate("about") },
+                                    onNavigateToDNSSettings = { navController.navigate("dnsSettings") },
+                                    onNavigateToSplitTunneling = { navController.navigate("splitTunneling") },
+                                    onNavigateToTailnetLock = { navController.navigate("tailnetLock") },
+                                    onNavigateToSubnetRouting = { navController.navigate("subnetRouting") },
+                                    onNavigateToMDMSettings = { navController.navigate("mdmSettings") },
+                                    onNavigateToManagedBy = { navController.navigate("managedBy") },
+                                    onNavigateToUserSwitcher = { navController.navigate("userSwitcher") },
+                                    onNavigateToPermissions = { navController.navigate("permissions") },
+                                    onBackToSettings = backTo("settings"),
+                                    onNavigateBackHome = backTo("main")
+                                )
+                            val exitNodePickerNav =
+                                ExitNodePickerNav(
+                                    onNavigateBackHome = {
+                                        navController.popBackStack(
+                                            route = "main",
+                                            inclusive = false
+                                        )
+                                    },
+                                    onNavigateBackToExitNodes = backTo("exitNodes"),
+                                    onNavigateToMullvad = { navController.navigate("mullvad") },
+                                    onNavigateToMullvadInfo = { navController.navigate("mullvad_info") },
+                                    onNavigateBackToMullvad = backTo("mullvad"),
+                                    onNavigateToMullvadCountry = { navController.navigate("mullvad/$it") },
+                                    onNavigateToRunAsExitNode = { navController.navigate("runExitNode") })
+                            val userSwitcherNav =
+                                UserSwitcherNav(
+                                    backToSettings = backTo("settings"),
+                                    onNavigateHome = backTo("main")
+                                )
+                            composable(
+                                "main",
+                                enterTransition = { fadeIn(animationSpec = tween(150)) }) {
+                                MainView(
+                                    loginAtUrl = { _ -> },
+                                    navigation = mainViewNav,
+                                    viewModel = viewModel,
+                                    appViewModel = appViewModel
+                                )
+                            }
+                            composable("search") {
+                                val autoFocus = viewModel.autoFocusSearch
+                                SearchView(
+                                    viewModel = viewModel,
+                                    navController = navController,
+                                    onNavigateBack = { navController.popBackStack() },
+                                    autoFocus = autoFocus
+                                )
+                            }
+                            composable("settings") {
+                                SettingsView(settingsNav = settingsNav, appViewModel = appViewModel)
+                            }
+                            composable("exitNodes") { ExitNodePicker(exitNodePickerNav) }
+                            composable("health") { HealthView(backTo("main")) }
+                            composable("mullvad") { MullvadExitNodePickerList(exitNodePickerNav) }
+                            composable("mullvad_info") { MullvadInfoView(exitNodePickerNav) }
+                            composable(
+                                "mullvad/{countryCode}",
+                                arguments =
+                                    listOf(navArgument("countryCode") { type = NavType.StringType })
+                            ) {
+                                MullvadExitNodePicker(
+                                    it.arguments!!.getString("countryCode")!!, exitNodePickerNav
+                                )
+                            }
+                            composable("runExitNode") { RunExitNodeView(exitNodePickerNav) }
+                            composable(
+                                "peerDetails/{nodeId}",
+                                arguments = listOf(navArgument("nodeId") {
+                                    type = NavType.StringType
+                                })
+                            ) {
+                                PeerDetails(
+                                    { navController.popBackStack() },
+                                    it.arguments?.getString("nodeId") ?: "",
+                                    PingViewModel()
+                                )
+                            }
+                            composable("dnsSettings") { DNSSettingsView(backTo("settings")) }
+                            composable("splitTunneling") { SplitTunnelAppPickerView(backTo("settings")) }
+                            composable("tailnetLock") { TailnetLockSetupView(backTo("settings")) }
+                            composable("subnetRouting") { SubnetRoutingView(backTo("settings")) }
+                            composable("about") { AboutView(backTo("settings")) }
+                            composable("mdmSettings") { MDMSettingsDebugView(backTo("settings")) }
+                            composable("userSwitcher") { UserSwitcherView(userSwitcherNav) }
+                            composable("permissions") {
+                                PermissionsView(
+                                    backTo("settings"),
+                                    { navController.navigate("taildropDir") },
+                                    { navController.navigate("notifications") })
+                            }
+                            composable("taildropDir") {
+                                TaildropDirView(
+
+                                    backTo("permissions"),
+                                    directoryPickerLauncher,
+                                    permissionsViewModel
+                                )
+                            }
+                            composable("notifications") {
+                                NotificationsView(backTo("permissions"), ::openApplicationSettings)
+                            }
+                            composable("loginWithAuthKey") {
+                                LoginWithAuthKeyView(
+                                    onNavigateHome = backTo("main"),
+                                    backToSettings = backTo("main")
+                                )
+                            }
+                            composable("ADBSetup") {
+                                ADBSetup(
+                                    onNavigateHome = {
+                                        navController.navigate("main")
+                                    }
+                                )
+                            }
+                            composable("loginWithCustomControl") {
+                                LoginWithCustomControlURLView(
+                                    onNavigateHome = backTo("main"),
+                                    backToSettings = backTo("main"),
+                                    onNavigateToAuthKey = { navController.navigate("loginWithAuthKey") }
+                                )
+                            }
+
+                        }
+                        //if (isIntroScreenViewedSet()) {
+                        // navController.navigate("intro")
+                        //  setIntroScreenViewed(true)
+                    }
+                }
+                // Login actions are app wide.  If we are told about a browse-to-url, we should render it
+                // over whatever screen we happen to be on.
+                loginQRCode.collectAsState().value?.let {
+                    LoginQRView(onDismiss = { loginQRCode.set(null) })
+                }
+            }
+        }
+    }
+
+    init {
+        lifecycleScope.launch { Notifier.loginFinished.collect { _ -> loginQRCode.set(null) } }
+    }
+
+    private fun showOtherVPNConflictDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.vpn_permission_denied)
+            .setMessage(R.string.multiple_vpn_explainer)
+            .setPositiveButton(R.string.go_to_settings) { _, _ ->
+                // Intent to open the VPN settings
+                val intent = Intent(Settings.ACTION_VPN_SETTINGS)
+                startActivity(intent)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    fun isAnotherVpnActive(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = connectivityManager.activeNetwork
+        if (activeNetwork != null) {
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+            if (networkCapabilities != null &&
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            ) {
+                return true
+            }
+        }
+        return false
+    }
+
+    // Returns true if we should render a QR code instead of launching a browser
+    // for login requests
+    private fun useQRCodeLogin(): Boolean {
+        return AndroidTVUtil.isAndroidTV()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(START_AT_ROOT, false)) {
+            if (this::navController.isInitialized) {
+                val previousEntry = navController.previousBackStackEntry
+                TSLog.d("MainActivity", "onNewIntent: previousBackStackEntry = $previousEntry")
+                if (this::navController.isInitialized) {
+                    val previousEntry = navController.previousBackStackEntry
+                    TSLog.d("MainActivity", "onNewIntent: previousBackStackEntry = $previousEntry")
+                    if (previousEntry != null) {
+                        navController.popBackStack(route = "main", inclusive = false)
+                    } else {
+                        TSLog.e(
+                            "MainActivity",
+                            "onNewIntent: No previous back stack entry, navigating directly to 'main'"
+                        )
+                        navController.navigate("main") { popUpTo("main") { inclusive = true } }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val restrictionsManager =
+            this.getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
+        lifecycleScope.launch(Dispatchers.IO) { MDMSettings.update(App.get(), restrictionsManager) }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        val restrictionsManager =
+            this.getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
+        lifecycleScope.launch(Dispatchers.IO) { MDMSettings.update(App.get(), restrictionsManager) }
+    }
+
+    private fun openApplicationSettings() {
+        val intent =
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+    }
+
+    private fun setIntroScreenViewed(seen: Boolean) {
+        getSharedPreferences("introScreen", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean("seen", seen)
+            .apply()
+    }
+}
+
+class VpnPermissionContract : ActivityResultContract<Intent, Boolean>() {
+    override fun createIntent(context: Context, input: Intent): Intent {
+        return input
+    }
+
+    override fun parseResult(resultCode: Int, intent: Intent?): Boolean {
+        return resultCode == Activity.RESULT_OK
+    }
+}
+
+object RootUtil {
+    val isDeviceRooted: Boolean
+        get() = checkTags() || checkCommonBinaries() || runtimeCheck() || isSELinuxEnforcing()
+
+    private fun checkTags(): Boolean {
+        val buildTags = android.os.Build.TAGS
+        return buildTags != null && buildTags.contains("test-keys")
+    }
+
+    private fun checkCommonBinaries(): Boolean {
+        val paths = arrayOf(
+            "/system/app/Superuser.apk",
+            "/sbin/su",
+            "/system/bin/su",
+            "/system/xbin/su",
+            "/data/local/xbin/su",
+            "/data/local/bin/su",
+            "/system/sd/xbin/su",
+            "/system/bin/failsafe/su",
+            "/data/local/su",
+            "/su/bin/su"
+        )
+        return paths.any { File(it).exists() }
+    }
+
+    private fun runtimeCheck(): Boolean {
+        return try {
+            val process = Runtime.getRuntime().exec(arrayOf("/system/xbin/which", "su"))
+            BufferedReader(InputStreamReader(process.inputStream)).use { it.readLine() != null }
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun isSELinuxEnforcing(): Boolean {
+        return try {
+            val process = Runtime.getRuntime().exec("getenforce")
+            val result =
+                BufferedReader(InputStreamReader(process.inputStream)).use { it.readLine() }
+            result.equals("Enforcing", ignoreCase = true)
+        } catch (e: Exception) {
+            try {
+                val enforceFile = File("/sys/fs/selinux/enforce")
+                if (enforceFile.exists()) enforceFile.readText().trim() == "1" else false
+            } catch (_: Exception) {
+                false
+            }
+        }
+    }
+}
+

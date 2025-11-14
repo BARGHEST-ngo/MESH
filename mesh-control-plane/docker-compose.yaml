@@ -1,0 +1,38 @@
+services:
+  headscale:
+    image: docker.io/headscale/headscale:0.27.0
+    restart: unless-stopped
+    container_name: headscale
+    ports:
+      - "8081:8080"
+      - "9090:9090"
+    volumes:
+      - ./headscale/config:/etc/headscale
+      - ./headscale/lib:/var/lib/headscale
+    tmpfs:
+      - /var/run/headscale
+    command: serve
+
+  # https://github.com/juanfont/headscale/issues/623
+  # nginx is used to proxy the headscale API to the mesh_ui service
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    container_name: headscale-proxy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - headscale
+
+  mesh_ui:
+    build:
+      context: ./mesh-ui
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: mesh_ui
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production

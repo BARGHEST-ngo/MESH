@@ -32,7 +32,7 @@
 
 MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics. It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
 
-MESH adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked. This offers protection against GFW and detection by Deep Packet Inspection (DPI) systems.
+MESH adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked. This offers protection against the GFW and detection by Deep Packet Inspection (DPI) systems.
 
 It can create and tear down end-to-end mesh links between a locked-down analyst host and forensic clients (for example, Android devices) in seconds by removing hub-and-spoke topologies. MESH lets you spin up a forensics mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
 
@@ -41,7 +41,7 @@ Remote investigations that work.
 Key functions
 
 - Builds peer-to-peer subnets for device analysis.
-- Provides end-to-end encryption via WireGuard.
+- Provides end-to-end encryption via WireGuard/AmneziaWG and distributes keys automatically.
 - Runs a self-hostable control plane to create and manage meshes between analysts, enforce ACLs, and block compromised nodes on connection.
 - Advertises LAN routes or exit nodes for monitoring and extended forensics.
 - Supports ephemeral deployment and teardown on disconnect.
@@ -53,13 +53,13 @@ Key functions
 
 ## Remote mobile forensics and auditing
 
-MESH creates an encrypted overlay network and assigns addresses from CGNAT ranges to connected devices. This makes mobile devices reachable over the mesh without exposing them to the wider network.
+MESH creates an encrypted overlay network and assigns addresses from CGNAT ranges to the connected devices. This makes mobile devices reachable over the mesh without exposing them to the wider network.
 
 With a CGNAT-assigned address, Android devices can be accessed over ADB-over-WiFi for collection of artifacts such as bug reports and `dumpsys` output, using tools like [AndroidQF](https://github.com/mvt-project/androidqf). iOS devices can be reached over the same mesh for use with tools like [libimobiledevice](https://github.com/libimobiledevice/libimobiledevice), enabling remote acquisition and analysis workflows even when the devices are not on the same physical LAN.
 
 Because the overlay is ephemeral, analysts can bring devices into the mesh, perform live-state collection, and tear the network down immediately after. 
 
-ACL configuration on the control plane lets analysts lock down services for suspected or compromised devices, restrict who can reach them, and enforce strict access controls for the duration of the investigation.
+ACL configuration on the control plane lets analysts lock down services for suspected or compromised devices, restrict who can reach them, and enforce strict access controls against lateral movement for the duration of the investigation.
 
 ## Encryption, P2P & censorship resistance.
 
