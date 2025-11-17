@@ -205,7 +205,7 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
    * Tailscale because directFileRoot must be set before LocalBackend starts being used.
    */
   fun startLibtailscale(directFileRoot: String) {
-    app = Libtailscale.start(this.filesDir.absolutePath, directFileRoot, false, this)
+    app = Libtailscale.start(this.filesDir.absolutePath, directFileRoot, false, this) // debug setting remove false -o
     ShareFileHelper.init(this, app, directFileRoot, applicationScope)
     Request.setApp(app)
     Notifier.setApp(app)
@@ -224,7 +224,7 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
           onSuccess = { prefs ->
             // MESH: If the backend applied the default Tailscale ControlURL, clear it
             // This prevents the app from connecting to Tailscale's servers
-            if (wantRunning && prefs.ControlURL == "https://controlplane.barghest.asia") {
+            if (wantRunning && prefs.ControlURL == "https://controlplane.tailscale.com") {
               TSLog.d("TAG", "Backend applied default Tailscale ControlURL, clearing it")
               val clearControlURL = Ipn.MaskedPrefs().apply { ControlURL = "" }
               Client(applicationScope).editPrefs(clearControlURL) { _ ->
