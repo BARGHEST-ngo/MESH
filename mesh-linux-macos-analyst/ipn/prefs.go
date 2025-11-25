@@ -40,7 +40,7 @@ import (
 // ("coordination server") for use when no explicit one is configured.
 // The default control plane is self hosted. We have to remove the tailscale control plane and add our own.
 // The issue here is that domain takeover can cause issues.
-const DefaultControlURL = "https://135b10cb7b1c.ngrok-free.app"
+const DefaultControlURL = "https://controlplane.barghest.asia"
 
 var (
 	// ErrExitNodeIDAlreadySet is returned from (*Prefs).SetExitNodeIP when the

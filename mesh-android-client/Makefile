@@ -336,7 +336,7 @@ fmt-check: gradle-dependencies ## Check the Android code is formatted
 check-go-patch: $(GOBIN)/gomobile
 	@echo "**!! Checking for CGO alignment patch... !!**"
 	@if [ -f ~/.cache/tailscale-go/src/cmd/cgo/out.go ]; then \
-		if grep -q '__attribute__((aligned(%d)))' ~/.cache/tailscale-go/src/cmd/cgo/out.go; then \
+		if grep -q '__attribute__((aligned(8)))' ~/.cache/tailscale-go/src/cmd/cgo/out.go; then \
 			echo "Go CGO alignment patch is applied"; \
 		else \
 			echo "ERROR: Go CGO alignment patch is NOT applied!"; \

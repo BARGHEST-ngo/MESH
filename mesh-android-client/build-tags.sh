@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [[ -z "$TOOLCHAIN_DIR" ]]; then
-    # By default, if TOOLCHAIN_DIR is unset, we assume we're
-    # using the Tailscale Go toolchain (github.com/tailscale/go)
-    # at the revision specified by go.toolchain.rev. If so,
-    # we tell our caller to use the "tailscale_go" build tag.
-    echo "tailscale_go"
+    # MESH fork: We use the Tailscale Go toolchain but disable the
+    # "tailscale_go" build tag to avoid strict version validation
+    # (version_checkformat.go) that requires Tailscale's version format.
+    # MESH uses its own independent versioning scheme.
+    echo "mesh_build"
 else
     # Otherwise, if TOOLCHAIN_DIR is specified, we assume
     # we're F-Droid or something using a stock Go toolchain.
