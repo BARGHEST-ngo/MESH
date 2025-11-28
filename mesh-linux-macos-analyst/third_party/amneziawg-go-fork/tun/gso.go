@@ -27,22 +27,19 @@ type GSOOptions struct {
 // This is a compatibility shim for amneziawg-go which doesn't have GSO support.
 // The actual implementation would split the packet based on GSOSize.
 // Returns the number of packets and any error.
+//
+// IMPORTANT bug #16: This function must NOT modify outBuffs[i] to point to pkt directly,
+// as the caller (AmneziaWG's RoutineReadFromTUN) may skip buffer reassignment
+// if the packet is dropped (e.g., peer == nil). The caller has already copied
+// the packet data into outBuffs[0][offset:], so we only need to set the size. Need to do it the same as tailscale
 func GSOSplit(pkt []byte, opts GSOOptions, outBuffs [][]byte, sizes []int, offset int) (int, error) {
-	if opts.GSOType == GSONone || opts.GSOSize == 0 {
-		if len(outBuffs) > 0 {
-			outBuffs[0] = pkt
-			sizes[0] = len(pkt)
-			return 1, nil
-		}
+	if len(outBuffs) == 0 {
 		return 0, nil
 	}
-	// For now, return the packet as-is since amneziawg-go doesn't support GSO
-	if len(outBuffs) > 0 {
-		outBuffs[0] = pkt
-		sizes[0] = len(pkt)
-		return 1, nil
-	}
-	return 0, nil
+	// The packet data was already copied into outBuffs[0][offset:] by the caller
+	// We just need to set the size
+	sizes[0] = len(pkt)
+	return 1, nil
 }
 
 // GRODevice is a generic receive offload device interface.
@@ -61,4 +58,3 @@ type GRODevice interface {
 	// Close closes the GRO device.
 	Close() error
 }
-
