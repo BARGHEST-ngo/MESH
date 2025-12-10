@@ -199,6 +199,9 @@ This repository is a monorepo and contains all components required for MESH:
 - `mesh-control-plane`: The control plane server that manages your nodes in the mesh network and distributes keys.
 - `mesh-linux-macos-analyst`: The CLI client and daemon for your analysis/collection node.
 
+## Licenses
+
+This project is a fork of Tailscale and contains code under the BSD-3-Clause license (Tailscale Inc & AUTHORS). Additional code is licensed under CC0. See LICENSE and .licenses/tailscale.license for details.
 
 ## Legal
 
