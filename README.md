@@ -200,7 +200,9 @@ This repository is a monorepo and contains all components required for MESH:
 - `mesh-linux-macos-analyst`: The CLI client and daemon for your analysis/collection node.
 
 
+## Legal
 
+WireGuard is a registered trademark of Jason A. Donenfeld.
 
 
 
