@@ -15,7 +15,7 @@
 
 <h3><div align="center">
   <h3>
-    <a href="https://meshforensics.org">
+    <a href="https://docs.meshforensics.org/">
       MESH Docs
     </a>
     <span>  |  </span>
