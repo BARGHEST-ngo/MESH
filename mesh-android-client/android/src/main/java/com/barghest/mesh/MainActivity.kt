@@ -67,6 +67,7 @@ import com.barghest.mesh.ui.util.set
 import com.barghest.mesh.ui.util.universalFit
 import com.barghest.mesh.ui.view.ADBSetup
 import com.barghest.mesh.ui.view.AboutView
+import com.barghest.mesh.ui.view.AWGSettingsView
 import com.barghest.mesh.ui.view.DNSSettingsView
 import com.barghest.mesh.ui.view.ExitNodePicker
 import com.barghest.mesh.ui.view.HealthView
@@ -368,6 +369,7 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToManagedBy = { navController.navigate("managedBy") },
                                     onNavigateToUserSwitcher = { navController.navigate("userSwitcher") },
                                     onNavigateToPermissions = { navController.navigate("permissions") },
+                                    onNavigateToAWGSettings = { navController.navigate("awgSettings") },
                                     onBackToSettings = backTo("settings"),
                                     onNavigateBackHome = backTo("main")
                                 )
@@ -444,6 +446,7 @@ class MainActivity : ComponentActivity() {
                             composable("subnetRouting") { SubnetRoutingView(backTo("settings")) }
                             composable("about") { AboutView(backTo("settings")) }
                             composable("mdmSettings") { MDMSettingsDebugView(backTo("settings")) }
+                            composable("awgSettings") { AWGSettingsView(backTo("settings")) }
                             composable("userSwitcher") { UserSwitcherView(userSwitcherNav) }
                             composable("permissions") {
                                 PermissionsView(

@@ -591,6 +591,9 @@ func (device *Device) resetProtocol() {
 	MessageResponseType = DefaultMessageResponseType
 	MessageCookieReplyType = DefaultMessageCookieReplyType
 	MessageTransportType = DefaultMessageTransportType
+
+	// reset device version to default
+	device.version = VersionDefault
 }
 
 func (device *Device) handlePostConfig(tempAwg *awg.Protocol) error {
@@ -841,17 +844,24 @@ func (device *Device) handlePostConfig(tempAwg *awg.Protocol) error {
 	device.awg.IsOn.SetTo(isAwgOn)
 	device.awg.JunkCreator = awg.NewJunkCreator(device.awg.Cfg)
 
-	if tempAwg.HandshakeHandler.IsSet {
-		if err := tempAwg.HandshakeHandler.Validate(); err != nil {
-			errs = append(errs, ipcErrorf(
-				ipc.IpcErrorInvalid, "handshake handler validate: %w", err))
+	if isAwgOn {
+		if tempAwg.HandshakeHandler.IsSet {
+			if err := tempAwg.HandshakeHandler.Validate(); err != nil {
+				errs = append(errs, ipcErrorf(
+					ipc.IpcErrorInvalid, "handshake handler validate: %w", err))
+			} else {
+				device.awg.HandshakeHandler = tempAwg.HandshakeHandler
+				device.awg.HandshakeHandler.SpecialJunk.DefaultJunkCount = tempAwg.Cfg.JunkPacketCount
+				device.version = VersionAwgSpecialHandshake
+				device.log.Verbosef("AWG: device.version set to VersionAwgSpecialHandshake (%d)", device.version)
+			}
 		} else {
-			device.awg.HandshakeHandler = tempAwg.HandshakeHandler
-			device.awg.HandshakeHandler.SpecialJunk.DefaultJunkCount = tempAwg.Cfg.JunkPacketCount
-			device.version = VersionAwgSpecialHandshake
+			device.version = VersionAwg
+			device.log.Verbosef("AWG: device.version set to VersionAwg (%d)", device.version)
 		}
 	} else {
-		device.version = VersionAwg
+		device.version = VersionDefault
+		device.log.Verbosef("AWG: device.version set to VersionDefault (%d)", device.version)
 	}
 
 	device.awg.Mux.Unlock()

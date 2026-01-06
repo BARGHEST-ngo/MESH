@@ -13,7 +13,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/tailscale/wireguard-go/tun"
+	"github.com/amnezia-vpn/amneziawg-go/tun"
 	"tailscale.com/net/dns"
 	"tailscale.com/net/netmon"
 	"tailscale.com/util/dnsname"
