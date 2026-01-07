@@ -103,14 +103,14 @@ derp:
     # If you enable the DERP server and set this to false, it is required to add the DERP server to the DERP map using DERP.paths
     automatically_add_embedded_derp_region: true
 
-    # For better connection stability (especially when using an Exit-Node and DNS is not working),
+
     # it is possible to optionally add the public IPv4 and IPv6 address to the Derp-Map using:
     ipv4: 198.51.100.1
     ipv6: 2001:db8::1
 
   # List of externally available DERP maps encoded in JSON
-  urls:
-    - https://controlplane.tailscale.com/derpmap/default
+  urls: 
+   - https://controlplane.tailscale.com/derpmap/default
 
   # Locally available DERP map files encoded in YAML
   #
@@ -125,7 +125,7 @@ derp:
   # If enabled, a worker will be set up to periodically
   # refresh the given sources and update the derpmap
   # will be set up.
-  auto_update_enabled: true
+  auto_update_enabled: false
 
   # How often should we check for DERP updates?
   update_frequency: 3h

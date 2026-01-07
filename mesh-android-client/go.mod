@@ -9,17 +9,14 @@ require (
 )
 
 replace (
-	// Use local amneziawg-go fork (same one used by mesh-linux-macos-analyst)
-	github.com/amnezia-vpn/amneziawg-go => ../mesh-linux-macos-analyst/third_party/amneziawg-go-fork
+	github.com/amnezia-vpn/amneziawg-go => github.com/BARGHEST-ngo/amnezia-wireguard-go v0.1.1-alpha.1
 
-	// Inherit replace directive from mesh-linux-macos-analyst for androidqf_ward
-	github.com/mvt-project/androidqf_ward => ../mesh-linux-macos-analyst/third_party/androidqf_ward
+	github.com/mvt-project/androidqf_ward => github.com/BARGHEST-ngo/androidqf_mesh v0.1.0
 
-	// Use same gvisor version as mesh-linux-macos-analyst to avoid package conflicts
 	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
 
-	// Use local AWG-enabled tailscale.com fork
-	tailscale.com => ../mesh-linux-macos-analyst
+	// Use AWG-enabled tailscale.com fork from GitHub
+	tailscale.com => github.com/BARGHEST-ngo/tailscale v0.1.1-alpha.1
 )
 
 require (
