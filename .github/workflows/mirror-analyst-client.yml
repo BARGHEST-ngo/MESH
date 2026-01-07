@@ -1,0 +1,66 @@
+name: Mirror mesh-analyst-client
+
+on:
+  push:
+    branches:
+      - main
+      - dev/**
+    tags:
+      - 'v*'
+    paths:
+      - 'mesh-linux-macos-analyst/**'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout MESH monorepo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for git subtree
+          token: ${{ secrets.MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Git
+        run: |
+          git config user.name "MESH Mirror Bot"
+          git config user.email "bot@barghest.ngo"
+      
+      - name: Split mesh-linux-macos-analyst subdirectory
+        run: |
+          # Create a branch with only mesh-linux-macos-analyst content
+          git subtree split --prefix=mesh-linux-macos-analyst -b analyst-client-mirror
+      
+      - name: Push to mesh-analyst-client repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
+          TARGET_REPO: BARGHEST-ngo/mesh-analyst-client
+        run: |
+          # Push the split branch to the target repo
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git \
+            analyst-client-mirror:main --force
+      
+      - name: Mirror tags (if triggered by tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
+          TARGET_REPO: BARGHEST-ngo/mesh-analyst-client
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "Mirroring tag: $TAG"
+          
+          # Tag the split branch
+          git checkout analyst-client-mirror
+          git tag -f $TAG
+          
+          # Push tag to target repo
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git \
+            $TAG --force
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          git checkout main
+          git branch -D analyst-client-mirror || true
+

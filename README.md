@@ -195,9 +195,20 @@ Your MESH network is now build and ready to accept nodes, you should see the <a 
 ## Repository structure
 
 This repository is a monorepo and contains all components required for MESH:
-- `mesh-android-client`: The core library the Android APK that should be installed on endpoints for analysis
-- `mesh-control-plane`: The control plane server that manages your nodes in the mesh network and distributes keys.
-- `mesh-linux-macos-analyst`: The CLI client and daemon for your analysis/collection node.
+- `mesh-android-client`: The Android APK that should be installed on endpoints for analysis
+- `mesh-control-plane`: The control plane server that manages your nodes in the mesh network and distributes keys
+- `mesh-linux-macos-analyst`: The CLI client and daemon for your analysis/collection node
+  - **Auto-mirrored** to [BARGHEST-ngo/mesh-analyst-client](https://github.com/BARGHEST-ngo/mesh-analyst-client) for Go module compatibility
+
+### For Developers
+
+This monorepo uses GitHub Actions to automatically mirror `mesh-linux-macos-analyst/` to the separate [mesh-analyst-client](https://github.com/BARGHEST-ngo/mesh-analyst-client) repository. This allows the Go module system to properly resolve dependencies while keeping development centralized in this monorepo.
+
+**Development workflow:**
+1. Make changes in `mesh-linux-macos-analyst/` in this repo
+2. Commit and push to `main` or create a tag (e.g., `v0.1.2-alpha.1`)
+3. GitHub Actions automatically mirrors changes to `BARGHEST-ngo/mesh-analyst-client`
+4. Other Go projects can import `github.com/BARGHEST-ngo/mesh-analyst-client`
 
 ## Licenses
 
