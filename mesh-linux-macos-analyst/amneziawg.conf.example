@@ -65,6 +65,7 @@ H4 = 4
 # Use the defaults shown above (all zeros except H1-H4)
 
 # SCENARIO 2: Light obfuscation (minimal overhead)
+# [Interface]
 # Jc = 3
 # Jmin = 10
 # Jmax = 50
@@ -76,6 +77,7 @@ H4 = 4
 # H4 = 8
 
 # SCENARIO 3: Heavy obfuscation (maximum DPI evasion)
+# [Interface]
 # Jc = 10
 # Jmin = 50
 # Jmax = 1000
@@ -87,6 +89,7 @@ H4 = 4
 # H4 = 4567890
 
 # SCENARIO 4: Recommended balanced configuration
+# [Interface]
 # Jc = 5
 # Jmin = 50
 # Jmax = 1000

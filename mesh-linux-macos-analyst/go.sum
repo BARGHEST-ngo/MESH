@@ -59,6 +59,10 @@ github.com/Antonboom/testifylint v1.2.0 h1:015bxD8zc5iY8QwTp4+RG9I4kIbqwvGX9TrBb
 github.com/Antonboom/testifylint v1.2.0/go.mod h1:rkmEqjqVnHDRNsinyN6fPSLnoajzFwsCcguJgwADBkw=
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c h1:udKWzYgxTojEKWjV8V+WSxDXJ4NFATAsZjh8iIbsQIg=
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
+github.com/BARGHEST-ngo/amnezia-wireguard-go v0.1.1-alpha.1 h1:+ZBmtgUWsK3tV6K01OssGz6Bu/7lzYq4k7f1goR+j9U=
+github.com/BARGHEST-ngo/amnezia-wireguard-go v0.1.1-alpha.1/go.mod h1:nRkPpIzjCxMW8pZKXTRkpqAQVlmFJdVOGkeQSC7wbms=
+github.com/BARGHEST-ngo/androidqf_mesh v0.1.0 h1:8rc2EYQ7H1CndPQjjZg3uY6r3anzqaELIrntHW+mXUk=
+github.com/BARGHEST-ngo/androidqf_mesh v0.1.0/go.mod h1:B1mVzR2BxtB6BpsFclmt6Y+3878Gj3VnSdlQem85n9E=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c h1:pxW6RcqyfI9/kWtOwnv/G+AzdKuy2ZrqINhenH4HyNs=
 github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=

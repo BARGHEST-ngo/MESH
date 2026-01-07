@@ -396,4 +396,35 @@
     <string name="taildrop_directory_picker_info">What is taildrop?</string>
     <string name="taildrop_directory_picker_button">Open Directory Picker</string>
 
+    <!-- AmneziaWG Settings -->
+    <string name="awg_settings">AmneziaWG Settings</string>
+    <string name="awg_settings_subtitle">Configure DPI evasion parameters</string>
+    <string name="awg_obfuscation_enabled">Obfuscation enabled</string>
+    <string name="awg_obfuscation_disabled">Using standard WireGuard</string>
+    <string name="awg_enable_obfuscation">Enable obfuscation</string>
+    <string name="awg_enable_obfuscation_desc">Enable AmneziaWG DPI evasion. When disabled, uses standard WireGuard protocol.</string>
+    <string name="awg_junk_packets">Junk Packets</string>
+    <string name="awg_jc">Jc (count)</string>
+    <string name="awg_jc_desc">Number of junk packets before handshake (0–128)</string>
+    <string name="awg_jmin">Jmin (bytes)</string>
+    <string name="awg_jmin_desc">Minimum junk packet size</string>
+    <string name="awg_jmax">Jmax (bytes)</string>
+    <string name="awg_jmax_desc">Maximum junk packet size (≤1280)</string>
+    <string name="awg_handshake_padding">Handshake Padding</string>
+    <string name="awg_s1">S1 (bytes)</string>
+    <string name="awg_s1_desc">Junk bytes in handshake init (0 or 15–150)</string>
+    <string name="awg_s2">S2 (bytes)</string>
+    <string name="awg_s2_desc">Junk bytes in handshake response (0 or 15–150)</string>
+    <string name="awg_message_types">Message Type Obfuscation</string>
+    <string name="awg_h1">H1</string>
+    <string name="awg_h2">H2</string>
+    <string name="awg_h3">H3</string>
+    <string name="awg_h4">H4</string>
+    <string name="awg_h_desc">Custom message type identifiers (all must be different, ≥1)</string>
+    <string name="awg_save">Save &amp; Apply</string>
+    <string name="awg_reset_defaults">Reset to Defaults</string>
+    <string name="awg_saved">AmneziaWG settings saved. Reconnect to apply.</string>
+    <string name="awg_validation_error">Invalid configuration</string>
+    <string name="awg_restart_required">Settings saved. Disconnect and reconnect to apply changes.</string>
+
 </resources>

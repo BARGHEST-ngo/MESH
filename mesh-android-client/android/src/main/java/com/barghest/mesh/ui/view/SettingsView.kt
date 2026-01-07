@@ -91,6 +91,12 @@ fun SettingsView(
               subtitle = stringResource(R.string.exclude_certain_apps_from_using_tailscale),
               onClick = settingsNav.onNavigateToSplitTunneling)
 
+          Lists.ItemDivider()
+          Setting.Text(
+              R.string.awg_settings,
+              subtitle = stringResource(R.string.awg_settings_subtitle),
+              onClick = settingsNav.onNavigateToAWGSettings)
+
           if (showTailnetLock.value == ShowHide.Hide) {
               Lists.ItemDivider()
               Setting.Text(
@@ -183,5 +189,5 @@ fun SettingsPreview() {
   vm.tailNetLockEnabled.set(true)
   vm.isAdmin.set(true)
   vm.managedByOrganization.set("")
-  SettingsView(SettingsNav({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}), vm)
+  SettingsView(SettingsNav({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}), vm)
 }
