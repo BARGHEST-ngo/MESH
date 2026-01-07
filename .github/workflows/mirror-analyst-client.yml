@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Full history needed for git subtree
-          token: ${{ secrets.MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MIRROR_TOKEN }}
       
       - name: Setup Git
         run: |
@@ -34,28 +34,28 @@ jobs:
       
       - name: Push to mesh-analyst-client repo
         env:
-          GITHUB_TOKEN: ${{ secrets.MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
           TARGET_REPO: BARGHEST-ngo/mesh-analyst-client
         run: |
           # Push the split branch to the target repo
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git \
+          git push https://x-access-token:${MIRROR_TOKEN}@github.com/${TARGET_REPO}.git \
             analyst-client-mirror:main --force
       
       - name: Mirror tags (if triggered by tag)
         if: startsWith(github.ref, 'refs/tags/')
         env:
-          GITHUB_TOKEN: ${{ secrets.MIRROR_TOKEN || secrets.GITHUB_TOKEN }}
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
           TARGET_REPO: BARGHEST-ngo/mesh-analyst-client
         run: |
           TAG=${GITHUB_REF#refs/tags/}
           echo "Mirroring tag: $TAG"
-          
+
           # Tag the split branch
           git checkout analyst-client-mirror
           git tag -f $TAG
-          
+
           # Push tag to target repo
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${TARGET_REPO}.git \
+          git push https://x-access-token:${MIRROR_TOKEN}@github.com/${TARGET_REPO}.git \
             $TAG --force
       
       - name: Cleanup
