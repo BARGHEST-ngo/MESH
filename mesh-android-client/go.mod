@@ -16,7 +16,7 @@ replace (
 	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
 
 	// Use AWG-enabled tailscale.com fork from GitHub
-	tailscale.com => github.com/BARGHEST-ngo/mesh-analyst-client v0.1.1-alpha.1
+	tailscale.com => github.com/BARGHEST-ngo/mesh-analyst-client v0.1.2-alpha.1
 )
 
 require (
