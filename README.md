@@ -29,7 +29,11 @@
 > [!IMPORTANT]
 > Please be aware this project is currently in public alpha. We take security seriously, and thus we recommend not using this in production till we have conducted a full penetration-test. This is currently on going. Features and APIs may change. Please report issues here on GitHub.
 
-MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics. It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
+MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics. 
+
+It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
+
+Because it creates a virtual TUN interface and assigns CGNAT-range addresses, analysts can do remote mobile forensics acquisions using ADB-over-Wifi & [Libimobile](https://github.com/libimobiledevice/libimobiledevice).
 
 MESH adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked. This offers protection against the GFW and detection by Deep Packet Inspection (DPI) systems.
 
