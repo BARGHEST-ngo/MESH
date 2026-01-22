@@ -316,7 +316,7 @@ func newRootCmd() *ffcli.Command {
 			debugCmd(),
 			nilOrCall(maybeDriveCmd),
 			idTokenCmd,
-			systrayCmd,
+			nilOrCall(maybeSystrayCmd),
 			appcRoutesCmd,
 		),
 		FlagSet: rootfs,
