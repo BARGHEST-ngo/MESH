@@ -1,5 +1,5 @@
 <h1><div align="center">
-  <img width="869" height="488" alt="MESH" src="https://github.com/user-attachments/assets/03d0b879-ca5e-4a20-af72-533ea3ae2b52" />
+  <img width="469" height="288" alt="MESH" src="https://github.com/user-attachments/assets/03d0b879-ca5e-4a20-af72-533ea3ae2b52" />
 </div></h1>
 
 <div align="center">
