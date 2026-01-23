@@ -1,4 +1,5 @@
 # Copyright (c) 2020 Tailscale Inc & AUTHORS All rights reserved.
+# Copyright (c) 2024-2025 BARGHEST. Additional contributions dedicated to public domain under CC0 1.0.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
@@ -9,13 +10,13 @@
 # will force a rebuild of the docker image.  If there is an existing image
 # with this name, it will be used.
 #
-# The convention here is tailscale-android-build-amd64-<date>
-DOCKER_IMAGE := tailscale-android-build-amd64-041425-1
+# The convention here is mesh-android-build-amd64-<date>
+DOCKER_IMAGE := mesh-android-build-amd64-012326-1
 export TS_USE_TOOLCHAIN=1
 
-DEBUG_APK := tailscale-debug.apk
-RELEASE_AAB := tailscale-release.aab
-RELEASE_TV_AAB := tailscale-tv-release.aab
+DEBUG_APK := mesh-debug.apk
+RELEASE_AAB := mesh-release.aab
+RELEASE_TV_AAB := mesh-tv-release.aab
 
 # Define output filenames.
 LIBTAILSCALE_AAR := android/libs/libtailscale.aar
@@ -86,7 +87,7 @@ else ifeq ($(HOST_ARCH),arm64)
 else
     AVD_IMAGE := "$(AVD_BASE_IMAGE)x86_64"
 endif
-AVD ?= tailscale-$(HOST_ARCH)
+AVD ?= mesh-$(HOST_ARCH)
 export AVD_IMAGE
 export AVD
 
@@ -116,35 +117,45 @@ debug-unstripped: build-unstripped-aar
 .PHONY: apk
 apk: $(DEBUG_APK)
 
-.PHONY: tailscale-debug
-tailscale-debug: $(DEBUG_APK)
+.PHONY: mesh-debug
+mesh-debug: $(DEBUG_APK)
 
 $(DEBUG_APK): libtailscale debug-symbols version gradle-dependencies build-unstripped-aar
 	(cd android && ./gradlew test assembleDebug)
 	install -C android/build/outputs/apk/debug/android-debug.apk $@
 
 # Builds the release APK (unsigned, for testing)
+RELEASE_APK := mesh-release-unsigned.apk
 .PHONY: release-apk
-release-apk: tailscale-release.apk
+release-apk: $(RELEASE_APK)
 
-tailscale-release.apk: libtailscale version gradle-dependencies
+$(RELEASE_APK): libtailscale version gradle-dependencies
 	@echo "Building release APK (unsigned)"
 	(cd android && ./gradlew assembleRelease)
 	install -C android/build/outputs/apk/release/android-release-unsigned.apk $@
 
+# Builds and signs the release APK (for GitHub releases / sideloading)
+RELEASE_APK_SIGNED := mesh-release.apk
+.PHONY: release-apk-signed
+release-apk-signed: jarsign-env $(RELEASE_APK)
+	@echo "Signing release APK"
+	@cp $(RELEASE_APK) $(RELEASE_APK_SIGNED)
+	@apksigner sign --ks $(JKS_PATH) --ks-pass env:JKS_PASSWORD --ks-key-alias $(JKS_ALIAS) $(RELEASE_APK_SIGNED)
+	@echo "Signed APK: $(RELEASE_APK_SIGNED)"
+
 # Builds the release AAB and signs it (phone/tablet/chromeOS variant)
 .PHONY: release
 release: jarsign-env $(RELEASE_AAB)
-	@jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore $(JKS_PATH) -storepass $(JKS_PASSWORD) $(RELEASE_AAB) tailscale
+	@jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore $(JKS_PATH) -storepass:env JKS_PASSWORD $(RELEASE_AAB) mesh
 
 # Builds the release AAB and signs it (androidTV variant)
 .PHONY: release-tv
 release-tv: jarsign-env $(RELEASE_TV_AAB)
-	@jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore $(JKS_PATH) -storepass $(JKS_PASSWORD) $(RELEASE_TV_AAB) tailscale
+	@jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore $(JKS_PATH) -storepass:env JKS_PASSWORD $(RELEASE_TV_AAB) mesh
 
 # gradle-dependencies groups together the android sources and libtailscale needed to assemble tests/debug/release builds.
 .PHONY: gradle-dependencies
-gradle-dependencies: $(shell find android -type f -not -path "android/build/*" -not -path '*/.*') $(LIBTAILSCALE_AAR) tailscale.version
+gradle-dependencies: $(shell find android -type f -not -path "android/build/*" -not -path '*/.*') $(LIBTAILSCALE_AAR)
 
 $(RELEASE_AAB): version gradle-dependencies
 	@echo "Building release AAB"
@@ -156,16 +167,13 @@ $(RELEASE_TV_AAB): version gradle-dependencies
 	(cd android && ./gradlew test bundleRelease_tv)
 	install -C ./android/build/outputs/bundle/release_tv/android-release_tv.aab $@
 
-tailscale-test.apk: version gradle-dependencies
+mesh-test.apk: version gradle-dependencies
 	(cd android && ./gradlew assembleApplicationTestAndroidTest)
 	install -C ./android/build/outputs/apk/androidTest/applicationTest/android-applicationTest-androidTest.apk $@
 
-tailscale.version: go.mod go.sum $(wildcard .git/HEAD)
-	@bash -c "./tool/go run tailscale.com/cmd/mkversion > tailscale.version"
-
 .PHONY: version
-version: tailscale.version
-	@cat tailscale.version
+version:
+	@cat barghest.version
 
 # ------------------------------------------------------------------------------
 # Go Build Targets (Unstripped AAR, Debug Symbols, Stripped SO, Packaging)
@@ -184,7 +192,7 @@ $(GOBIN)/gobind: go.mod go.sum
 	./tool/go install golang.org/x/mobile/cmd/gobind
 
 .PHONY: build-unstripped-aar
-build-unstripped-aar: tailscale.version $(GOBIN)/gomobile check-go-patch 
+build-unstripped-aar: $(GOBIN)/gomobile check-go-patch
 	@echo "Running gomobile bind to generate unstripped AAR..."
 	@echo "Output file: $(ABS_UNSTRIPPED_AAR)"
 	mkdir -p $(dir $(ABS_UNSTRIPPED_AAR))
@@ -251,15 +259,18 @@ env:
 	@echo "TOOLCHAINDIR=$(TOOLCHAINDIR)"
 	@echo "AVD_IMAGE=$(AVD_IMAGE)"
 
-# Ensure that JKS_PATH and JKS_PASSWORD are set before we attempt a build
+# Ensure that JKS_PATH, JKS_PASSWORD, and JKS_ALIAS are set before we attempt a build
 # that requires signing.
 .PHONY: jarsign-env
 jarsign-env:
 ifeq ($(JKS_PATH),)
-	$(error JKS_PATH is not set.  export JKS_PATH=/path/to/tailcale.jks)
+	$(error JKS_PATH is not set.  export JKS_PATH=/path/to/mesh.jks)
 endif
 ifeq ($(JKS_PASSWORD),)
-	$(error JKS_PASSWORD is not set.  export JKS_PASSWORD=passwordForTailcale.jks)
+	$(error JKS_PASSWORD is not set.  export JKS_PASSWORD=yourPassword)
+endif
+ifeq ($(JKS_ALIAS),)
+	$(error JKS_ALIAS is not set.  export JKS_ALIAS=mesh)
 endif
 ifeq ($(wildcard $(JKS_PATH)),)
 	$(error JKS_PATH does not point to a file)
@@ -273,13 +284,13 @@ androidpath:
 	@echo 'export PATH=$(ANDROID_HOME)/cmdline-tools/latest/bin:$(ANDROID_HOME)/platform-tools:$$PATH'
 
 .PHONY: tag_release
-tag_release: debug-symbols tailscale.version ## Tag the current commit with the current version
-	source tailscale.version && git tag -a "$${VERSION_LONG}" -m "OSS and Version updated to $${VERSION_LONG}"
+tag_release: debug-symbols ## Tag the current commit with the current version
+	source barghest.version && git tag -a "$${VERSION_LONG}" -m "OSS and Version updated to $${VERSION_LONG}"
 
 .PHONY: bumposs ## Bump to the latest oss and update the versions.
-bumposs: update-oss tailscale.version
-	source tailscale.version && git commit -sm "android: bump OSS" -m "OSS and Version updated to $${VERSION_LONG}" go.toolchain.rev android/build.gradle go.mod go.sum
-	source tailscale.version && git tag -a "$${VERSION_LONG}" -m "OSS and Version updated to $${VERSION_LONG}"
+bumposs: update-oss
+	source barghest.version && git commit -sm "android: bump OSS" -m "OSS and Version updated to $${VERSION_LONG}" go.toolchain.rev android/build.gradle go.mod go.sum
+	source barghest.version && git tag -a "$${VERSION_LONG}" -m "OSS and Version updated to $${VERSION_LONG}"
 
 .PHONY: bump_version_code ## Bump the version code in build.gradle
 bump_version_code:
@@ -400,7 +411,7 @@ docker-build-image: ## Builds the docker image for the android build environment
 
 .PHONY: docker-run-build
 docker-run-build: clean jarsign-env docker-build-image ## Runs the docker image for the android build environment and builds release
-	@docker run --rm -v $(CURDIR):/build/tailscale-android --env JKS_PASSWORD=$(JKS_PASSWORD) --env JKS_PATH=$(JKS_PATH) $(DOCKER_IMAGE)
+	@docker run --rm -v $(CURDIR):/build/mesh-android --env JKS_PASSWORD=$(JKS_PASSWORD) --env JKS_PATH=$(JKS_PATH) $(DOCKER_IMAGE)
 
 .PHONY: docker-remove-build-image
 docker-remove-build-image: ## Removes the current docker build image
@@ -411,7 +422,7 @@ docker-all: docker-build-image docker-run-build $(DOCKER_IMAGE)
 
 .PHONY: docker-shell
 docker-shell: docker-build-image ## Builds a docker image with the android build env and opens a shell
-	docker run --rm -v $(CURDIR):/build/tailscale-android -it $(DOCKER_IMAGE) /bin/bash
+	docker run --rm -v $(CURDIR):/build/mesh-android -it $(DOCKER_IMAGE) /bin/bash
 
 .PHONY: docker-remove-shell-image
 docker-remove-shell-image: ## Removes all docker shell image
@@ -424,7 +435,6 @@ clean: ## Remove build artifacts. Does not purge docker build envs. Use dockerRe
 	@echo "Cleaning cached toolchain"
 	-rm -rf $(HOME)/.cache/tailscale-go{,.extracted}
 	-pkill -f gradle
-	-rm tailscale.version
 
 .PHONY: help
 help: ## Show this help
