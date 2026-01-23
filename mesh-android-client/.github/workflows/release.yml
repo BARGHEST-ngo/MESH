@@ -7,7 +7,7 @@ on:
   workflow_dispatch:  # Allows manual trigger from GitHub UI
     inputs:
       version:
-        description: 'v0.1.2-alpha'
+        description: 'v0.1.1-alpha'
         required: true
         default: '0.1.0'
 
