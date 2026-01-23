@@ -37,9 +37,10 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android NDK
+      - name: Install Android NDK and Build Tools
         run: |
-          sdkmanager --install "ndk;23.1.7779620"
+          sdkmanager --install "ndk;23.1.7779620" "build-tools;34.0.0"
+          echo "$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_PATH
 
       - name: Decode Keystore
         env:
