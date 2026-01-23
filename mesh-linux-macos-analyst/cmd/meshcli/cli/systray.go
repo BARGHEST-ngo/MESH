@@ -13,12 +13,18 @@ import (
 	"tailscale.com/client/systray"
 )
 
-var systrayCmd = &ffcli.Command{
-	Name:       "systray",
-	ShortUsage: "tailscale systray",
-	ShortHelp:  "Run a systray application to manage Tailscale",
-	LongHelp:   "Run a systray application to manage Tailscale.",
-	Exec:       runSystray,
+func init() {
+	maybeSystrayCmd = systrayCmd
+}
+
+func systrayCmd() *ffcli.Command {
+	return &ffcli.Command{
+		Name:       "systray",
+		ShortUsage: "tailscale systray",
+		ShortHelp:  "Run a systray application to manage Tailscale",
+		LongHelp:   "Run a systray application to manage Tailscale.",
+		Exec:       runSystray,
+	}
 }
 
 func runSystray(ctx context.Context, _ []string) error {
