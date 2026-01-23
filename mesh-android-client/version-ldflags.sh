@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source tailscale.version || echo >&2 "no tailscale.version file found"
+source barghest.version || { echo >&2 "no barghest.version file found"; exit 1; }
 if [[ -z "${VERSION_LONG}" ]]; then
     exit 1
 fi

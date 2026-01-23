@@ -1,0 +1,85 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0-alpha.1, etc.
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+    inputs:
+      version:
+        description: 'v0.1.1-alpha'
+        required: true
+        default: '0.1.0'
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Go
+        uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
+        with:
+          go-version-file: "go.mod"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          sdkmanager --install "ndk;23.1.7779620"
+
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > mesh-release.jks
+
+      - name: Build and Sign Release APK
+        env:
+          JKS_PATH: ${{ github.workspace }}/mesh-release.jks
+          JKS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          JKS_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+        run: |
+          make release-apk-signed
+
+      - name: Get version from tag or input
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Rename APK with version
+        run: |
+          mv mesh-release.apk mesh-${{ steps.version.outputs.version }}.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesh-${{ steps.version.outputs.version }}
+          path: mesh-${{ steps.version.outputs.version }}.apk
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mesh-${{ steps.version.outputs.version }}.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f mesh-release.jks
+
