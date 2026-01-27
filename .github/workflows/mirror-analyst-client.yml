@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout MESH monorepo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0  # Full history needed for git subtree
           token: ${{ secrets.MIRRORMESH }}
