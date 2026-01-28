@@ -16,7 +16,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
   const [reusable, setReusable] = useState(false)
   const [ephemeral, setEphemeral] = useState(false)
   const [expirationDays, setExpirationDays] = useState('1')
-  const [deviceTag, setDeviceTag] = useState<'analyst' | 'victim'>('analyst')
+  const [deviceTag, setDeviceTag] = useState<'analyst' | 'mobile_node'>('analyst')
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   
@@ -117,14 +117,14 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                   </button>
                   <button
                     type="button"
-                    onClick={() => setDeviceTag('victim')}
+                    onClick={() => setDeviceTag('mobile_node')}
                     className={`flex-1 px-4 py-2 rounded border transition-colors ${
-                      deviceTag === 'victim'
+                      deviceTag === 'mobile_node'
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-secondary border-border hover:bg-secondary/80'
                     }`}
                   >
-                    [ VICTIM ]
+                    [ MOBILE_NODE ]
                   </button>
                 </div>
               </div>
