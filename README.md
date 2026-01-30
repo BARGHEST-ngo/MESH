@@ -39,8 +39,6 @@ MESH adds hardened transport and obfuscation options such as [AmneziaWG](https:/
 
 It can create and tear down end-to-end mesh links between a locked-down analyst host and forensic clients (for example, Android devices) in seconds by removing hub-and-spoke topologies. MESH lets you spin up a forensics mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
 
-Remote investigations that work.
-
 Key functions
 
 - Builds peer-to-peer subnets for device analysis.
@@ -53,6 +51,12 @@ Key functions
 - Intergrates directly with [AndroidQF](https://github.com/mvt-project/androidqf) for spyware IOC checks with [MVT](https://github.com/mvt-project/mvt)
 - Supports kill-switch capabilities to block a device’s other network traffic while the forensics link remains active.
 - Enables rapid creation, isolation, and teardown of remote investigation nodes.
+
+<img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/4b305c4c-c0f9-49bf-8e59-9ccecdfadb86" />
+
+<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/31947724-d826-4807-b984-9b87473e6847" />
+
+<img width="1920" height="1080" alt="3" src="https://github.com/user-attachments/assets/9019c1ce-06ed-4e14-b05f-ecb82d06ac1a" />
 
 # Remote mobile forensics and auditing
 
