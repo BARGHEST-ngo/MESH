@@ -56,7 +56,8 @@ Key functions
 
 <img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/31947724-d826-4807-b984-9b87473e6847" />
 
-<img width="1920" height="1080" alt="3" src="https://github.com/user-attachments/assets/9019c1ce-06ed-4e14-b05f-ecb82d06ac1a" />
+<img width="1920" height="1080" alt="3" src="https://github.com/user-attachments/assets/1d95e6ff-2361-42b8-af8a-9d01c18c6b3b" />
+
 
 # Remote mobile forensics and auditing
 
