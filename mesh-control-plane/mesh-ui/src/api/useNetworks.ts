@@ -27,7 +27,10 @@ async function syncNetworkIsolationPolicy(): Promise<void> {
     const mergedPolicy = {
         ...currentPolicy,
         ...generatedPolicy,
-        // Ensure we always overwrite ACL rules with the generated ones TODO: test usecases for why you wouldnt want this
+        // Ensure we always overwrite ACL rules with the generated ones 
+        // TODO: Test usecases for why you wouldn't want this. Really this should append?
+        // If a new network is created, it may overright an existing ACL existing one.
+        // We need a create a better handling for this.
         acls: generatedPolicy.acls,
     }
 
