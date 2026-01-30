@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import apiClient from './client'
 import type { V1User, V1CreateUserRequest, V1ListUsersResponse, V1DeleteUserResponse } from './openapi/types.gen'
-import type { V1SetPolicyResponse } from './openapi/types.gen'
-import { toHuJSON } from './usePolicy'
+import type { V1GetPolicyResponse, V1SetPolicyResponse } from './openapi/types.gen'
+import { parseHuJSON, toHuJSON } from './usePolicy'
 import { generateNetworkIsolationPolicy } from '../lib/aclPolicyGenerator'
 
 export function useNetworks() {
@@ -15,18 +15,25 @@ export function useNetworks() {
     })
 }
 
- // TODO impliment timestamping since multiple users can overlap
+// TODO impliment timestamping since multiple users can overlap
 async function syncNetworkIsolationPolicy(): Promise<void> {
     // Fetch current networks
     const networksResponse = await apiClient.get<V1ListUsersResponse>('/user')
     const networks = networksResponse.data.users || []
+    const currentPolicyResponse = await apiClient.get<V1GetPolicyResponse>('/policy')
+    const currentRaw = currentPolicyResponse.data.policy || '{}'
+    const currentPolicy = parseHuJSON(currentRaw) as Record<string, unknown>
+    const generatedPolicy = generateNetworkIsolationPolicy(networks)
+    const mergedPolicy = {
+        ...currentPolicy,
+        ...generatedPolicy,
+        // Ensure we always overwrite ACL rules with the generated ones TODO: test usecases for why you wouldnt want this
+        acls: generatedPolicy.acls,
+    }
 
-    // Generate the complete isolation policy
-    const policy = generateNetworkIsolationPolicy(networks)
-
-    // Apply the policy
+    //apply
     await apiClient.put<V1SetPolicyResponse>('/policy', {
-        policy: toHuJSON(policy),
+        policy: toHuJSON(mergedPolicy),
     })
 }
 
@@ -44,14 +51,10 @@ export function useCreateNetwork() {
             // Create the network first
             const response = await apiClient.post('/user', request)
 
-            // Sync ACL policy to include the new network
-            // This regenerates the entire policy to ensure consistency
             try {
                 await syncNetworkIsolationPolicy()
             } catch (aclError) {
                 console.error('Failed to sync ACL policy after network creation:', aclError)
-                // Don't fail the network creation if ACL sync fails
-                // The policy can be synced manually or on next operation
             }
 
             return response.data
