@@ -1,8 +1,8 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
-import { Plus, Network, RefreshCw, Filter, Shield } from 'lucide-react'
+import { Plus, Network, RefreshCw, Filter } from 'lucide-react'
 import { Button } from '../components/ui/button'
-import { useNetworks, useSyncNetworkIsolation } from '../api/useNetworks'
+import { useNetworks } from '../api/useNetworks'
 import { NetworkCard } from '../components/NetworkCard'
 import { CreateNetworkDialog } from '../components/CreateNetworkDialog'
 import {
@@ -27,23 +27,6 @@ function Index() {
   const [selectedEmail, setSelectedEmail] = useState<string>('all')
   
   const { data: networks = [], isLoading: networksLoading, refetch } = useNetworks()
-  const syncNetworkIsolation = useSyncNetworkIsolation()
-
-  const handleSyncNetworkIsolation = async () => {
-    const confirmed = window.confirm(
-      'This will overwrite the current ACL policy with the generated network-isolation policy for all current networks. Continue?'
-    )
-    if (!confirmed) return
-
-    try {
-      await syncNetworkIsolation.mutateAsync()
-      // Keep it simple (no toast system currently)
-      alert('ACL policy reset to generated network isolation policy.')
-    } catch (error) {
-      console.error('Failed to sync network isolation policy:', error)
-      alert('Failed to reset ACL policy. Check console for details.')
-    }
-  }
 
   const uniqueEmails = useMemo(() => {
     const emails = networks
@@ -78,21 +61,11 @@ function Index() {
 	              <Button
 	                variant="outline"
 	                onClick={() => refetch()}
-	                disabled={isLoading || syncNetworkIsolation.isPending}
+	                disabled={isLoading}
 	                className="flex items-center gap-2"
 	              >
 	                <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
 	                [ REFRESH ]
-	              </Button>
-	              <Button
-	                variant="outline"
-	                onClick={handleSyncNetworkIsolation}
-	                disabled={isLoading || syncNetworkIsolation.isPending}
-	                className="flex items-center gap-2"
-	                title="Reset ACL policy to the generated network isolation policy"
-	              >
-	                <Shield size={16} className={syncNetworkIsolation.isPending ? 'animate-pulse' : ''} />
-	                [ RESET ACL ]
 	              </Button>
 	              <Button
 	                onClick={() => setCreateDialogOpen(true)}

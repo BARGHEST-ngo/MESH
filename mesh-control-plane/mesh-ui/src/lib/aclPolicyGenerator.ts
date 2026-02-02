@@ -49,10 +49,7 @@ export function generateNetworkIsolationPolicyFromNames(networkNames: string[]):
     }
 }
 
-export function addNetworkToPolicy(
-    existingPolicy: ACLPolicy,
-    newNetworkName: string
-): ACLPolicy {
+export function addNetworkToPolicy(existingPolicy: ACLPolicy,newNetworkName: string): ACLPolicy {
     const existingAcls = existingPolicy.acls || []
     
     // Check if rule already exists for this network
@@ -86,10 +83,7 @@ export function removeNetworkFromPolicy(
     }
 }
 
-export function validateNetworkIsolation(
-    policy: ACLPolicy,
-    networks: V1User[]
-): { valid: boolean; issues: string[] } {
+export function validateNetworkIsolation(policy: ACLPolicy, networks: V1User[]): { valid: boolean; issues: string[] } {
     const issues: string[] = []
     const acls = policy.acls || []
 
@@ -129,4 +123,3 @@ export function validateNetworkIsolation(
         issues,
     }
 }
-
