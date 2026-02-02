@@ -1,13 +1,10 @@
-// Copyright (c) Your Name & AUTHORS
-// SPDX-License-Identifier: BSD-3-Clause
-
 package main
 
 import (
 	"fmt"
 	"os"
 
-	"tailscale.com/cmd/meshcli/cli"
+	"github.com/BARGHEST-ngo/MESH/analyst/cli"
 )
 
 func main() {

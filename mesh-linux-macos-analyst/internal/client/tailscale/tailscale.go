@@ -1,6 +1,5 @@
-// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
+// Copyright (c) Tailscale Inc & AUTHORS
 // SPDX-License-Identifier: BSD-3-Clause
-// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
 
 // Package tailscale provides a minimal control plane API client for internal
 // use. A full client for 3rd party use is available at
@@ -25,6 +24,9 @@ func init() {
 
 // AuthMethod is an alias to tailscale.com/client/tailscale.
 type AuthMethod = tsclient.AuthMethod
+
+// APIKey is an alias to tailscale.com/client/tailscale.
+type APIKey = tsclient.APIKey
 
 // Device is an alias to tailscale.com/client/tailscale.
 type Device = tsclient.Device
