@@ -1,0 +1,13 @@
+diff --git a/ssh_exec.go b/ssh_exec.go
+index 10e52903d..296309b0b 100644
+--- a/ssh_exec.go
++++ b/ssh_exec.go
+@@ -1,7 +1,7 @@
+ // Copyright (c) Tailscale Inc & AUTHORS
+ // SPDX-License-Identifier: BSD-3-Clause
+ 
+-//go:build !js && !windows
++//go:build !windows
+ 
+ package cli
+ 
