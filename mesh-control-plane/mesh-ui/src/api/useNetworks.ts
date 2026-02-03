@@ -4,6 +4,7 @@ import type { V1User, V1CreateUserRequest, V1ListUsersResponse, V1DeleteUserResp
 import type { V1GetPolicyResponse, V1SetPolicyResponse } from './openapi/types.gen'
 import { parseHuJSON, toHuJSON } from './usePolicy'
 import { generateNetworkIsolationPolicy } from '../lib/aclPolicyGenerator'
+import type { ACLRule } from './usePolicy'
 
 export function useNetworks() {
     return useQuery({
@@ -32,7 +33,7 @@ async function syncNetworkIsolationPolicy(): Promise<void> {
     
 
     const generatedPolicy = generateNetworkIsolationPolicy(networks)
-    const isolationRules = generatedPolicy.acls
+    const isolationRules = generatedPolicy.acls || []
 
     const mergedAcls = [...customRules, ...isolationRules]
     

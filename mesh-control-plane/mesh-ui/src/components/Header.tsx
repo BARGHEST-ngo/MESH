@@ -1,7 +1,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 
 import { useState } from 'react'
-import { Home, Menu, X, LogOut, Sun, Moon } from 'lucide-react'
+import { Home, Menu, X, LogOut, Sun, Moon, Cog } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 import { useTheme } from '../lib/theme'
 import { Button } from './ui/button'
@@ -71,7 +71,21 @@ export default function Header() {
             <Home size={20} />
             <span className="font-medium">&gt; HOME</span>
           </Link>
+
+          <Link
+            to="/acl"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 p-3 rounded hover:bg-sidebar-accent transition-colors mb-2 font-mono"
+            activeProps={{
+              className:
+                'flex items-center gap-3 p-3 rounded bg-sidebar-accent border border-sidebar-ring transition-colors mb-2 font-mono',
+            }}
+          >
+            <Cog size={20} />
+            <span className="font-medium">&gt; CUSTOMIZE ACL</span>
+          </Link>
         </nav>
+
 
         {isAuthenticated && (
           <div className="p-4 border-t border-sidebar-border">
