@@ -62,6 +62,11 @@ func validateAdbCollectArgs() error {
 }
 
 func runcollectCmd(ctx context.Context, args []string) error {
+	//(ov) my experience is generally it shouldn't take more than 60 minutes.
+	//we should verify this with user feedback
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Minute)
+	defer cancel()
+
 	if len(args) > 0 {
 		return fmt.Errorf("unexpected arguments: %v", args)
 	}
@@ -108,7 +113,9 @@ func runcollectCmd(ctx context.Context, args []string) error {
 		serial, err = adbClient.SetSerial(serial)
 		if err != nil {
 			log.Error(fmt.Sprintf("Error trying to connect over ADB: %s", err))
+
 		} else {
+
 			_, err = adbClient.GetState()
 			if err == nil {
 				break
@@ -116,7 +123,11 @@ func runcollectCmd(ctx context.Context, args []string) error {
 			log.Debug(err)
 			log.Error("Unable to get device state. Please make sure it is connected and authorized. Trying again in 5 seconds...")
 		}
-		time.Sleep(5 * time.Second)
+		select {
+		case <-time.After(5 * time.Second):
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 
 	acq, err := acquisition.New(output_folder)
