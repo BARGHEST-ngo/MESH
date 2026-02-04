@@ -123,7 +123,7 @@ func validateAdbArgs() error {
 }
 
 func adbPair() error {
-	fmt.Println("Pairing to device...")
+	printf("Pairing to device...\n")
 	cmd := exec.Command("adb", "pair",
 		fmt.Sprintf("%s:%s", adbpairArgs.host, adbpairArgs.pairport),
 		adbpairArgs.code)
@@ -131,7 +131,7 @@ func adbPair() error {
 	if err != nil {
 		return fmt.Errorf("ADB pair failed: %v\nOutput: %s", err, string(output))
 	}
-	fmt.Printf("ADB pair successful:\n%s", string(output))
+	printf("ADB pair successful:\n%s", string(output))
 	if err := saveHost(adbpairArgs.host); err != nil {
 		return fmt.Errorf("failed to save host config: %v", err)
 	}
@@ -139,20 +139,20 @@ func adbPair() error {
 }
 
 func adbConnect() error {
-	fmt.Println("ADB pair successful, now connecting...")
+	printf("ADB pair successful, now connecting...\n")
 	cmd := exec.Command("adb", "connect",
 		fmt.Sprintf("%s:%s", adbpairArgs.host, adbpairArgs.hostport))
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("ADB connect failed: %v\nOutput: %s", err, string(output))
 	}
-	fmt.Printf("ADB connect successful:\n%s", string(output))
+	printf("ADB connect successful:\n%s", string(output))
 	if err := saveHostport(adbpairArgs.hostport); err != nil {
 		return fmt.Errorf("failed to save hostport config: %v", err)
 	}
 	adbClient, err := adb.New()
 	if err != nil {
-		return fmt.Errorf("failed to initalize ADB: $v", err)
+		return fmt.Errorf("failed to initalize ADB: %v", err)
 	}
 	adb.Client = adbClient
 
@@ -163,7 +163,7 @@ func adbConnect() error {
 }
 
 func validateConnect() error {
-	fmt.Println("Validating ADB session...")
+	printf("Validating ADB session...\n")
 	if adb.Client == nil {
 		return fmt.Errorf("ADB client not initialized")
 	}
@@ -172,18 +172,18 @@ func validateConnect() error {
 		return fmt.Errorf("failed to get devices: %w", err)
 	}
 	if len(devices) == 0 {
-		fmt.Println("no devices connected")
+		printf("no devices connected\n")
 	}
 	if len(devices) == 1 {
-		fmt.Println("Success! Device connected")
-		fmt.Printf("Found %d device(s): %v\n", len(devices), devices)
+		printf("Success! Device connected\n")
+		printf("Found %d device(s): %v\n", len(devices), devices)
 		for _, d := range devices {
 			if strings.HasPrefix(d, "100.") {
-				fmt.Println("Success! Valid MESH network device")
-				fmt.Println("You may proceed with forensics acquision")
-				fmt.Println("Use ./meshcli adbcollect")
+				printf("Success! Valid MESH network device\n")
+				printf("You may proceed with forensics acquision\n")
+				printf("Use ./meshcli adbcollect\n")
 			} else {
-				fmt.Println("Wrong device connected/paried")
+				printf("Wrong device connected/paried\n")
 			}
 
 		}
@@ -199,8 +199,8 @@ func qf() error {
 
 	for _, d := range devices {
 		if strings.HasPrefix(d, "100.") {
-			fmt.Printf("Performing forensics acquisition\n")
-			log.Debug("Starting androidqf")
+			printf("Performing forensics acquisition\n")
+			printf("Starting androidqf\n")
 
 			acqt := Acquisition{
 				UUID:             uuid.New().String(),

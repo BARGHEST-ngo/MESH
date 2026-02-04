@@ -5,7 +5,6 @@ package cli
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 )
 
@@ -16,11 +15,12 @@ type Config struct {
 }
 
 var config Config
+
 const filename = "adbconf.json"
 
 func main() {
 	if err := checkFile(filename); err != nil {
-		fmt.Println("checkFile:", err)
+		errf("checkFile: %v\n", err)
 		return
 	}
 	loadConfig()
@@ -41,7 +41,7 @@ func checkFile(filename string) error {
 func loadConfig() {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
-		fmt.Println("read:", err)
+		errf("read: %v\n", err)
 		return
 	}
 	var cfgs []Config

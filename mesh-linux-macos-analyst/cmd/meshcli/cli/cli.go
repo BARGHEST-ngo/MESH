@@ -294,6 +294,7 @@ func newRootCmd() *ffcli.Command {
 			logoutCmd,
 			adbpairCmd,
 			adbcollectCmd,
+			adbdisableCmd,
 			configureCmd(),
 			netcheckCmd,
 			ipCmd,
