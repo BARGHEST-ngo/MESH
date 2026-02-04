@@ -1,11 +1,35 @@
 import type { ACLPolicy, ACLRule } from '../api/usePolicy'
 import type { V1User } from '../api/openapi/types.gen'
 
-export function generateNetworkRule(networkName: string): ACLRule {
+function sanitizeTagComponent(input: unknown): string {
+    const raw = String(input ?? '')
+    return raw
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+}
+
+export function networkTagForNetwork(network: Pick<V1User, 'id' | 'name'>): string | null {
+    const namePart = sanitizeTagComponent(network.name)
+    if (namePart) return `tag:net-${namePart}`
+
+    const idPart = sanitizeTagComponent(network.id)
+    if (idPart) return `tag:net-${idPart}`
+
+    return null
+}
+
+export function generateNetworkRule(network: Pick<V1User, 'id' | 'name'>): ACLRule {
+    const tag = networkTagForNetwork(network)
+    if (!tag) {
+        return { action: 'accept', src: [], dst: [] }
+    }
+
     return {
         action: 'accept',
-        src: [`${networkName}@`],
-        dst: [`${networkName}@:*`],
+        src: [tag],
+        dst: [`${tag}:*`],
     }
 }
 
@@ -20,42 +44,60 @@ export function generateNetworkRule(networkName: string): ACLRule {
  * // Generates:
  * // {
  * //   "acls": [
- * //     { "action": "accept", "src": ["network-1@"], "dst": ["network-1@:*"] },
- * //     { "action": "accept", "src": ["network-2@"], "dst": ["network-2@:*"] },
- * //     { "action": "accept", "src": ["network-3@"], "dst": ["network-3@:*"] }
+ * //     { "action": "accept", "src": ["tag:net-network-1"], "dst": ["tag:net-network-1:*"] },
+ * //     { "action": "accept", "src": ["tag:net-network-2"], "dst": ["tag:net-network-2:*"] },
+ * //     { "action": "accept", "src": ["tag:net-network-3"], "dst": ["tag:net-network-3:*"] }
  * //   ]
+ * //   "tagOwners": {
+ * //     "tag:net-network-1": ["network-1@"],
+ * //     "tag:net-network-2": ["network-2@"],
+ * //     "tag:net-network-3": ["network-3@"]
+ * //   }
  * // }
  */
 export function generateNetworkIsolationPolicy(networks: V1User[]): ACLPolicy {
-    // Filter out networks without names and generate rules
-    const acls: ACLRule[] = networks
-        .filter((network): network is V1User & { name: string } => 
-            typeof network.name === 'string' && network.name.length > 0
-        )
-        .map(network => generateNetworkRule(network.name))
+    const acls: ACLRule[] = []
+    const tagOwners: Record<string, string[]> = {}
 
-    return {
-        acls,
+    for (const network of networks) {
+        if (!network) continue
+        if (typeof network.name !== 'string' || network.name.length === 0) continue
+
+        const tag = networkTagForNetwork(network)
+        if (!tag) continue
+
+        acls.push(generateNetworkRule(network))
+        // Allow the network "user" to own its network tag.
+        // Headscale requires user references to include the "@" suffix.
+        tagOwners[tag] = [`${network.name}@`]
     }
+
+    return Object.keys(tagOwners).length > 0 ? { acls, tagOwners } : { acls }
 }
 
 export function generateNetworkIsolationPolicyFromNames(networkNames: string[]): ACLPolicy {
     const acls: ACLRule[] = networkNames
-        .filter(name => name && name.length > 0)
-        .map(name => generateNetworkRule(name))
+        .filter(name => typeof name === 'string' && name.length > 0)
+        .map(name => {
+            const tag = `tag:net-${sanitizeTagComponent(name)}`
+            return { action: 'accept', src: [tag], dst: [`${tag}:*`] }
+        })
 
-    return {
-        acls,
-    }
+    return { acls }
 }
 
-export function addNetworkToPolicy(existingPolicy: ACLPolicy,newNetworkName: string): ACLPolicy {
+export function addNetworkToPolicy(existingPolicy: ACLPolicy, newNetwork: Pick<V1User, 'id' | 'name'>): ACLPolicy {
     const existingAcls = existingPolicy.acls || []
+
+    const tag = networkTagForNetwork(newNetwork)
+    if (!tag) {
+        return existingPolicy
+    }
     
     // Check if rule already exists for this network
     const ruleExists = existingAcls.some(rule => 
-        rule.src.includes(`${newNetworkName}@`) &&
-        rule.dst.includes(`${newNetworkName}@:*`)
+        rule.src.includes(tag) &&
+        rule.dst.includes(`${tag}:*`)
     )
 
     if (ruleExists) {
@@ -64,21 +106,23 @@ export function addNetworkToPolicy(existingPolicy: ACLPolicy,newNetworkName: str
 
     return {
         ...existingPolicy,
-        acls: [...existingAcls, generateNetworkRule(newNetworkName)],
+        acls: [...existingAcls, generateNetworkRule(newNetwork)],
     }
 }
 
-export function removeNetworkFromPolicy(
-    existingPolicy: ACLPolicy,
-    networkName: string
-): ACLPolicy {
+export function removeNetworkFromPolicy(existingPolicy: ACLPolicy, network: Pick<V1User, 'id' | 'name'>): ACLPolicy {
     const existingAcls = existingPolicy.acls || []
+
+    const tag = networkTagForNetwork(network)
+    if (!tag) {
+        return existingPolicy
+    }
 
     return {
         ...existingPolicy,
         acls: existingAcls.filter(rule => 
-            !rule.src.includes(`${networkName}@`) ||
-            !rule.dst.includes(`${networkName}@:*`)
+            !rule.src.includes(tag) ||
+            !rule.dst.includes(`${tag}:*`)
         ),
     }
 }
@@ -88,11 +132,14 @@ export function validateNetworkIsolation(policy: ACLPolicy, networks: V1User[]):
     const acls = policy.acls || []
 
     for (const network of networks) {
-        if (!network.name) continue
+        if (!network?.name) continue
+
+        const tag = networkTagForNetwork(network)
+        if (!tag) continue
 
         const hasRule = acls.some(rule =>
-            rule.src.includes(`${network.name}@`) &&
-            rule.dst.includes(`${network.name}@:*`)
+            rule.src.includes(tag) &&
+            rule.dst.includes(`${tag}:*`)
         )
 
         if (!hasRule) {
@@ -104,15 +151,13 @@ export function validateNetworkIsolation(policy: ACLPolicy, networks: V1User[]):
     for (const rule of acls) {
         for (const src of rule.src) {
             for (const dst of rule.dst) {
-                // Extract network names from src and dst
-                const srcNetwork = src.replace(/@$/, '')
-                const dstNetwork = dst.replace(/@:\*$/, '').replace(/@:.*$/, '')
-                
-                if (srcNetwork && dstNetwork && srcNetwork !== dstNetwork) {
-                    // This might be intentional, but flag it
-                    issues.push(
-                        `Cross-network rule detected: ${src} -> ${dst}`
-                    )
+                if (!src.startsWith('tag:net-')) continue
+
+                const dstTag = dst.replace(/:\*$/, '')
+                if (!dstTag.startsWith('tag:net-')) continue
+
+                if (src !== dstTag) {
+                    issues.push(`Cross-network rule detected: ${src} -> ${dst}`)
                 }
             }
         }

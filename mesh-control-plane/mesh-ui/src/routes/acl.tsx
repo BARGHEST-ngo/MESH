@@ -137,10 +137,13 @@ function ACLPage() {
         <h2 className="font-semibold mb-2 font-mono">&gt; SMART_MERGE_INFO</h2>
         <p className="text-sm text-muted-foreground">
           When you create or update networks, the system automatically regenerates network isolation rules 
-          (pattern: <code className="bg-background px-1 py-0.5 rounded">NetworkName@ → NetworkName@:*</code>) 
-          while preserving all your custom ACL rules.
+	          (pattern: <code className="bg-background px-1 py-0.5 rounded">tag:net-&lt;network&gt; → tag:net-&lt;network&gt;:*</code>) 
+	          while preserving all your custom ACL rules and tag ownership.
         </p>
         <p className="text-sm text-muted-foreground mt-2">
+	          Each node registered to a network automatically receives a per-network tag (in addition to its role tag),
+	          so isolation works correctly even when devices are tagged.
+	          <br />
           This means you can safely add custom rules here (like cross-network access or specific IP/port restrictions) 
           and they won't be lost when networks are created or updated.
           If you have any questions regarding this, refer to the docs at https://docs.meshforensics.org

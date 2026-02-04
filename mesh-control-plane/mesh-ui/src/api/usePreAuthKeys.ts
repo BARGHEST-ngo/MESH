@@ -14,6 +14,8 @@ import type {
     V1ExpirePreAuthKeyResponse,
 } from './openapi/types.gen'
 
+import { networkTagForNetwork } from '../lib/aclPolicyGenerator'
+
 export function usePreAuthKeys(userName?: string) {
     return useQuery({
         queryKey: ['preAuthKeys', userName],
@@ -56,12 +58,18 @@ export function useCreatePreAuthKey() {
                 throw new Error(`User '${data.user}' not found`)
             }
 
+			// Ensure every key includes the per-network tag (in addition to any role tags).
+			const requestedTags = data.aclTags || []
+			const networkTag = networkTagForNetwork(user)
+			const aclTags = Array.from(new Set([...(requestedTags || []), ...(networkTag ? [networkTag] : [])]))
+				.filter((t): t is string => typeof t === 'string' && t.length > 0)
+
             const request: V1CreatePreAuthKeyRequest = {
                 user: user.id,
                 reusable: data.reusable || false,
                 ephemeral: data.ephemeral || false,
                 expiration: data.expiration,
-                aclTags: data.aclTags || [],
+				aclTags,
             }
 
             const response = await apiClient.post<V1CreatePreAuthKeyResponse>('/preauthkey', request)
