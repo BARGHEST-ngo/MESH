@@ -12,6 +12,9 @@ export const Route = createFileRoute('/acl')({
   component: ACLPage,
 })
 
+//(ovi)TODO: we need to handle when a policy hasn't been created
+// currently it will display loading policy... but because policy hasn't been created
+// user should be displayed a better message
 function ACLPage() {
   const { data: policyData, isLoading, refetch } = usePolicy()
   const setPolicy = useSetPolicy()
