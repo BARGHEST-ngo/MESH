@@ -57,24 +57,24 @@ function Index() {
                 Manage your networks and connected clients
               </p>
             </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => refetch()}
-                disabled={isLoading}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-                [ REFRESH ]
-              </Button>
-              <Button
-                onClick={() => setCreateDialogOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus size={16} />
-                [ NEW NETWORK ]
-              </Button>
-            </div>
+	            <div className="flex gap-3">
+	              <Button
+	                variant="outline"
+	                onClick={() => refetch()}
+	                disabled={isLoading}
+	                className="flex items-center gap-2"
+	              >
+	                <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+	                [ REFRESH ]
+	              </Button>
+	              <Button
+	                onClick={() => setCreateDialogOpen(true)}
+	                className="flex items-center gap-2"
+	              >
+	                <Plus size={16} />
+	                [ NEW NETWORK ]
+	              </Button>
+	            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

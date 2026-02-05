@@ -109,7 +109,7 @@ derp:
     ipv6: 2001:db8::1
 
   # List of externally available DERP maps encoded in JSON
-  urls: 
+  urls:
    - https://controlplane.tailscale.com/derpmap/default
 
   # Locally available DERP map files encoded in YAML
@@ -238,9 +238,12 @@ log:
 policy:
   # The mode can be "file" or "database" that defines
   # where the ACL policies are stored and read from.
-  mode: file
+  # Using "database" mode to enable dynamic ACL updates via the API
+  # for network isolation enforcement by the mesh-ui control plane.
+  mode: database
   # If the mode is set to "file", the path to a
   # HuJSON file containing ACL policies.
+  # Ignored when mode is "database".
   path: ""
 
 ## DNS
