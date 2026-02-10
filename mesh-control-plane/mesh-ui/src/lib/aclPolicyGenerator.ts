@@ -33,21 +33,43 @@ export function generateNetworkRule(network: Pick<V1User, 'id' | 'name'>): ACLRu
     }
 }
 
+export function generateExitNodeRule(network: Pick<V1User, 'id' | 'name'>): ACLRule | null {
+    const tag = networkTagForNetwork(network)
+    if (!tag) return null
+
+    return {
+        action: 'accept',
+        src: [tag],
+        dst: ['autogroup:internet:*'],
+    }
+}
+
 /**
- * Generate a complete ACL policy for network isolation
- * 
- * @param networks - Array of network (user) objects from Headscale
- * @returns ACLPolicy object with isolation rules for all networks
- * 
+ * Build a full ACL policy that isolates each network from every other network.
+ *
+ * Each network is allowed to talk only to itself. Optionally, selected
+ * networks can be given internet access if they have an approved exit node.
+ *
+ * @param networks
+ *   List of network (user) objects returned by Headscale.
+ *
+ * @param networksWithExitNodes
+ *   Optional set of network names that have at least one approved exit node.
+ *   If provided, an `autogroup:internet` rule is added only for those networks.
+ *   If omitted or undefined, no exit-node rules are generated.
+ *
+ * @returns
+ *   An ACLPolicy object containing per-network isolation rules and tag owners.
+ *
  * @example
- * // For networks: network-1, network-2, network-3
- * // Generates:
+ * // Given networks: network-1, network-2, network-3
+ * // Produces:
  * // {
  * //   "acls": [
  * //     { "action": "accept", "src": ["tag:net-network-1"], "dst": ["tag:net-network-1:*"] },
  * //     { "action": "accept", "src": ["tag:net-network-2"], "dst": ["tag:net-network-2:*"] },
  * //     { "action": "accept", "src": ["tag:net-network-3"], "dst": ["tag:net-network-3:*"] }
- * //   ]
+ * //   ],
  * //   "tagOwners": {
  * //     "tag:net-network-1": ["network-1@"],
  * //     "tag:net-network-2": ["network-2@"],
@@ -55,7 +77,11 @@ export function generateNetworkRule(network: Pick<V1User, 'id' | 'name'>): ACLRu
  * //   }
  * // }
  */
-export function generateNetworkIsolationPolicy(networks: V1User[]): ACLPolicy {
+
+export function generateNetworkIsolationPolicy(
+    networks: V1User[],
+    networksWithExitNodes?: Set<string>,
+): ACLPolicy {
     const acls: ACLRule[] = []
     const tagOwners: Record<string, string[]> = {}
 
@@ -67,6 +93,13 @@ export function generateNetworkIsolationPolicy(networks: V1User[]): ACLPolicy {
         if (!tag) continue
 
         acls.push(generateNetworkRule(network))
+
+        // Only add internet-access rule if this network has an approved exit node.
+        if (networksWithExitNodes?.has(network.name)) {
+            const exitRule = generateExitNodeRule(network)
+            if (exitRule) acls.push(exitRule)
+        }
+
         // Allow the network "user" to own its network tag.
         // Headscale requires user references to include the "@" suffix.
         tagOwners[tag] = [`${network.name}@`]

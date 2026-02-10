@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
-import { Trash2, Key, ChevronDown, ChevronRight, Wifi, WifiOff, Clock, Trash, Edit } from 'lucide-react'
+import { Trash2, Key, ChevronDown, ChevronRight, Wifi, WifiOff, Clock, Trash, Edit, Globe, ShieldOff } from 'lucide-react'
 import { useNodesByNetwork } from '../api/useNodes'
 import { useDeleteNetwork } from '../api/useNetworks'
-import { useDeleteNode, useExpireNode } from '../api/useNodes'
+import { useDeleteNode, useExpireNode, useApproveExitNode, useRevokeExitNode, isAdvertisingExitNode, isApprovedExitNode } from '../api/useNodes'
 import { GenerateKeyDialog } from './GenerateKeyDialog'
 import { RenameNetworkDialog } from './RenameNetworkDialog'
-import type { V1User } from '../api/openapi/types.gen'
+import type { V1User, V1Node } from '../api/openapi/types.gen'
 
 interface NetworkCardProps {
   network: V1User
@@ -23,6 +23,8 @@ export function NetworkCard({ network }: NetworkCardProps) {
   const deleteNetwork = useDeleteNetwork()
   const deleteNode = useDeleteNode()
   const expireNode = useExpireNode()
+  const approveExitNode = useApproveExitNode()
+  const revokeExitNode = useRevokeExitNode()
 
   const handleDeleteNetwork = async () => {
     if (!network.name) return
@@ -58,6 +60,28 @@ export function NetworkCard({ network }: NetworkCardProps) {
         await expireNode.mutateAsync(nodeId)
       } catch (error) {
         console.error('Failed to expire node:', error)
+      }
+    }
+  }
+
+  const handleApproveExitNode = async (node: V1Node) => {
+    const nodeName = node.givenName || node.name || 'Unknown'
+    if (window.confirm(`Approve "${nodeName}" as an exit node? All traffic from other nodes using this exit node will route through it.`)) {
+      try {
+        await approveExitNode.mutateAsync(node)
+      } catch (error) {
+        console.error('Failed to approve exit node:', error)
+      }
+    }
+  }
+
+  const handleRevokeExitNode = async (node: V1Node) => {
+    const nodeName = node.givenName || node.name || 'Unknown'
+    if (window.confirm(`Revoke exit node status from "${nodeName}"?`)) {
+      try {
+        await revokeExitNode.mutateAsync(node)
+      } catch (error) {
+        console.error('Failed to revoke exit node:', error)
       }
     }
   }
@@ -179,8 +203,8 @@ export function NetworkCard({ network }: NetworkCardProps) {
                               const tagName = tag.replace('tag:', '').toUpperCase()
                               const isAnalyst = tagName === 'ANALYST'
                               return (
-                                <Badge 
-                                  key={tag} 
+                                <Badge
+                                  key={tag}
                                   variant={isAnalyst ? "default" : "destructive"}
                                   className="text-xs"
                                 >
@@ -188,6 +212,12 @@ export function NetworkCard({ network }: NetworkCardProps) {
                                 </Badge>
                               )
                             })
+                          )}
+                          {isApprovedExitNode(node) && (
+                            <Badge variant="warning" className="text-xs">
+                              <Globe size={12} className="mr-1" />
+                              EXIT NODE
+                            </Badge>
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
@@ -199,11 +229,40 @@ export function NetworkCard({ network }: NetworkCardProps) {
                               Last seen: {new Date(node.lastSeen).toLocaleString()}
                             </div>
                           )}
+                          {isAdvertisingExitNode(node) && !isApprovedExitNode(node) && (
+                            <div className="text-yellow-400 font-semibold">
+                              [ ADVERTISING EXIT NODE — NOT APPROVED ]
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
 
                     <div className="flex gap-2">
+                      {isAdvertisingExitNode(node) && !isApprovedExitNode(node) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleApproveExitNode(node)}
+                          disabled={approveExitNode.isPending}
+                          className="flex items-center gap-1 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                        >
+                          <Globe size={14} />
+                          APPROVE EXIT
+                        </Button>
+                      )}
+                      {isApprovedExitNode(node) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRevokeExitNode(node)}
+                          disabled={revokeExitNode.isPending}
+                          className="flex items-center gap-1"
+                        >
+                          <ShieldOff size={14} />
+                          REVOKE EXIT
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
