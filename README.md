@@ -29,6 +29,11 @@
 > [!IMPORTANT]
 > Please be aware this project is currently in public alpha. We take security seriously, and thus we recommend not using this in production till we have conducted a full penetration-test. This is currently on going. Features and APIs may change. Please report issues here on GitHub.
 
+> [!IMPORTANT]
+> This project is in **public alpha**. We are still actively developing the technology.
+> Until it is production-ready, users should expect breaking changes and a certain level
+> of technical expertise to use it.
+
 **MESH enables secure, peer-to-peer–first remote digital forensics over hostile or censored networks.**
 
 MESH allows analysts to directly connect to forensic clients (such as Android devices) over an end-to-end encrypted virtual network, without relying on centralized servers or hub-and-spoke architectures. It creates short-lived, self-contained forensic mesh networks that can be brought up in seconds, used for forensic acquisition or network capture, and torn down immediately afterward.
