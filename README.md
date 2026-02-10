@@ -33,7 +33,7 @@
 
 MESH allows analysts to directly connect to forensic clients (such as Android devices) over an end-to-end encrypted virtual network, without relying on centralized servers or hub-and-spoke architectures. It creates short-lived, self-contained forensic mesh networks that can be brought up in seconds, used for forensic acquisition or network capture, and torn down immediately afterward.
 
-By presenting a virtual TUN interface with private CGNAT-range addresses, MESH makes remote devices appear as if they are on the same local network. This allows standard forensic tooling—such as ADB-over-WiFi and libimobiledevice—to operate remotely without modification, even when devices are behind NAT, mobile networks, or restrictive firewalls.
+By presenting a virtual TUN interface with private CGNAT-range addresses, MESH makes remote devices appear as if they are on the same local network. This enables forensics-enabling tools—such as ADB-over-WiFi and libimobiledevice—to operate remotely without modification, even when devices are behind NAT, mobile networks, or restrictive firewalls.
 
 MESH is designed for civil society, incident response, and forensic operations in high-risk environments. It is self-hosted and peer-to-peer by default, minimizing persistent infrastructure and analyst exposure.
 
@@ -80,6 +80,27 @@ If UDP hole punching is unavailable or UDP is blocked, MESH falls back to the **
 Because WireGuard is actively censored in regions such as Russia and China, MESH can be configured to use [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) by simply adding an AmneziaWG config to your client (but also offers backward compatability). This obfuscates WireGuard packet fingerprints.
 
 When UDP is blocked and the connection fails over to DERP, all encrypted traffic is sent over HTTPS via relays, which still support end-to-end encryption, providing a censorship-resilient mesh network.
+
+# Why not a VPN? Why not hub-and-spoke?
+
+Traditional VPNs and hub-and-spoke architectures are poorly suited to remote digital forensics, especially in hostile or censored environments.
+
+**VPNs assume permanence and static infrastructure.**
+Conventional VPNs rely on long-lived servers, fixed configurations, and stable network conditions. In forensic and civil society operations, this creates operational risk: persistent infrastructure can be blocked, monitored, seized, or correlated over time. VPNs are also typically optimized for enterprise environments, not mobile devices behind carrier-grade NAT, transient networks, or hostile filtering.
+
+**Hub-and-spoke designs centralize traffic and risk.**
+In a hub-and-spoke model, all forensic traffic flows through a central relay or gateway. This creates a single point of failure and a high-value target for blocking, traffic analysis, or coercion. Even with encryption, centralized routing exposes communication patterns and makes operations easier to disrupt.
+
+**MESH separates coordination from data transport.**
+MESH does use a coordination server, but only for peer discovery, key exchange, and session setup. Forensic data does not transit the coordinator. Once peers are connected, traffic flows end-to-end between the analyst host and forensic clients whenever possible.
+
+**Forensics workflows are ephemeral.**
+Remote acquisition and capture are task-scoped: establish connectivity, collect evidence, and tear everything down. MESH is designed for short-lived, disposable meshes rather than always-on tunnels or permanent networks.
+
+**Resilient by design in hostile networks.**
+When direct peer-to-peer transport is blocked, MESH can fall back to encrypted relay mechanisms without reconfiguration. These relays are transport-layer fallbacks, not architectural hubs, and can be self-hosted or rotated to reduce exposure.
+
+In short, MESH avoids centralized traffic routing and long-lived VPN infrastructure while still providing the coordination necessary to rapidly and safely establish forensic connectivity in real-world, high-risk environments.
 
 # Getting started
 
