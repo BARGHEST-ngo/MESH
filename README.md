@@ -29,15 +29,17 @@
 > [!IMPORTANT]
 > Please be aware this project is currently in public alpha. We take security seriously, and thus we recommend not using this in production till we have conducted a full penetration-test. This is currently on going. Features and APIs may change. Please report issues here on GitHub.
 
-MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics. 
+# MESH enables secure, peer-to-peer–first remote digital forensics over hostile or censored networks.
 
-It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
+MESH allows analysts to directly connect to forensic clients (such as Android devices) over an end-to-end encrypted virtual network, without relying on centralized servers or hub-and-spoke architectures. It creates short-lived, self-contained forensic mesh networks that can be brought up in seconds, used for forensic acquisition or network capture, and torn down immediately afterward.
 
-Because it creates a virtual TUN interface and assigns CGNAT-range addresses, analysts can do remote mobile forensics acquisions using ADB-over-Wifi & [Libimobile](https://github.com/libimobiledevice/libimobiledevice).
+By presenting a virtual TUN interface with private CGNAT-range addresses, MESH makes remote devices appear as if they are on the same local network. This allows standard forensic tooling—such as ADB-over-WiFi and libimobiledevice—to operate remotely without modification, even when devices are behind NAT, mobile networks, or restrictive firewalls.
 
-MESH adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked. This offers protection against the GFW and detection by Deep Packet Inspection (DPI) systems.
+MESH is designed for civil society, incident response, and forensic operations in high-risk environments. It is self-hosted and peer-to-peer by default, minimizing persistent infrastructure and analyst exposure.
 
-It can create and tear down end-to-end mesh links between a locked-down analyst host and forensic clients (for example, Android devices) in seconds by removing hub-and-spoke topologies. MESH lets you spin up a forensics mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
+Technically, MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require any Tailscale infrastructure. It adds hardened transports and traffic obfuscation (including [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go)) to operate reliably on censored or monitored networks. When UDP is unavailable, it transparently falls back to encrypted HTTPS relays. These mechanisms are intended to resist blocking by national firewalls and detection by Deep Packet Inspection (DPI) systems.
+
+In practice, MESH replaces complex VPN setups and centralized relay servers with a disposable, analyst-controlled forensic network: bring it up, collect evidence, tear it down, and move on—without requiring physical proximity to the device.
 
 Key functions
 
