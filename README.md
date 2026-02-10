@@ -7,6 +7,9 @@
     <a href="https://docs.meshforensics.org/">
       <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square" alt="Documentation" />
     </a>
+    <a href="#">
+      <img src="https://img.shields.io/badge/status-public%20alpha-orange?style=flat-square" alt="Public Alpha Status" />
+    </a>
     <a href="https://discord.com/invite/">
       <img src="https://img.shields.io/discord/1161119546170687619?logo=discord&style=flat-square" alt="Chat" />
     </a>
@@ -27,12 +30,19 @@
 <br/></h3>
 
 > [!IMPORTANT]
-> Please be aware this project is currently in public alpha. We take security seriously, and thus we recommend not using this in production till we have conducted a full penetration-test. This is currently on going. Features and APIs may change. Please report issues here on GitHub.
+> **Public Alpha**
+>
+> This project is currently in **public alpha** and under active development.
+> It is **not production-ready**.
+>
+> A full penetration test is currently in progress. Until it is complete,
+> we **strongly recommend not using this project in production**.
+>
+> Features and APIs may change, and users should expect breaking changes
+> and a certain level of technical expertise.
+>
+> Please report bugs, issues, or security concerns via GitHub Issues.
 
-> [!IMPORTANT]
-> This project is in **public alpha**. We are still actively developing the technology.
-> Until it is production-ready, users should expect breaking changes and a certain level
-> of technical expertise to use it.
 
 **MESH enables secure, peer-to-peer–first remote digital forensics over hostile or censored networks.**
 
