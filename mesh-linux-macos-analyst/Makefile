@@ -23,8 +23,8 @@ depaware: ## Run depaware checks for tailscaled
 build: ## Build tailscaled for current platform
 	./build_dist.sh ./cmd/tailscaled
 
-build-custom: ## Build custom tailscaled with selected features
-	./build_custom_tailscaled.sh ./cmd/tailscaled
+build-mesh: ## Build single mesh binary (daemon + CLI)
+	./tool/go build -tags ts_include_cli -o mesh ./cmd/tailscaled
 
 buildwindows: ## Build tailscaled for windows/amd64
 	GOOS=windows GOARCH=amd64 ./build_dist.sh ./cmd/tailscaled

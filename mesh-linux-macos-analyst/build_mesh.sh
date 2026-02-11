@@ -3,7 +3,7 @@
 # Authored by BARGHEST. Dedicated to the public domain under CC0 1.0.
 #
 # MESH Build Script
-# Builds tailscaled-amnezia daemon and meshcli CLI tool
+# Builds a single "mesh" binary (daemon + CLI combined)
 # Sets up configuration directories and example files
 
 set -e
@@ -27,8 +27,7 @@ echo ""
 
 BUILD_DIR="$(pwd)"
 OUTPUT_DIR="${BUILD_DIR}"
-DAEMON_NAME="tailscaled-amnezia"
-CLI_NAME="meshcli"
+BINARY_NAME="mesh"
 CONFIG_DIR_SYSTEM="/etc/mesh"
 CONFIG_DIR_TMP="/tmp/mesh"
 
@@ -60,7 +59,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --help, -h          Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0                           # Build daemon and CLI"
+            echo "  $0                           # Build single mesh binary"
             echo "  $0 --install-config          # Build and install example config"
             echo "  sudo $0 --setup-systemd      # Build and setup systemd service"
             exit 0
@@ -85,31 +84,17 @@ if [ "$(printf '%s\n' "$REQUIRED_GO_VERSION" "$GO_VERSION" | sort -V | head -n1)
     echo -e "${YELLOW}Warning: Go version $GO_VERSION detected. Recommended: $REQUIRED_GO_VERSION or higher${NC}"
 fi
 
-echo -e "${GREEN}Building tailscaled-amnezia daemon...${NC}"
+echo -e "${GREEN}Building single mesh binary (daemon + CLI)...${NC}"
 if [ "$VERBOSE" = true ]; then
-    ./tool/go build -v -o "${OUTPUT_DIR}/${DAEMON_NAME}" ./cmd/tailscaled
+    ./tool/go build -v -tags ts_include_cli -o "${OUTPUT_DIR}/${BINARY_NAME}" ./cmd/tailscaled
 else
-    ./tool/go build -o "${OUTPUT_DIR}/${DAEMON_NAME}" ./cmd/tailscaled
+    ./tool/go build -tags ts_include_cli -o "${OUTPUT_DIR}/${BINARY_NAME}" ./cmd/tailscaled
 fi
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}Daemon built successfully: ${OUTPUT_DIR}/${DAEMON_NAME}${NC}"
+    echo -e "${GREEN}Binary built successfully: ${OUTPUT_DIR}/${BINARY_NAME}${NC}"
 else
-    echo -e "${RED}Failed to build daemon${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}Building meshcli CLI...${NC}"
-if [ "$VERBOSE" = true ]; then
-    ./tool/go build -v -o "${OUTPUT_DIR}/${CLI_NAME}" ./cmd/meshcli
-else
-    ./tool/go build -o "${OUTPUT_DIR}/${CLI_NAME}" ./cmd/meshcli
-fi
-
-if [ $? -eq 0 ]; then
-    echo -e "${GREEN}CLI built successfully: ${OUTPUT_DIR}/${CLI_NAME}${NC}"
-else
-    echo -e "${RED}Failed to build CLI${NC}"
+    echo -e "${RED}Failed to build binary${NC}"
     exit 1
 fi
 
@@ -169,7 +154,7 @@ Wants=network-pre.target
 [Service]
 Type=notify
 ExecStartPre=/bin/mkdir -p /tmp/tailscale
-ExecStart=${OUTPUT_DIR}/${DAEMON_NAME} --state=/tmp/tailscale/tailscaled.state --socket=/tmp/tailscale/tailscaled.sock --statedir=/tmp/tailscale
+ExecStart=${OUTPUT_DIR}/${BINARY_NAME} daemon --state=/tmp/tailscale/tailscaled.state --socket=/tmp/tailscale/tailscaled.sock --statedir=/tmp/tailscale
 Restart=on-failure
 RestartSec=5
 Environment="TS_DEBUG_TRIM_WIREGUARD=false"
@@ -191,9 +176,10 @@ echo -e "${GREEN}═════════════════════
 echo -e "${GREEN}Build completed successfully!${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "${BLUE}Built binaries:${NC}"
-echo -e "  Daemon: ${OUTPUT_DIR}/${DAEMON_NAME}"
-echo -e "  CLI:    ${OUTPUT_DIR}/${CLI_NAME}"
+echo -e "${BLUE}Built binary:${NC}"
+echo -e "  ${OUTPUT_DIR}/${BINARY_NAME}"
+BINARY_SIZE=$(du -h "${OUTPUT_DIR}/${BINARY_NAME}" 2>/dev/null | cut -f1)
+[ -n "$BINARY_SIZE" ] && echo -e "  Size: ${BINARY_SIZE}"
 echo ""
 echo -e "${BLUE}Configuration directories:${NC}"
 echo -e "  Temporary: ${CONFIG_DIR_TMP}"
@@ -202,15 +188,14 @@ if [ "$INSTALL_CONFIG" = true ] && [ "$EUID" -eq 0 ]; then
 fi
 echo ""
 echo -e "${BLUE}Quick start:${NC}"
-echo -e "  1. Start daemon (temporary):"
-echo -e "     ${YELLOW}export TS_DEBUG_TRIM_WIREGUARD=false${NC}"
-echo -e "     ${YELLOW}sudo -E ./${DAEMON_NAME} --socket=/tmp/tailscale/tailscaled.sock --state=/tmp/tailscale/tailscaled.state --statedir=/tmp/mesh${NC}"
+echo -e "  1. Start daemon:"
+echo -e "     ${YELLOW}sudo ./${BINARY_NAME} daemon${NC}"
 echo ""
 echo -e "  2. Connect to your network (in another terminal):"
-echo -e "     ${YELLOW}sudo ./${CLI_NAME} up --login-server=https://controleplane.com --auth-key x019283 --accept-dns=false${NC}"
+echo -e "     ${YELLOW}sudo ./${BINARY_NAME} up --login-server=https://controlplane.com --auth-key=YOUR_KEY${NC}"
 echo ""
 echo -e "  3. Check status:"
-echo -e "     ${YELLOW}sudo ./${CLI_NAME} status${NC}"
+echo -e "     ${YELLOW}sudo ./${BINARY_NAME} status${NC}"
 echo ""
 echo -e "${BLUE}AmneziaWG obfuscation:${NC}"
 if [ "$INSTALL_CONFIG" = true ] && [ "$EUID" -eq 0 ]; then
