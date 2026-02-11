@@ -13,7 +13,6 @@
     "shadcn",
     "tanstack-query",
     "table",
-    "eslint",
-    "nitro"
+    "eslint"
   ]
 }
