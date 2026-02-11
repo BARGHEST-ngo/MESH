@@ -1,33 +1,30 @@
 services:
   headscale:
-    image: docker.io/headscale/headscale:0.27.0
+    image: docker.io/headscale/headscale:0.28.0
     restart: unless-stopped
     container_name: headscale
-    ports:
-      - "8081:8080"
-      - "9090:9090"
     volumes:
       - ./headscale/config:/etc/headscale
       - ./headscale/lib:/var/lib/headscale
     tmpfs:
       - /var/run/headscale
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     command: serve
 
   # https://github.com/juanfont/headscale/issues/623
-  # nginx is used to proxy the headscale API to the mesh_ui service
+  # nginx reverse proxies to headscale and mesh-ui, adding security-related headers (CORS, CSP, etc.)
   nginx:
     image: nginx:alpine
     restart: unless-stopped
     container_name: headscale-proxy
-    ports:
-      - "8080:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf.template
+    environment:
+      - CORS_ORIGIN=https://${BASE_DOMAIN}
     depends_on:
       - headscale
+    ports:
+      - "127.0.0.1:80:80"
+    entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
 
   mesh_ui:
     build:
@@ -35,8 +32,6 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     container_name: mesh_ui
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
-      - VITE_API_PROXY_TARGET=http://nginx:80
+      - BASE_DOMAIN=${BASE_DOMAIN}

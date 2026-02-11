@@ -174,8 +174,8 @@ export function NetworkCard({ network }: NetworkCardProps) {
                           ) : (
                             <Badge variant="secondary">OFFLINE</Badge>
                           )}
-                          {node.validTags && node.validTags.length > 0 && (
-                            node.validTags.map((tag) => {
+                          {node.tags && node.tags.length > 0 && (
+                            node.tags.map((tag) => {
                               const tagName = tag.replace('tag:', '').toUpperCase()
                               const isAnalyst = tagName === 'ANALYST'
                               return (

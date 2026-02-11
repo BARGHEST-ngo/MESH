@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 import type { V1ListApiKeysResponse } from './openapi/types.gen'
+import { getBaseURL } from './client'
 
 interface LoginRequest {
     authKey: string
@@ -9,14 +10,6 @@ interface LoginRequest {
 interface LoginResponse {
     success: boolean
     message?: string
-}
-
-// Get the base URL based on environment
-const getBaseURL = () => {
-    if (import.meta.env.DEV) {
-        return '/api/v1'
-    }
-    return `${window.location.protocol}//${window.location.hostname}:8080/api/v1`
 }
 
 const validateAuthKey = async (authKey: string): Promise<LoginResponse> => {
