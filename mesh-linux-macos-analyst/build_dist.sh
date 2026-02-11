@@ -57,7 +57,7 @@ while [ "$#" -gt 1 ]; do
 		fi
 		shift
 		# Custom build with most features but omitting cloud/platform integrations, CLI, and specialized features
-		tags="${tags:+$tags,}ts_omit_aws,ts_omit_cloud,ts_omit_kube,ts_omit_synology,ts_omit_appconnectors,ts_omit_cli,ts_omit_completion,ts_omit_cliconndiag,ts_omit_clientupdate,ts_omit_c2n,ts_omit_oauthkey,ts_omit_outboundproxy,ts_omit_peerapiclient,ts_omit_peerapiserver,ts_omit_portlist,ts_omit_relayserver,ts_omit_wakeonlan,ts_omit_tap,ts_omit_bird"
+		tags="${tags:+$tags,}ts_omit_aws,ts_omit_cloud,ts_omit_kube,ts_omit_synology,ts_omit_appconnectors,ts_omit_cli,ts_omit_completion,ts_omit_cliconndiag,ts_omit_clientupdate,ts_omit_c2n,ts_omit_oauthkey,ts_omit_outboundproxy,ts_omit_peerapiclient,ts_omit_peerapiserver,ts_omit_portlist,ts_omit_relayserver,ts_omit_wakeonlan,ts_omit_tap,ts_omit_bird,ts_omit_logtail"
 		;;
 	*)
 		break
