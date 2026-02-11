@@ -30,44 +30,51 @@
 <br/></h3>
 
 > [!IMPORTANT]
-> **Public Alpha**
->
-> This project is currently in **public alpha** and under active development.
-> It is **not production-ready**.
->
-> A full penetration test is currently in progress. Until it is complete,
-> we **strongly recommend not using this project in production**.
->
-> Features and APIs may change, and users should expect breaking changes
-> and a certain level of technical expertise.
->
-> Please report bugs, issues, or security concerns via GitHub Issues.
+> **Public Alpha**: MESH is currently in **public alpha** and under active development. It is **not production-ready**. A full penetration test is in progress. Until it is complete, do **not** use this project in production environments. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues.
 
+**MESH enables remote mobile forensics by assigning CGNAT-range IP addresses to devices over an encrypted, censorship-resistant peer-to-peer mesh network.**
 
-**MESH enables secure, peer-to-peer–first remote digital forensics over hostile or censored networks.**
+Mobile devices are often placed behind carrier-grade NAT (CGNAT), firewalls, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics typically requires centralized VPN servers or risky port-forwarding.
 
-MESH allows analysts to directly connect to forensic clients (such as Android devices) over an end-to-end encrypted virtual network, without relying on centralized servers or hub-and-spoke architectures. It creates short-lived, self-contained forensic mesh networks that can be brought up in seconds, used for forensic acquisition or network capture, and torn down immediately afterward.
+MESH solves this by creating an encrypted peer-to-peer overlay and assigning each node a CGNAT-range address via a virtual TUN interface. Devices appear as if they are on the same local subnet — even when geographically distant or behind multiple NAT layers.
 
-By presenting a virtual TUN interface with private CGNAT-range addresses, MESH makes remote devices appear as if they are on the same local network. This enables forensics-enabling tools—such as ADB-over-WiFi and libimobiledevice—to operate remotely without modification, even when devices are behind NAT, mobile networks, or restrictive firewalls.
+This enables **remote mobile forensics** using ADB Wireless Debugging and [libimobiledevice](https://libimobiledevice.org/), allowing tools such as WARD, [MVT](https://github.com/mvt-project/), and [AndroidQF](https://github.com/mvt-project/androidqf) to operate remotely without exposing devices to the public internet.  
 
-MESH is designed for civil society, incident response, and forensic operations in high-risk environments. It is self-hosted and peer-to-peer by default, minimizing persistent infrastructure and analyst exposure.
+The mesh can also be used for **remote network monitoring**, including PCAP capture and Suricata-based intrusion detection over the encrypted overlay. Allowing for both immediate forensics capture and network capture.
 
-Technically, MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require any Tailscale infrastructure. It adds hardened transports and traffic obfuscation (including [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go)) to operate reliably on censored or monitored networks. When UDP is unavailable, it transparently falls back to encrypted HTTPS relays. These mechanisms are intended to resist blocking by national firewalls and detection by Deep Packet Inspection (DPI) systems.
+MESH is designed specifically for civil society forensics & hardened for hostile/censored networks:
 
-In practice, MESH replaces complex VPN setups and centralized relay servers with a disposable, analyst-controlled forensic network: bring it up, collect evidence, tear it down, and move on—without requiring physical proximity to the device.
+- Direct peer-to-peer WireGuard transport when available  
+- Optional AmneziaWG to obfuscate WireGuard fingerprints to evade national firewalls or DPI inspection
+- Automatic fallback to end-to-end encrypted HTTPS relays when UDP is blocked  
 
-Key functions
+Meshes are ephemeral and analyst-controlled: bring devices online, collect evidence, and tear the network down immediately afterward. No complicated hub-and-spoke configurations.
 
-- Builds peer-to-peer subnets for device analysis.
-- Provides end-to-end encryption via WireGuard/AmneziaWG and distributes keys automatically.
-- Runs a self-hostable control plane to create and manage meshes between analysts, enforce ACLs, and block compromised nodes on connection.
-- Advertises LAN routes or exit nodes for monitoring and extended forensics.
-- Supports ephemeral deployment and teardown on disconnect.
-- Creates a virtual TUN interface and assigns CGNAT-range addresses for use with ADB-over-Wifi & [Libimobile](https://github.com/libimobiledevice/libimobiledevice).
-- Transfers forensic artifacts such as ADB bug reports and `dumpsys` output.
-- Intergrates directly with [AndroidQF](https://github.com/mvt-project/androidqf) for spyware IOC checks with [MVT](https://github.com/mvt-project/mvt)
-- Supports kill-switch capabilities to block a device’s other network traffic while the forensics link remains active.
-- Enables rapid creation, isolation, and teardown of remote investigation nodes.
+## Architecture summary
+
+MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale) but does **not** require Tailscale infrastructure.
+
+Enhancements include, though not limited to:
+
+- Self-hostable coordination server with UI for forensics operations
+- Automatic WireGuard key distribution  
+- Optional AmneziaWG transport obfuscation  
+- Encrypted HTTPS relay fallback  
+
+The control plane handles peer discovery and key exchange only.  
+Forensic traffic flows directly between endpoints whenever possible.
+
+## Key capabilities
+
+- Peer-to-peer encrypted forensic subnets  
+- Automatic WireGuard / AmneziaWG key management  
+- Self-hostable control plane with ACL enforcement  
+- CGNAT-assigned virtual TUN interfaces  
+- ADB-over-WiFi & libimobiledevice compatibility  
+- AndroidQF + MVT integration  
+- Secure transfer of forensic artifacts  
+- Optional kill-switch containment  
+- Rapid mesh creation and teardown  
 
 <img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/4b305c4c-c0f9-49bf-8e59-9ccecdfadb86" />
 
@@ -75,195 +82,89 @@ Key functions
 
 <img width="1920" height="1080" alt="3" src="https://github.com/user-attachments/assets/1d95e6ff-2361-42b8-af8a-9d01c18c6b3b" />
 
+## Why not a VPN?
 
-# Remote mobile forensics and auditing
+Traditional VPN and hub-and-spoke architectures introduce:
 
-MESH creates an encrypted overlay network and assigns addresses from CGNAT ranges to the connected devices. This makes mobile devices reachable over the mesh without exposing them to the wider network.
+- Persistent infrastructure risk  
+- Centralized traffic analysis points  
+- Single points of failure  
+- Increased operational exposure  
 
-With a CGNAT-assigned address, Android devices can be accessed over ADB-over-WiFi for collection of artifacts such as bug reports and `dumpsys` output, using tools like [MVT](https://github.com/mvt-project/mvt) or [AndroidQF](https://github.com/mvt-project/androidqf). iOS devices can be reached over the same mesh for use with tools like [libimobiledevice](https://github.com/libimobiledevice/libimobiledevice), enabling remote acquisition and analysis workflows even when the devices are not on the same physical LAN.
+MESH separates coordination from data transport:
 
-Because the overlay is ephemeral, analysts can bring devices into the mesh, perform live-state collection, and tear the network down immediately after. 
+- The control plane does not carry forensic traffic  
+- Peer connections are direct whenever possible  
+- Relays are transport fallbacks, not architectural hubs  
+- Meshes are disposable and task-scoped  
 
-ACL configuration on the control plane lets analysts lock down services for suspected or compromised devices, restrict who can reach them, and enforce strict access controls against lateral movement for the duration of the investigation.
+MESH is optimized for transient, high-risk environments rather than permanent enterprise networking.
 
-# Encryption, P2P & censorship resistance.
+## Getting started
 
-MESH uses a self-hostable control plane to coordinate the sharing of WireGuard keys between nodes letting you establish direct peer-to-peer connections whenever possible. Each node attempts NAT traversal using UDP hole punching and STUN-like techniques so two peers can exchange encrypted WireGuard packets directly. When hole punching succeeds, traffic is fully peer-to-peer and end-to-end encrypted between the two endpoints.
+For full documentation:  
+https://docs.meshforensics.org/
 
-If UDP hole punching is unavailable or UDP is blocked, MESH falls back to the **DERP (Detoured Encrypted Relay for Packets)** protocol, which provides a relay network for failed or asymmetric NAT traversal. It relays already-encrypted WireGuard packets through DERP servers, so the relay sees metadata but never plaintext. DERP relays can be self-hosted by anyone and is fully open-source. See [DERP](https://github.com/tailscale/tailscale/tree/main/cmd/derper#derp).
-
-Because WireGuard is actively censored in regions such as Russia and China, MESH can be configured to use [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) by simply adding an AmneziaWG config to your client (but also offers backward compatability). This obfuscates WireGuard packet fingerprints.
-
-When UDP is blocked and the connection fails over to DERP, all encrypted traffic is sent over HTTPS via relays, which still support end-to-end encryption, providing a censorship-resilient mesh network.
-
-# Why not a VPN? Why not hub-and-spoke?
-
-Traditional VPNs and hub-and-spoke architectures are poorly suited to remote digital forensics, especially in hostile or censored environments.
-
-**VPNs assume permanence and static infrastructure.**
-Conventional VPNs rely on long-lived servers, fixed configurations, and stable network conditions. In forensic and civil society operations, this creates operational risk: persistent infrastructure can be blocked, monitored, seized, or correlated over time. VPNs are also typically optimized for enterprise environments, not mobile devices behind carrier-grade NAT, transient networks, or hostile filtering.
-
-**Hub-and-spoke designs centralize traffic and risk.**
-In a hub-and-spoke model, all forensic traffic flows through a central relay or gateway. This creates a single point of failure and a high-value target for blocking, traffic analysis, or coercion. Even with encryption, centralized routing exposes communication patterns and makes operations easier to disrupt.
-
-**MESH separates coordination from data transport.**
-MESH does use a coordination server, but only for peer discovery, key exchange, and session setup. Forensic data does not transit the coordinator. Once peers are connected, traffic flows end-to-end between the analyst host and forensic clients whenever possible.
-
-**Forensics workflows are ephemeral.**
-Remote acquisition and capture are task-scoped: establish connectivity, collect evidence, and tear everything down. MESH is designed for short-lived, disposable meshes rather than always-on tunnels or permanent networks.
-
-**Resilient by design in hostile networks.**
-When direct peer-to-peer transport is blocked, MESH can fall back to encrypted relay mechanisms without reconfiguration. These relays are transport-layer fallbacks, not architectural hubs, and can be self-hosted or rotated to reduce exposure.
-
-In short, MESH avoids centralized traffic routing and long-lived VPN infrastructure while still providing the coordination necessary to rapidly and safely establish forensic connectivity in real-world, high-risk environments.
-
-# Getting started
-
-The easiest way to get started is to build a control plane and then join nodes. We recommend following the official <a href="https://docs.meshforensics.org/">documentation</a>, but if you want to get started from here, do the following:
+### 1. Clone the repository
 
 ```
 git clone https://github.com/BARGHEST-ngo/mesh.git
 cd mesh/mesh-control-plane
 ```
-Create a configuration file:
-> [!NOTE]
-> Replace your-domain.com with your actual domain or server IP address. If you want to use your own DERP server, you should change the urls to your own. You can learn more about DERP here. We use Tailscale's DERP relay's by default.
 
-
-```
-mkdir -p config
-cat > config/config.yaml << EOF
-server_url: https://your-domain.com
-listen_addr: 0.0.0.0:8080
-metrics_listen_addr: 0.0.0.0:9090
-
-grpc_listen_addr: 0.0.0.0:50443
-grpc_allow_insecure: false
-
-private_key_path: /var/lib/headscale/private.key
-noise_private_key_path: /var/lib/headscale/noise_private.key
-base_domain: your-domain.com
-
-ip_prefixes:
-  - 100.64.0.0/10
-  - fd7a:115c:a1e0::/48
-
-derp:
-  server:
-    enabled: true
-    region_id: 999
-    region_code: "custom"
-    region_name: "Custom DERP"
-    stun_listen_addr: "0.0.0.0:3478"
-
-  urls:
-    - https://controlplane.tailscale.com/derpmap/default
-
-  auto_update_enabled: true
-  update_frequency: 24h
-
-database:
-  type: sqlite3
-  sqlite:
-    path: /var/lib/headscale/db.sqlite
-
-log:
-  level: info
-  format: text
-
-dns_config:
-  override_local_dns: false
-  nameservers:
-    - 1.1.1.1
-    - 8.8.8.8
-  magic_dns: true
-  base_domain: mesh.local
-
-acl_policy_path: /etc/headscale/acl.yaml
-EOF
-```
-
-Create a ACL policy:
-Access Control Lists (ACLs) define which nodes can communicate with each other.
->[!IMPORTANT]
->The default configuration allows all nodes to communicate with each other. For production deployments, see the ACL documentation for more restrictive policies.
-
-```
-cat > config/acl.yaml << EOF
-acls:
-  - action: accept
-    src:
-      - "*"
-    dst:
-      - "*:*"
-EOF
-```
-
-Start the control plane
+### 2. Start control plane
 
 ```
 docker-compose up -d
 ```
 
-Access the Web UI
+### 4. Access web UI
 
-The control plane includes a web-based management interface. Access it at:
 ```
-    Local access: https://localhost:3000/login
-    Remote access: https://your-domain:8443/login
+Local:  https://localhost:3000/login
+Remote: https://your-domain:8443/login
 ```
 
->[!IMPORTANT]
->Self-Signed Certificate
->The web UI uses a self-signed certificate by default. Your browser will show a security warning - this is expected. Click "Advanced" and proceed to the site. You should use a reverse proxy to serve the web UI over HTTPS. It is required for the control plane to be accessible on HTTPS publicly
+The Web UI uses a self-signed certificate by default.
 
-Before using the web UI, create an API key:
+### 5. Create API key
 
 ```
 docker exec headscale headscale apikeys create --expiration 90d
 ```
 
-Example output:
-```
-abc123def456ghi789jkl012mno345pqr678stu901vwx234yz
-```
+Use the generated key to authenticate in the Web UI.
 
-Connect to the Web UI
-
-    Open the web UI in your browser
-    Enter your Ccntrol plane URL: http://localhost:3000
-    Paste your API Key from Step 6
-    Click ACCESS SYSTEM
+> [!IMPORTANT]
+> The default ACL allows nodes in each network talk to each other.
+> Production deployments should use restrictive policies. Modify these via the ACL tab.
 
 <img width="1035" height="868" alt="image" src="https://github.com/user-attachments/assets/52bb4020-18fe-4b49-9b33-516250055278" />
 
-Your MESH network is now build and ready to accept nodes, you should see the <a href="https://docs.meshforensics.org/">documentation</a> further for joining nodes and doing forensics analysis.
+Your MESH network is now ready to accept nodes.  
+See the documentation for node enrollment and forensic workflows.
 
-## Repository structure
+### Repository structure
 
-This repository is a monorepo and contains all components required for MESH:
-- `mesh-android-client`: The Android APK that should be installed on endpoints for analysis
-- `mesh-control-plane`: The control plane server that manages your nodes in the mesh network and distributes keys
-- `mesh-linux-macos-analyst`: The CLI client and daemon for your analysis/collection node
-  - **Auto-mirrored** to [BARGHEST-ngo/mesh-analyst-client](https://github.com/BARGHEST-ngo/mesh-analyst-client) for Go module compatibility
+- `mesh-android-client` — Android endpoint APK  
+- `mesh-control-plane` — Coordination server  
+- `mesh-linux-macos-analyst` — Analyst CLI client
 
-### For Developers
+### Developer notes
 
-This monorepo uses GitHub Actions to automatically mirror `mesh-linux-macos-analyst/` to the separate [mesh-analyst-client](https://github.com/BARGHEST-ngo/mesh-analyst-client) repository. This allows the Go module system to properly resolve dependencies while keeping development centralized in this monorepo.
+**Workflow:**
 
-**Development workflow:**
-1. Make changes in `mesh-linux-macos-analyst/` in this repo
-2. Commit and push to `main` or create a tag (e.g., `v0.1.2-alpha.1`)
-3. GitHub Actions automatically mirrors changes to `BARGHEST-ngo/mesh-analyst-client`
-4. Other Go projects can import `github.com/BARGHEST-ngo/mesh-analyst-client`
+- Development happens on branches and is merged via PRs.
+- Releases are cut as versioned tags.
+- GitHub Actions mirrors tagged releases to `mesh-analyst-client`.
+- External Go projects should depend on explicit version tags, not `main`.
 
-## Licenses
+### License
 
-This project is a fork of Tailscale and contains code under the BSD-3-Clause license (Tailscale Inc & AUTHORS). Additional code is licensed under CC0. See LICENSE and .licenses/tailscale.license for details.
+Forked components from Tailscale are licensed under BSD-3-Clause.  
+Additional code is licensed under CC0.  
+See `LICENSE` and `.licenses/` for details.
 
-## Legal
+### Legal
 
 WireGuard is a registered trademark of Jason A. Donenfeld.
-
-
-
