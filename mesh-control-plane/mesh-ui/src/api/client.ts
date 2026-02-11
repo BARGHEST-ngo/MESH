@@ -1,11 +1,6 @@
 import axios, { type AxiosInstance } from 'axios'
 
-const getBaseURL = () => {
-    if (import.meta.env.DEV) {
-        return '/api/v1'
-    }
-    return `${window.location.protocol}//${window.location.hostname}:8080/api/v1`
-}
+export const getBaseURL = () => '/api/v1'
 
 const apiClient: AxiosInstance = axios.create({
     baseURL: getBaseURL(),
