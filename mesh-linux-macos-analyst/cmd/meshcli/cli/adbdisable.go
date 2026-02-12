@@ -37,15 +37,14 @@ Examples:
 }
 
 func triggerDeveloperModeCheck() {
+	checkADBClient()
 	adb.Client.Shell("am", "start", "-a", "android.settings.APPLICATION_DEVELOPMENT_SETTINGS")
 	time.Sleep(1 * time.Second)
 }
 
 func validateDisable() error {
+	checkADBClient()
 	printf("Validating ADB disablement...\n")
-	if adb.Client == nil {
-		return fmt.Errorf("ADB client not initialized")
-	}
 
 	const maxRetries = 10
 	const retryDelay = 2 * time.Second
@@ -109,5 +108,10 @@ func runadbdisable(ctx context.Context, args []string) error {
 	if err := validateDisable(); err != nil {
 		return err
 	}
+	// Disconnect all devices to clear the list returned by `adb devices` and avoid confusion for the analyst.
+	if err := disconnect(""); err != nil {
+		return fmt.Errorf("failed to disconnect devices after ADB disable: %v", err)
+	}
+	printf("All devices disconnected. ADB disable process complete.\n")
 	return nil
 }
