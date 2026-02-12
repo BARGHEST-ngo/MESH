@@ -13,6 +13,8 @@ MESH UI wraps the Headscale API with a workflow designed for field deployments:
 
 <img width="2476" height="1224" alt="image" src="https://github.com/user-attachments/assets/e39dd96c-19e0-41ad-95d8-d5dcb78a708b" />
 
+## Start with Docker compose
+
 From the `mesh-control-plane/` directory:
 
 ```bash
