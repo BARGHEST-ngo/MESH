@@ -79,6 +79,24 @@ func runadbpair(ctx context.Context, args []string) error {
 	if err := validateAdbArgs(); err != nil {
 		return err
 	}
+
+	adbClient, err := adb.New()
+	if err != nil {
+		return fmt.Errorf("failed to initialize ADB: %v", err)
+	}
+	adb.Client = adbClient
+
+	devices, err := adb.Client.Devices()
+	if err != nil {
+		return fmt.Errorf("failed to get devices: %w", err)
+	}
+	if len(devices) > 0 {
+		printf("Found existing ADB devices: %v\n", devices)
+		if err := disconnect(""); err != nil {
+			return err
+		}
+	}
+
 	if err := adbPair(); err != nil {
 		return err
 	}
@@ -86,14 +104,7 @@ func runadbpair(ctx context.Context, args []string) error {
 	if err := adbConnect(); err != nil {
 		return err
 	}
-	if err := validateConnect(); err != nil {
-		return err
-	}
-	adbClient, err := adb.New()
-	if err != nil {
-		return fmt.Errorf("failed to initialize ADB: %v", err)
-	}
-	adb.Client = adbClient
+
 	if adbpairArgs.qf {
 		if err := qf(); err != nil {
 			return err
@@ -123,11 +134,11 @@ func validateAdbArgs() error {
 }
 
 func adbPair() error {
+	checkADBClient()
 	printf("Pairing to device...\n")
-	cmd := exec.Command("adb", "pair",
+	output, err := adb.Client.Exec("pair",
 		fmt.Sprintf("%s:%s", adbpairArgs.host, adbpairArgs.pairport),
 		adbpairArgs.code)
-	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("ADB pair failed: %v\nOutput: %s", err, string(output))
 	}
@@ -139,10 +150,10 @@ func adbPair() error {
 }
 
 func adbConnect() error {
+	checkADBClient()
 	printf("ADB pair successful, now connecting...\n")
-	cmd := exec.Command("adb", "connect",
+	output, err := adb.Client.Exec("connect",
 		fmt.Sprintf("%s:%s", adbpairArgs.host, adbpairArgs.hostport))
-	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("ADB connect failed: %v\nOutput: %s", err, string(output))
 	}
@@ -150,48 +161,37 @@ func adbConnect() error {
 	if err := saveHostport(adbpairArgs.hostport); err != nil {
 		return fmt.Errorf("failed to save hostport config: %v", err)
 	}
-	adbClient, err := adb.New()
-	if err != nil {
-		return fmt.Errorf("failed to initalize ADB: %v", err)
-	}
-	adb.Client = adbClient
-
-	if err := validateConnect(); err != nil {
-		return err
-	}
-	return nil
+	return validateConnect()
 }
 
 func validateConnect() error {
+	checkADBClient()
 	printf("Validating ADB session...\n")
-	if adb.Client == nil {
-		return fmt.Errorf("ADB client not initialized")
-	}
 	devices, err := adb.Client.Devices()
 	if err != nil {
 		return fmt.Errorf("failed to get devices: %w", err)
 	}
-	if len(devices) == 0 {
-		printf("no devices connected\n")
-	}
-	if len(devices) == 1 {
+	switch len(devices) {
+	case 0:
+		return fmt.Errorf("no devices connected after ADB connect")
+	case 1:
 		printf("Success! Device connected\n")
-		printf("Found %d device(s): %v\n", len(devices), devices)
 		for _, d := range devices {
 			if strings.HasPrefix(d, "100.") {
 				printf("Success! Valid MESH network device\n")
 				printf("You may proceed with forensics acquision\n")
 				printf("Use ./meshcli adbcollect\n")
-			} else {
-				printf("Wrong device connected/paried\n")
+				return nil
 			}
-
 		}
+		return fmt.Errorf("wrong device connected/paried")
+	default:
+		return fmt.Errorf("multiple devices connected after ADB connect: %v", devices)
 	}
-	return nil
 }
 
 func qf() error {
+	checkADBClient()
 	devices, err := adb.Client.Devices()
 	if err != nil {
 		return fmt.Errorf("failed to get devices: %w", err)
@@ -266,4 +266,28 @@ func qf() error {
 		}
 	}
 	return nil
+}
+
+func disconnect(serial string) error {
+	checkADBClient()
+	if serial == "" {
+		printf("Disconnecting all devices...\n")
+		out, err := exec.Command(adb.Client.ExePath, "disconnect").Output()
+		if err != nil {
+			return fmt.Errorf("failed to disconnect all devices: %v\nOutput: %s", err, string(out))
+		}
+	} else {
+		printf("Disconnecting device %s...\n", serial)
+		out, err := exec.Command(adb.Client.ExePath, "disconnect", serial).Output()
+		if err != nil {
+			return fmt.Errorf("failed to disconnect device %s: %v\nOutput: %s", serial, err, string(out))
+		}
+	}
+	return nil
+}
+
+func checkADBClient() {
+	if adb.Client == nil {
+		panic("ADB client not initialized")
+	}
 }
