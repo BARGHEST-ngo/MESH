@@ -12,3 +12,22 @@ MESH UI wraps the Headscale API with a workflow designed for field deployments:
 <img width="2476" height="1224" alt="image" src="https://github.com/user-attachments/assets/c3d93219-c3fc-428e-8b81-294b1fd16de8" />
 
 <img width="2476" height="1224" alt="image" src="https://github.com/user-attachments/assets/e39dd96c-19e0-41ad-95d8-d5dcb78a708b" />
+
+From the `mesh-control-plane/` directory:
+
+```bash
+docker compose up -d
+```
+
+This starts three services:
+- **headscale** on port 8081
+- **nginx proxy** on port 8080
+- **mesh_ui** on port 3000
+
+Then open `http://localhost:3000` and log in with your Headscale API key.
+
+### Generating an API Key
+
+```bash
+docker exec headscale headscale apikeys create
+```
