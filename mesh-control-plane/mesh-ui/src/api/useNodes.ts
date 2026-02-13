@@ -29,7 +29,7 @@ export function useNodesByNetwork(userName?: string) {
             const response = await apiClient.get<V1ListNodesResponse>('/node')
 
             const filteredNodes = response.data.nodes?.filter(node =>
-                node.user?.name === userName
+                node.preAuthKey?.user?.name === userName
             ) || []
 
             return filteredNodes
