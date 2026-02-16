@@ -4,17 +4,24 @@
 package cli
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
+	"net"
+	"net/netip"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	rt "github.com/botherder/go-savetime/runtime"
 	"github.com/google/uuid"
+	"github.com/mattn/go-isatty"
 	"github.com/mvt-project/androidqf_ward/acquisition"
 	"github.com/mvt-project/androidqf_ward/adb"
 	"github.com/mvt-project/androidqf_ward/log"
@@ -51,20 +58,36 @@ var adbpairCmd = &ffcli.Command{
 	Name:       "adbpair",
 	ShortUsage: "meshcli adbpair [flags]",
 	ShortHelp:  "Pair & connect to a device on the MESH network via ADB",
-	LongHelp: `The adbpair command initiates a ADB pairing session with a device on the MESH network so you can issue ADB commands. After pairing, it will connect you to the device ready for ADB sessions.
-	You can use the --qf flag to perform quick forensics immediately on connecting. 
+	LongHelp: `The adbpair command initiates an ADB pairing session with a device on the MESH network so you can issue ADB commands. After pairing, it will connect you to the device ready for ADB sessions.
+
+If you run the command without flags, you will be prompted interactively for each required value.
+
+You can use the --qf flag to perform quick forensics immediately on connecting.
 
 Examples:
-  meshcli adbpair HOST[:PORT] [PAIRING CODE]
+  # Interactive mode (recommended for first-time users)
+  meshcli adbpair
+
+  # With all flags specified
+  meshcli adbpair --host 100.64.1.5 --hostport 37891 --pairport 45281 --code 123456
+
+  # Partial flags (will prompt for missing values)
+  meshcli adbpair --host 100.64.1.5
+
+  # Short form with host:port
+  meshcli adbpair 100.64.1.5:37891
+
+  # With quick forensics
+  meshcli adbpair --qf
 
 `,
 	FlagSet: (func() *flag.FlagSet {
 		fs := newFlagSet("adbpair")
-		fs.StringVar(&adbpairArgs.host, "host", "", "IP of the Android device")
-		fs.StringVar(&adbpairArgs.hostport, "hostport", "", "port number for the device")
-		fs.StringVar(&adbpairArgs.pairport, "pairport", "", "port number assigned during 'Pair device with pairing code'")
-		fs.StringVar(&adbpairArgs.code, "code", "", "pairing code from Android device")
-		fs.BoolVar(&adbpairArgs.qf, "qf", false, "perform adbcollect (AndroidQF/WARD) on connection")
+		fs.StringVar(&adbpairArgs.host, "host", "", "(optional) IP address of the Android device on the MESH network")
+		fs.StringVar(&adbpairArgs.hostport, "hostport", "", "(optional) Wireless Debugging port number")
+		fs.StringVar(&adbpairArgs.pairport, "pairport", "", "(optional) Pairing port from 'Pair device with pairing code' dialog")
+		fs.StringVar(&adbpairArgs.code, "code", "", "(optional) 6-digit pairing code from Android device")
+		fs.BoolVar(&adbpairArgs.qf, "qf", false, "perform adbcollect (AndroidQF/WARD) immediately after connection")
 		return fs
 	})(),
 	Exec: runadbpair,
@@ -73,9 +96,28 @@ Examples:
 //TODO: adbpairArgs.host should really be defined by the tailscaled network later down the line
 
 func runadbpair(ctx context.Context, args []string) error {
-	if len(args) > 0 {
+	// For brevity, we also allow `meshcli HOST[:HOSTPORT]`
+	if len(args) == 1 {
+		if strings.Contains(args[0], ":") {
+			var err error
+			adbpairArgs.host, adbpairArgs.hostport, err = net.SplitHostPort(args[0])
+			if err != nil {
+				return fmt.Errorf("failed to parse host:port: %v", err)
+			}
+		} else {
+			adbpairArgs.host = args[0]
+		}
+	} else if len(args) > 1 {
 		return fmt.Errorf("unexpected arguments: %v", args)
 	}
+
+	// Check if any arguments are missing and prompt for them interactively
+	if adbpairArgs.host == "" || adbpairArgs.hostport == "" ||
+		adbpairArgs.pairport == "" || adbpairArgs.code == "" {
+		promptForMissingArgs()
+	}
+
+	// Validate all arguments
 	if err := validateAdbArgs(); err != nil {
 		return err
 	}
@@ -114,22 +156,42 @@ func runadbpair(ctx context.Context, args []string) error {
 }
 
 func validateAdbArgs() error {
-	if adbpairArgs.host == "" && adbpairArgs.hostport == "" &&
-		adbpairArgs.pairport == "" && adbpairArgs.code == "" {
-		return errors.New("ADBPair requires --host --hostport --pairport --code. Use --help for more. For help on where these values are for the Android device, refer to docs.meshforensics.org")
-	}
-	if adbpairArgs.host == "" {
+	// Validate host if provided
+	if adbpairArgs.host != "" {
+		if err := validateIPAddress(adbpairArgs.host); err != nil {
+			return fmt.Errorf("invalid --host: %v", err)
+		}
+	} else {
 		return errors.New("--host (Host IP) is required")
 	}
-	if adbpairArgs.hostport == "" {
+
+	// Validate hostport if provided
+	if adbpairArgs.hostport != "" {
+		if err := validatePort(adbpairArgs.hostport); err != nil {
+			return fmt.Errorf("invalid --hostport: %v", err)
+		}
+	} else {
 		return errors.New("--hostport (Wireless Debugging port) is required")
 	}
-	if adbpairArgs.pairport == "" {
+
+	// Validate pairport if provided
+	if adbpairArgs.pairport != "" {
+		if err := validatePort(adbpairArgs.pairport); err != nil {
+			return fmt.Errorf("invalid --pairport: %v", err)
+		}
+	} else {
 		return errors.New("--pairport (Pairing port) is required")
 	}
-	if adbpairArgs.code == "" {
+
+	// Validate code if provided
+	if adbpairArgs.code != "" {
+		if err := validatePairingCode(adbpairArgs.code); err != nil {
+			return fmt.Errorf("invalid --code: %v", err)
+		}
+	} else {
 		return errors.New("--code (Pairing code) is required")
 	}
+
 	return nil
 }
 
@@ -289,5 +351,101 @@ func disconnect(serial string) error {
 func checkADBClient() {
 	if adb.Client == nil {
 		panic("ADB client not initialized")
+	}
+}
+
+// validateIPAddress validates that the input is a valid IP address (IPv4 or IPv6).
+func validateIPAddress(ip string) error {
+	if ip == "" {
+		return errors.New("IP address cannot be empty")
+	}
+	if _, err := netip.ParseAddr(ip); err != nil {
+		return fmt.Errorf("invalid IP address format")
+	}
+	return nil
+}
+
+// validatePort validates that the input is a valid port number (1-65535).
+func validatePort(port string) error {
+	if port == "" {
+		return errors.New("port cannot be empty")
+	}
+	portNum, err := strconv.ParseUint(port, 10, 16)
+	if err != nil {
+		return errors.New("port must be a number")
+	}
+	if portNum < 1 || portNum > 65535 {
+		return errors.New("port must be between 1 and 65535")
+	}
+	return nil
+}
+
+// validatePairingCode validates that the input is a valid 6-digit pairing code.
+func validatePairingCode(code string) error {
+	if code == "" {
+		return errors.New("pairing code cannot be empty")
+	}
+	// ADB pairing codes are typically 6 digits
+	matched, _ := regexp.MatchString(`^\d{6}$`, code)
+	if !matched {
+		return errors.New("pairing code must be exactly 6 digits")
+	}
+	return nil
+}
+
+// promptForMissingArgs interactively prompts the user for any missing ADB pairing arguments.
+func promptForMissingArgs() {
+	if adbpairArgs.host == "" {
+		adbpairArgs.host = ReadStringWithValidation("Enter target device IP address: ", validateIPAddress)
+	}
+
+	if adbpairArgs.hostport == "" {
+		adbpairArgs.hostport = ReadStringWithValidation("Enter target device Wireless Debugging port: ", validatePort)
+	}
+
+	if adbpairArgs.pairport == "" {
+		adbpairArgs.pairport = ReadStringWithValidation("Enter target device pairing port: ", validatePort)
+	}
+
+	if adbpairArgs.code == "" {
+		adbpairArgs.code = ReadStringWithValidation("Enter pairing code: ", validatePairingCode)
+	}
+}
+
+// ReadString prompts the user for input with the given message and returns the trimmed response.
+// If there is no TTY on both Stdin and Stdout, returns an empty string.
+func ReadString(msg string) string {
+	if !(isatty.IsTerminal(os.Stdin.Fd()) && isatty.IsTerminal(os.Stdout.Fd())) {
+		return ""
+	}
+	fmt.Print(msg)
+	reader := bufio.NewReader(os.Stdin)
+	resp, err := reader.ReadString('\n')
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(resp)
+}
+
+// ValidationFunc is a function that validates input and returns an error if invalid.
+type ValidationFunc func(string) error
+
+// ReadStringWithValidation prompts the user for input with the given message,
+// validates it using the provided validation function, and re-prompts on validation errors.
+// If there is no TTY on both Stdin and Stdout, returns an empty string.
+func ReadStringWithValidation(msg string, validate ValidationFunc) string {
+	if !(isatty.IsTerminal(os.Stdin.Fd()) && isatty.IsTerminal(os.Stdout.Fd())) {
+		return ""
+	}
+	for {
+		input := ReadString(msg)
+		if input == "" {
+			continue
+		}
+		if err := validate(input); err != nil {
+			fmt.Printf("Invalid input: %v\n", err)
+			continue
+		}
+		return input
 	}
 }
