@@ -25,6 +25,7 @@ echo "        by Barghest.asia. No rights reserved."
 echo -e "${NC}"
 echo ""
 
+GO_BIN="go"
 BUILD_DIR="$(pwd)"
 OUTPUT_DIR="${BUILD_DIR}"
 DAEMON_NAME="tailscaled-amnezia"
@@ -73,13 +74,13 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ ! -f "go.mod" ] || [ ! -d "cmd/tailscaled" ] || [ ! -d "cmd/meshcli" ]; then
-    echo -e "${RED}Error: This script must be run from the MESH-Linux-client directory${NC}"
+if [ ! -d "cmd/tailscaled" ] || [ ! -d "cmd/meshcli" ]; then
+    echo -e "${RED}Error: This script must be run from the MESH analyst directory${NC}"
     exit 1
 fi
 
 echo -e "${BLUE}Checking Go version...${NC}"
-GO_VERSION=$(./tool/go version | awk '{print $3}' | sed 's/go//')
+GO_VERSION=$("$GO_BIN" version | awk '{print $3}' | sed 's/go//')
 REQUIRED_GO_VERSION="1.25.3"
 if [ "$(printf '%s\n' "$REQUIRED_GO_VERSION" "$GO_VERSION" | sort -V | head -n1)" != "$REQUIRED_GO_VERSION" ]; then
     echo -e "${YELLOW}Warning: Go version $GO_VERSION detected. Recommended: $REQUIRED_GO_VERSION or higher${NC}"
@@ -87,9 +88,9 @@ fi
 
 echo -e "${GREEN}Building tailscaled-amnezia daemon...${NC}"
 if [ "$VERBOSE" = true ]; then
-    ./tool/go build -v -o "${OUTPUT_DIR}/${DAEMON_NAME}" ./cmd/tailscaled
+    "$GO_BIN" build -v -o "${OUTPUT_DIR}/${DAEMON_NAME}" ./cmd/tailscaled
 else
-    ./tool/go build -o "${OUTPUT_DIR}/${DAEMON_NAME}" ./cmd/tailscaled
+    "$GO_BIN" build -o "${OUTPUT_DIR}/${DAEMON_NAME}" ./cmd/tailscaled
 fi
 
 if [ $? -eq 0 ]; then
@@ -101,9 +102,9 @@ fi
 
 echo -e "${GREEN}Building meshcli CLI...${NC}"
 if [ "$VERBOSE" = true ]; then
-    ./tool/go build -v -o "${OUTPUT_DIR}/${CLI_NAME}" ./cmd/meshcli
+    "$GO_BIN" build -v -o "${OUTPUT_DIR}/${CLI_NAME}" ./cmd/meshcli
 else
-    ./tool/go build -o "${OUTPUT_DIR}/${CLI_NAME}" ./cmd/meshcli
+    "$GO_BIN" build -o "${OUTPUT_DIR}/${CLI_NAME}" ./cmd/meshcli
 fi
 
 if [ $? -eq 0 ]; then
