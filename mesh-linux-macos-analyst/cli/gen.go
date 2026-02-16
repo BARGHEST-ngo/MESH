@@ -3,6 +3,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"os/exec"
@@ -58,6 +59,9 @@ func main() {
 	// TODO: have the pentesters verify this. Do GONOSUMDB or GOSUMDB
 	// env vars affect this?
 
+	clean := flag.Bool("clean", false, "Clean the analyst/cli directory instead of copying files")
+	flag.Parse()
+
 	// Get absolute path to current module's go.mod file
 	output, err := exec.Command("go", "env", "GOMOD").Output()
 	if err != nil {
@@ -65,6 +69,20 @@ func main() {
 	}
 	goModPath := string(output[:len(output)-1]) // remove trailing newline
 	rootModPath := filepath.Dir(goModPath)
+
+	if *clean {
+		log.Println("Cleaning analyst/cli directory...")
+		cliDir := filepath.Join(rootModPath, "analyst", "cli")
+		for _, f := range cliFiles {
+			path := filepath.Join(cliDir, f)
+			if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+				log.Fatalf("failed to remove %q: %v", path, err)
+			}
+			log.Printf("Removed %q\n", path)
+		}
+		log.Println("Done.")
+		return
+	}
 
 	pkgs, err := packages.Load(&packages.Config{Dir: rootModPath}, tailscaleCliPkg)
 	if err != nil {
