@@ -68,6 +68,7 @@ import com.barghest.mesh.ui.util.universalFit
 import com.barghest.mesh.ui.view.ADBSetup
 import com.barghest.mesh.ui.view.AboutView
 import com.barghest.mesh.ui.view.AWGSettingsView
+import com.barghest.mesh.ui.view.DeviceInfoView
 import com.barghest.mesh.ui.view.DNSSettingsView
 import com.barghest.mesh.ui.view.ExitNodePicker
 import com.barghest.mesh.ui.view.HealthView
@@ -356,7 +357,8 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onNavigateToAuthKey = { navController.navigate("loginWithAuthKey") },
                                     onNavigateToCustomControl = { navController.navigate("loginWithCustomControl") },
-                                    onNavigateToADBSetup = { navController.navigate("ADBSetup") })
+                                    onNavigateToADBSetup = { navController.navigate("ADBSetup") },
+                                    onNavigateToDeviceInfo = { navController.navigate("deviceInfo") })
                             val settingsNav =
                                 SettingsNav(
                                     onNavigateToBugReport = { navController.navigate("bugReport") },
@@ -484,6 +486,9 @@ class MainActivity : ComponentActivity() {
                                     backToSettings = backTo("main"),
                                     onNavigateToAuthKey = { navController.navigate("loginWithAuthKey") }
                                 )
+                            }
+                            composable("deviceInfo") {
+                                DeviceInfoView(backTo("main"))
                             }
 
                         }

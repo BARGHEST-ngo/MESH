@@ -123,7 +123,8 @@ data class MainViewNavigation(
     val onNavigateToSearch: () -> Unit,
     val onNavigateToAuthKey: () -> Unit,
     val onNavigateToCustomControl: () -> Unit,
-    val onNavigateToADBSetup: () -> Unit
+    val onNavigateToADBSetup: () -> Unit,
+    val onNavigateToDeviceInfo: () -> Unit
 )
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
@@ -214,10 +215,16 @@ fun MainView(
                 trailingContent = {
                   Box(modifier = Modifier.padding(8.dp), contentAlignment = Alignment.CenterEnd) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                      IconButton(onClick = { showMeshHomeSheet = true }) {
+                      IconButton(modifier = Modifier.size(32.dp), onClick = { showMeshHomeSheet = true }) {
                         Icon(
                             Icons.Outlined.Home,
                             contentDescription = "Open connection menu",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                      }
+                      IconButton(modifier = Modifier.size(32.dp), onClick = { navigation.onNavigateToDeviceInfo() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.mobile_info),
+                            contentDescription = "Device information",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant)
                       }
                       when (user) {
@@ -442,7 +449,7 @@ fun ExitNodeStatus(navAction: () -> Unit, viewModel: MainViewModel) {
 
 @Composable
 fun SettingsButton(action: () -> Unit) {
-  IconButton(modifier = Modifier.size(24.dp), onClick = { action() }) {
+  IconButton(modifier = Modifier.size(32.dp), onClick = { action() }) {
     Icon(
         Icons.Outlined.Settings,
         contentDescription = "Open settings",
@@ -897,7 +904,8 @@ fun MainViewPreview() {
           onNavigateToSearch = {},
           onNavigateToAuthKey = {},
           onNavigateToCustomControl = {},
-          onNavigateToADBSetup = {}),
+          onNavigateToADBSetup = {},
+          onNavigateToDeviceInfo = {}),
       vm,
       appViewModel)
 }
