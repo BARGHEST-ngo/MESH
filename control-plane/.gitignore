@@ -12,6 +12,5 @@ todos.json
 
 db.sqlite
 noise_private.key
-*.md
 .env
 db.sql*
