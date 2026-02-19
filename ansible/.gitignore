@@ -1,0 +1,18 @@
+.logs/*
+*.retry
+*.vault
+collections/*
+!collections/ansible_collections
+!collections/requirements.yml
+collections/ansible_collections/*
+!collections/ansible_collections/barghest
+collections/ansible_collections/barghest/*
+!collections/ansible_collections/barghest/mesh
+# https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ansible
+.ansible/

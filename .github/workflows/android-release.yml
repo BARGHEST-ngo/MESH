@@ -13,7 +13,7 @@ on:
 
 defaults:
   run:
-    working-directory: mesh-android-client
+    working-directory: android-client
 
 jobs:
   build-release:
@@ -28,7 +28,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          go-version-file: "mesh-android-client/go.mod"
+          go-version-file: "go.mod"
 
       - name: Set up Java 17
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
@@ -52,7 +52,7 @@ jobs:
 
       - name: Build and Sign Release APK
         env:
-          JKS_PATH: ${{ github.workspace }}/mesh-android-client/mesh-release.jks
+          JKS_PATH: ${{ github.workspace }}/android-client/mesh-release.jks
           JKS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           JKS_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
         run: |
@@ -75,13 +75,13 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: mesh-${{ steps.version.outputs.version }}
-          path: mesh-android-client/mesh-${{ steps.version.outputs.version }}.apk
+          path: android-client/mesh-${{ steps.version.outputs.version }}.apk
 
       - name: Create GitHub Release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: mesh-android-client/mesh-${{ steps.version.outputs.version }}.apk
+          files: android-client/mesh-${{ steps.version.outputs.version }}.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

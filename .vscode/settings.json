@@ -1,0 +1,9 @@
+{
+    "redhat.telemetry.enabled": false,
+    "files.associations": {
+        "*.yml": "ansible",
+        "compose.yml": "dockercompose",
+        "docker-compose.yml": "dockercompose"
+    },
+    "ansible.python.interpreterPath": "/usr/bin/python"
+}

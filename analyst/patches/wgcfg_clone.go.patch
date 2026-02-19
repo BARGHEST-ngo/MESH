@@ -1,0 +1,20 @@
+diff --git a/wgengine/wgcfg/wgcfg_clone.go b/wgengine/wgcfg/wgcfg_clone.go
+index 9f3cabde1..aa32067c8 100644
+--- a/wgengine/wgcfg/wgcfg_clone.go
++++ b/wgengine/wgcfg/wgcfg_clone.go
+@@ -39,6 +39,15 @@ func (src *Config) Clone() *Config {
+ 	MTU            uint16
+ 	DNS            []netip.Addr
+ 	Peers          []Peer
++	Jc             uint8
++	Jmin           uint16
++	Jmax           uint16
++	S1             uint16
++	S2             uint16
++	H1             uint32
++	H2             uint32
++	H3             uint32
++	H4             uint32
+ 	NetworkLogging struct {
+ 		NodeID             logid.PrivateID
+ 		DomainID           logid.PrivateID

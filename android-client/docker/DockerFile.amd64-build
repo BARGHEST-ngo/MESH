@@ -1,5 +1,5 @@
 # This is a Dockerfile for creating a build environment for
-# tailscale-android.
+# mesh-android.
 
 FROM --platform=linux/amd64 eclipse-temurin:21
 
@@ -12,7 +12,7 @@ RUN mkdir -p \
     ${HOME} \
     /android-sdk \
     ${ANDROID_HOME} \
-    $HOME/tailscale-android
+    $HOME/mesh-android
 
 # To enable running android tools such as aapt
 COPY scripts/docker-build-apt-get.sh /tmp
@@ -20,15 +20,12 @@ RUN chmod 755 /tmp/docker-build-apt-get.sh && \
     /tmp/docker-build-apt-get.sh && \
     rm -f /tmp/docker-build-apt-get.sh
 
-# We need some version of Go new enough to support the "embed" package
-# to run "go run tailscale.com/cmd/printdep" to figure out which Tailscale Go
-# version we need later, but otherwise this toolchain isn't used:
 RUN \
-    curl -L https://go.dev/dl/go1.24.1.linux-amd64.tar.gz | tar -C /usr/local -zxv && \
+    curl -L https://go.dev/dl/go1.26.0.linux-amd64.tar.gz | tar -C /usr/local -zxv && \
     ln -s /usr/local/go/bin/go /usr/bin
 
-RUN git config --global --add safe.directory $HOME/tailscale-android
-WORKDIR $HOME/tailscale-android
+RUN git config --global --add safe.directory $HOME/mesh-android
+WORKDIR $HOME/mesh-android
 
 COPY Makefile Makefile
 

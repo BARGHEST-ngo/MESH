@@ -8,7 +8,7 @@ on:
     tags:
       - 'v*'
     paths:
-      - 'mesh-linux-macos-analyst/**'
+      - 'analyst/**'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
@@ -27,10 +27,10 @@ jobs:
           git config user.name "MESH Mirror Bot"
           git config user.email "bot@barghest.ngo"
       
-      - name: Split mesh-linux-macos-analyst subdirectory
+      - name: Split analyst subdirectory
         run: |
-          # Create a branch with only mesh-linux-macos-analyst content
-          git subtree split --prefix=mesh-linux-macos-analyst -b analyst-client-mirror
+          # Create a branch with only analyst content
+          git subtree split --prefix=analyst -b analyst-client-mirror
       
       - name: Push to mesh-analyst-client repo
         env:

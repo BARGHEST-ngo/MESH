@@ -1,0 +1,14 @@
+diff --git a/go.mod b/go.mod
+index a8ec79e6e..b10ce44ed 100644
+--- a/go.mod
++++ b/go.mod
+@@ -481,3 +481,9 @@ require (
+ )
+ 
+ tool github.com/stacklok/frizbee
++
++replace (
++	github.com/mvt-project/androidqf_ward => github.com/BARGHEST-ngo/androidqf_mesh v0.1.0
++	github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da => github.com/dismantl/amnezia-wireguard-go v0.1.4
++	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
++)

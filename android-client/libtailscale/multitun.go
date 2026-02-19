@@ -8,7 +8,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/amnezia-vpn/amneziawg-go/tun"
+	"github.com/tailscale/wireguard-go/tun"
 )
 
 // multiTUN implements a tun.Device that supports multiple

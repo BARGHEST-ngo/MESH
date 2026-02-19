@@ -1,0 +1,13 @@
+diff --git a/wgengine/netstack/gro/gro.go b/wgengine/netstack/gro/gro.go
+index c8e5e56e1..452d63cf1 100644
+--- a/wgengine/netstack/gro/gro.go
++++ b/wgengine/netstack/gro/gro.go
+@@ -87,7 +87,7 @@ func RXChecksumOffload(p *packet.Parsed) *stack.PacketBuffer {
+ 			p.Src.Addr().AsSlice(),
+ 			p.Dst.Addr().AsSlice(),
+ 			uint16(lenForPseudo))
+-		csum = tun.Checksum(buf[csumStart:], csum)
++		csum = tun.Checksum(buf[csumStart:], uint64(csum))
+ 		if ^csum != 0 {
+ 			return nil
+ 		}

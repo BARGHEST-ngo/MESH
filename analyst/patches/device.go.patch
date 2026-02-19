@@ -1,0 +1,14 @@
+diff --git a/wgengine/wgcfg/device.go b/wgengine/wgcfg/device.go
+index ee7eb91c9..9b83c85cc 100644
+--- a/wgengine/wgcfg/device.go
++++ b/wgengine/wgcfg/device.go
+@@ -17,6 +17,9 @@
+ // NewDevice returns a wireguard-go Device configured for Tailscale use.
+ func NewDevice(tunDev tun.Device, bind conn.Bind, logger *device.Logger) *device.Device {
+ 	ret := device.NewDevice(tunDev, bind, logger)
++	if ret == nil {
++		return nil
++	}
+ 	ret.DisableSomeRoamingForBrokenMobileSemantics()
+ 	return ret
+ }

@@ -1,0 +1,27 @@
+{
+  "name": "Ansible",
+  "image": "ghcr.io/ansible/community-ansible-dev-tools:latest",
+  "containerUser": "root",
+  "runArgs": [
+    "--security-opt",
+    "seccomp=unconfined",
+    "--security-opt",
+    "label=disable",
+    "--cap-add=SYS_ADMIN",
+    "--cap-add=SYS_RESOURCE",
+    "--device",
+    "/dev/fuse",
+    "--security-opt",
+    "apparmor=unconfined",
+    "--hostname=ansible-dev-container"
+  ],
+  "updateRemoteUserUID": true,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.ansible",
+        "charliermarsh.ruff"
+      ]
+    }
+  }
+}

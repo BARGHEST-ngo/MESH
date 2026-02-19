@@ -1,0 +1,44 @@
+diff --git a/cmd/tailscale/cli/cli.go b/cmd/tailscale/cli/cli.go
+index 5ebc23a5b..93eb2faf3 100644
+--- a/cmd/tailscale/cli/cli.go
++++ b/cmd/tailscale/cli/cli.go
+@@ -20,6 +20,7 @@
+ 	"text/tabwriter"
+ 	"time"
+ 
++	"github.com/i582/cfmt/cmd/cfmt"
+ 	"github.com/mattn/go-colorable"
+ 	"github.com/mattn/go-isatty"
+ 	"github.com/peterbourgon/ff/v3/ffcli"
+@@ -120,6 +121,12 @@ func Run(args []string) (err error) {
+ 		})
+ 	})
+ 
++	cfmt.Print(`
++	{{[ 𝗠𝗘𝗦𝗛 ]}}::blue
++	{{[ 𝐀𝐍𝐀𝐋𝐘𝐒𝐓 𝐂𝐋𝐈𝐄𝐍𝐓 ]}}::blue
++	{{by Barghest.asia. No rights reserved.}}::blue
++	`)
++
+ 	rootCmd := newRootCmd()
+ 	if err := rootCmd.Parse(args); err != nil {
+ 		if errors.Is(err, flag.ErrHelp) {
+@@ -243,6 +250,9 @@ func newRootCmd() *ffcli.Command {
+ change in the future.
+ `),
+ 		Subcommands: nonNilCmds(
++			adbpairCmd,
++			adbcollectCmd,
++			adbdisableCmd,
+ 			upCmd,
+ 			downCmd,
+ 			setCmd,
+@@ -254,7 +264,7 @@ func newRootCmd() *ffcli.Command {
+ 			netcheckCmd,
+ 			ipCmd,
+ 			dnsCmd,
+-			statusCmd,
++			meshStatusCmd(),
+ 			metricsCmd,
+ 			pingCmd,
+ 			ncCmd,

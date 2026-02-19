@@ -1,0 +1,15 @@
+diff --git a/cmd/tailscaled/tailscaled.go b/cmd/tailscaled/tailscaled.go
+index 410ae00bc..5ff258e54 100644
+--- a/cmd/tailscaled/tailscaled.go
++++ b/cmd/tailscaled/tailscaled.go
+@@ -156,8 +156,8 @@ func shouldRunCLI() bool {
+ 		// Not linked in with the "ts_include_cli" build tag.
+ 		return false
+ 	}
+-	if len(os.Args) > 0 && filepath.Base(os.Args[0]) == "tailscale" {
+-		// The binary was named (or hardlinked) as "tailscale".
++	if len(os.Args) > 0 && filepath.Base(os.Args[0]) == "mesh" {
++		// The binary was named (or hardlinked) as "mesh".
+ 		return true
+ 	}
+ 	if envknob.Bool("TS_BE_CLI") {

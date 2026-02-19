@@ -15,7 +15,7 @@ MESH UI wraps the Headscale API with a workflow designed for field deployments:
 
 ## Start with Docker compose
 
-From the `mesh-control-plane/` directory:
+From the `control-plane/` directory:
 
 ```bash
 docker compose up -d

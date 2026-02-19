@@ -12,7 +12,6 @@
 #
 # The convention here is mesh-android-build-amd64-<date>
 DOCKER_IMAGE := mesh-android-build-amd64-012326-1
-export TS_USE_TOOLCHAIN=1
 
 DEBUG_APK := mesh-debug.apk
 RELEASE_AAB := mesh-release.aab
@@ -101,7 +100,7 @@ export TOOLCHAINDIR
 GOBIN := $(PWD)/android/build/go/bin
 export GOBIN
 
-export PATH := $(PWD)/tool:$(GOBIN):$(ANDROID_HOME)/cmdline-tools/latest/bin:$(ANDROID_HOME)/platform-tools:$(PATH)
+export PATH := $(GOBIN):$(ANDROID_HOME)/cmdline-tools/latest/bin:$(ANDROID_HOME)/platform-tools:$(PATH)
 export GOROOT := # Unset
 
 # ------------------------------------------------------------------------------
@@ -171,6 +170,9 @@ mesh-test.apk: version gradle-dependencies
 	(cd android && ./gradlew assembleApplicationTestAndroidTest)
 	install -C ./android/build/outputs/apk/androidTest/applicationTest/android-applicationTest-androidTest.apk $@
 
+barghest.version: ../go.mod ../go.sum $(wildcard .git/HEAD)
+	@bash -c "go run tailscale.com/cmd/mkversion > barghest.version"
+
 .PHONY: version
 version:
 	@cat barghest.version
@@ -185,14 +187,14 @@ android/libs:
 $(GOBIN):
 	mkdir -p $(GOBIN)
 
-$(GOBIN)/gomobile: $(GOBIN)/gobind go.mod go.sum | $(GOBIN)
-	./tool/go install golang.org/x/mobile/cmd/gomobile
+$(GOBIN)/gomobile: $(GOBIN)/gobind ../go.mod ../go.sum | $(GOBIN)
+	go install golang.org/x/mobile/cmd/gomobile
 
-$(GOBIN)/gobind: go.mod go.sum
-	./tool/go install golang.org/x/mobile/cmd/gobind
+$(GOBIN)/gobind: ../go.mod ../go.sum
+	go install golang.org/x/mobile/cmd/gobind
 
 .PHONY: build-unstripped-aar
-build-unstripped-aar: $(GOBIN)/gomobile check-go-patch
+build-unstripped-aar: $(GOBIN)/gomobile
 	@echo "Running gomobile bind to generate unstripped AAR..."
 	@echo "Output file: $(ABS_UNSTRIPPED_AAR)"
 	mkdir -p $(dir $(ABS_UNSTRIPPED_AAR))
@@ -200,7 +202,6 @@ build-unstripped-aar: $(GOBIN)/gomobile check-go-patch
 	# The -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 is specific to NDK 23
 	# to support 16kb page sizes.  Your mileage may vary with other NDK versions.
 	$(GOBIN)/gomobile bind -target android -androidapi 26 \
-		-tags "$$(./build-tags.sh)" \
 		-ldflags "-linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
 		-o $(ABS_UNSTRIPPED_AAR) ./libtailscale || { echo "gomobile bind failed"; exit 1; }
 	@if [ ! -f $(ABS_UNSTRIPPED_AAR) ]; then \
@@ -289,7 +290,7 @@ tag_release: debug-symbols ## Tag the current commit with the current version
 
 .PHONY: bumposs ## Bump to the latest oss and update the versions.
 bumposs: update-oss
-	source barghest.version && git commit -sm "android: bump OSS" -m "OSS and Version updated to $${VERSION_LONG}" go.toolchain.rev android/build.gradle go.mod go.sum
+	source barghest.version && git commit -sm "android: bump OSS" -m "OSS and Version updated to $${VERSION_LONG}" go.toolchain.rev android/build.gradle ../go.mod ../go.sum
 	source barghest.version && git tag -a "$${VERSION_LONG}" -m "OSS and Version updated to $${VERSION_LONG}"
 
 .PHONY: bump_version_code ## Bump the version code in build.gradle
@@ -300,8 +301,8 @@ bump_version_code:
 update-oss:
 	curl -f https://raw.githubusercontent.com/tailscale/tailscale/refs/heads/main/go.toolchain.rev > go.toolchain.rev.new
 	mv go.toolchain.rev.new go.toolchain.rev
-	GOPROXY=direct ./tool/go get tailscale.com@main
-	./tool/go mod tidy -compat=1.24
+	GOPROXY=direct go get tailscale.com@main
+	go mod tidy -compat=1.24
 
 # Get the commandline tools package, this provides (among other things) the sdkmanager binary.
 $(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager:
@@ -342,41 +343,6 @@ fmt: gradle-dependencies ## Format the Android code
 .PHONY: fmt-check
 fmt-check: gradle-dependencies ## Check the Android code is formatted
 	(cd android && ./gradlew ktfmtCheck)
-
-.PHONY: check-go-patch
-check-go-patch: $(GOBIN)/gomobile
-	@echo "**!! Checking for CGO alignment patch... !!**"
-	@if [ -f ~/.cache/tailscale-go/src/cmd/cgo/out.go ]; then \
-		if grep -q '__attribute__((aligned(8)))' ~/.cache/tailscale-go/src/cmd/cgo/out.go; then \
-			echo "Go CGO alignment patch is applied"; \
-		else \
-			echo "ERROR: Go CGO alignment patch is NOT applied!"; \
-			echo "Attempting to patch "; \
-			$(MAKE) apply-patch; \
-		fi; \
-	else \
-		echo "ERROR: Go toolchain not found at ~/.cache/tailscale-go"; \
-		exit 1; \
-	fi
-
-.PHONY: apply-patch
-apply-patch: $(GOBIN)/gomobile
-	@echo "Applying CGO alignment patch to fix out.go"
-	@if [ -f ~/.cache/tailscale-go/src/cmd/cgo/out.go ]; then \
-		echo "Attempting to apply patch..."; \
-		sed -i.bak 's|fmt\.Fprintf(fgcc, "\\ttypedef %s %v _cgo_argtype;\\n", ctype\.String(), p\.packedAttribute())|fmt.Fprintf(fgcc, "\\ttypedef %s %v __attribute__((aligned(8))) _cgo_argtype;\\n", ctype.String(), p.packedAttribute())|' ~/.cache/tailscale-go/src/cmd/cgo/out.go; \
-		if grep -q '__attribute__((aligned(8)))' ~/.cache/tailscale-go/src/cmd/cgo/out.go; then \
-			echo "Patch applied successfully"; \
-			cd ~/.cache/tailscale-go/src && ./make.bash; \
-			echo "Go toolchain rebuilt"; \
-		else \
-			echo "Failed to apply patch"; \
-			exit 1; \
-		fi; \
-	else \
-		echo "ERROR: Go toolchain not found at ~/.cache/tailscale-go"; \
-		exit 1; \
-	fi
 
 .PHONY: emulator
 emulator: ## Start an android emulator instance

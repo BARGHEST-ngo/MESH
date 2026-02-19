@@ -1,0 +1,37 @@
+diff --git a/wgengine/wgcfg/config.go b/wgengine/wgcfg/config.go
+index 2734f6c6e..69d0dbfb3 100644
+--- a/wgengine/wgcfg/config.go
++++ b/wgengine/wgcfg/config.go
+@@ -23,6 +23,16 @@ type Config struct {
+ 	DNS        []netip.Addr
+ 	Peers      []Peer
+ 
++	Jc   uint8
++	Jmin uint16
++	Jmax uint16
++	S1   uint16
++	S2   uint16
++	H1   uint32
++	H2   uint32
++	H3   uint32
++	H4   uint32
++
+ 	// NetworkLogging enables network logging.
+ 	// It is disabled if either ID is the zero value.
+ 	// LogExitFlowEnabled indicates whether or not exit flows should be logged.
+@@ -39,6 +49,15 @@ func (c *Config) Equal(o *Config) bool {
+ 	}
+ 	return c.PrivateKey.Equal(o.PrivateKey) &&
+ 		c.MTU == o.MTU &&
++		c.Jc == o.Jc &&
++		c.Jmin == o.Jmin &&
++		c.Jmax == o.Jmax &&
++		c.S1 == o.S1 &&
++		c.S2 == o.S2 &&
++		c.H1 == o.H1 &&
++		c.H2 == o.H2 &&
++		c.H3 == o.H3 &&
++		c.H4 == o.H4 &&
+ 		c.NetworkLogging == o.NetworkLogging &&
+ 		slices.Equal(c.Addresses, o.Addresses) &&
+ 		slices.Equal(c.DNS, o.DNS) &&

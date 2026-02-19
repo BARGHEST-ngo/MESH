@@ -21,12 +21,12 @@ make $(make print-LIBTAILSCALE_AAR)
 
 echo ""
 echo "[4/4] Building debug APK..."
-make tailscale-debug.apk
+make mesh-debug.apk
 
 echo ""
 echo "========================================="
 echo "✅ Build complete!"
 echo "========================================="
-echo "APK location: tailscale-debug.apk"
-ls -lh tailscale-debug.apk
+echo "APK location: mesh-debug.apk"
+ls -lh mesh-debug.apk
 

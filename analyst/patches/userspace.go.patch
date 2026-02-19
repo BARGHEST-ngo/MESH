@@ -1,0 +1,14 @@
+diff --git a/wgengine/userspace.go b/wgengine/userspace.go
+index 875011a9c..cee1f0469 100644
+--- a/wgengine/userspace.go
++++ b/wgengine/userspace.go
+@@ -474,6 +474,9 @@ func NewUserspaceEngine(logf logger.Logf, conf Config) (_ Engine, reterr error)
+ 	// wgdev takes ownership of tundev, will close it when closed.
+ 	e.logf("Creating WireGuard device...")
+ 	e.wgdev = wgcfg.NewDevice(e.tundev, e.magicConn.Bind(), e.wgLogger.DeviceLogger)
++	if e.wgdev == nil {
++		return nil, fmt.Errorf("wgengine: failed to create WireGuard device")
++	}
+ 	closePool.addFunc(e.wgdev.Close)
+ 	closePool.addFunc(func() {
+ 		if err := e.magicConn.Close(); err != nil {
