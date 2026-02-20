@@ -1,0 +1,45 @@
+{
+	"name": "MESH Development",
+	"image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
+	"features": {
+		"ghcr.io/devcontainers/features/java:1": {
+			"version": "17",
+			"installMaven": "false",
+			"installGradle": "true"
+		}
+	},
+	"containerEnv": {
+		"ANDROID_SDK_ROOT": "/usr/local/android-sdk",
+		"ANDROID_HOME": "/usr/local/android-sdk"
+	},
+	"remoteEnv": {
+		"PATH": "/usr/local/go/bin:${containerEnv:ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${containerEnv:ANDROID_SDK_ROOT}/platform-tools:${containerEnv:ANDROID_SDK_ROOT}/build-tools/34.0.0:${containerEnv:PATH}"
+	},
+	"postCreateCommand": {
+		"android": "bash .devcontainer/dev/install-android-sdk.sh",
+		"go": "bash .devcontainer/dev/install-go.sh"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"fwcd.kotlin",
+				"mathiasfrohlich.Kotlin",
+				"vscjava.vscode-java-pack",
+				"vscjava.vscode-gradle",
+				"golang.go"
+			],
+			"settings": {
+				"java.configuration.runtimes": [
+					{
+						"name": "JavaSE-17",
+						"path": "/usr/local/sdkman/candidates/java/current",
+						"default": true
+					}
+				]
+			}
+		}
+	},
+	"mounts": [
+		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/root/.android,type=bind,consistency=cached"
+	]
+}
