@@ -145,28 +145,40 @@ var subCommands = map[string]*func([]string) error{
 	"be-child":                &beChildFunc,
 }
 
-var beCLI func() // non-nil if CLI is linked in with the "ts_include_cli" build tag
+var beCLI func()
 
-// shouldRunCLI reports whether we should run the Tailscale CLI (cmd/tailscale)
-// instead of the daemon (cmd/tailscaled) in the case when the two are linked
-// together into one binary for space savings reasons.
-func shouldRunCLI() bool {
-	if beCLI == nil {
-		// Not linked in with the "ts_include_cli" build tag.
+func isMeshBinary() bool {
+	if len(os.Args) == 0 {
 		return false
 	}
-	if len(os.Args) > 0 && filepath.Base(os.Args[0]) == "tailscale" {
-		// The binary was named (or hardlinked) as "tailscale".
-		return true
+	base := filepath.Base(os.Args[0])
+	return base == "mesh"
+}
+
+func shouldRunDaemonSubcommand() bool {
+	if !isMeshBinary() {
+		return false
 	}
-	if envknob.Bool("TS_BE_CLI") {
-		// The environment variable was set to force it.
+	if len(os.Args) > 1 && os.Args[1] == "daemon" {
+		// Rewrite args: "mesh daemon --socket=... --state=..." → "mesh --socket=... --state=..."
+		os.Args = append(os.Args[:1], os.Args[2:]...)
 		return true
 	}
 	return false
 }
 
-// Outbound Proxy hooks
+func shouldRunCLI() bool {
+	if beCLI == nil {
+		return false
+	}
+	if isMeshBinary() {
+		// "mesh" defaults to CLI mode, unless "mesh daemon" was used.
+		// shouldRunDaemonSubcommand() is checked first in main().
+		return true
+	}
+	return false
+}
+
 var (
 	hookRegisterOutboundProxyFlags feature.Hook[func()]
 	hookOutboundProxyListen        feature.Hook[func() proxyStartFunc]
@@ -179,7 +191,13 @@ type proxyStartFunc = func(logf logger.Logf, dialer *tsdial.Dialer)
 
 func main() {
 	envknob.PanicIfAnyEnvCheckedInInit()
-	if shouldRunCLI() {
+
+	// For the single "mesh" binary: "mesh daemon [flags]" starts the daemon.
+	// Check this BEFORE shouldRunCLI(), which would otherwise route "mesh"
+	// to CLI mode by default.
+	if shouldRunDaemonSubcommand() {
+		// Fall through to daemon startup below.
+	} else if shouldRunCLI() {
 		beCLI()
 		return
 	}
