@@ -1,6 +1,12 @@
-// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
+// Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
-// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
+//
+// Portions Copyright (c) BARGHEST
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// This file contains code originally from Tailscale (BSD-3-Clause)
+// with modifications by BARGHEST. The modified version is licensed
+// under AGPL-3.0-or-later. See LICENSE for details.
 
 // Package captivedetection provides a way to detect if the system is connected to a network that has
 // a captive portal. It does this by making HTTP requests to known captive portal detection endpoints

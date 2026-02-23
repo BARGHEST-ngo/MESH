@@ -73,7 +73,7 @@
     <string name="acknowledgements">Acknowledgements</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="terms_of_service">Terms of Service</string>
-    <string name="about_view_footnotes">WireGuard is a registered trademark of Jason A. Donenfeld.\nCC0: This work has been marked as dedicated to the public domain.\n\nBarghest Research Group</string>
+    <string name="about_view_footnotes">WireGuard is a registered trademark of Jason A. Donenfeld.\nPortions Copyright (c) BARGHEST and licensed under AGPL-3.0-or-later.</string>
     <string name="managed_by">Managed by</string>
 
     <!-- Strings for the bug reporting screen -->
