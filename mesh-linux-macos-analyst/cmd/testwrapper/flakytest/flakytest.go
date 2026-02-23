@@ -1,6 +1,12 @@
-// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
+// Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
-// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
+//
+// Portions Copyright (c) BARGHEST
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// This file contains code originally from Tailscale (BSD-3-Clause)
+// with modifications by BARGHEST. The modified version is licensed
+// under AGPL-3.0-or-later. See LICENSE for details.
 
 // Package flakytest contains test helpers for marking a test as flaky. For
 // tests run using cmd/testwrapper, a failed flaky test will cause tests to be

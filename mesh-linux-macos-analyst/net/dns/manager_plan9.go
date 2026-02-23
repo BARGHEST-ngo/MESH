@@ -1,6 +1,12 @@
-// Copyright (c) 2020- 2025 Tailscale Inc & AUTHORS
+// Copyright (c) Tailscale Inc & contributors
 // SPDX-License-Identifier: BSD-3-Clause
-// Additional contributions by BARGHEST are dedicated to the public domain under CC0 1.0.
+//
+// Portions Copyright (c) BARGHEST
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// This file contains code originally from Tailscale (BSD-3-Clause)
+// with modifications by BARGHEST. The modified version is licensed
+// under AGPL-3.0-or-later. See LICENSE for details.
 
 // TODO: man 6 ndb | grep -e 'suffix.*same line'
 // to detect Russ's https://9fans.topicbox.com/groups/9fans/T9c9d81b5801a0820/ndb-suffix-specific-dns-changes

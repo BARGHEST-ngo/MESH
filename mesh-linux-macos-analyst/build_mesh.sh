@@ -1,6 +1,6 @@
 #!/bin/bash
-# SPDX-License-Identifier: CC0-1.0
-# Authored by BARGHEST. Dedicated to the public domain under CC0 1.0.
+# Copyright (c) BARGHEST
+# SPDX-License-Identifier: AGPL-3.0-or-later
 #
 # MESH Build Script
 # Builds tailscaled-amnezia daemon and meshcli CLI tool
