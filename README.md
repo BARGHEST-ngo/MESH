@@ -159,11 +159,13 @@ See the documentation for node enrollment and forensic workflows.
 - GitHub Actions mirrors tagged releases to `mesh-analyst-client`.
 - External Go projects should depend on explicit version tags, not `main`.
 
-### License
+## License
 
-Forked components from Tailscale are licensed under BSD-3-Clause.  
-Additional code is licensed under CC0.  
-See `LICENSE` and `.licenses/` for details.
+MESH is licensed under the [GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)](LICENSE).
+
+Portions of this software are a derivative work of [Tailscale](https://github.com/tailscale/tailscale), which is licensed under the BSD 3-Clause License. The original Tailscale copyright and license are preserved in accordance with the BSD-3-Clause requirements. AmneziaWG/Wireguard code is licensed under MIT license. See `.licenses/` for details.
+
+All modifications and additions by BARGHEST are Copyright (c) BARGHEST and licensed under AGPL-3.0-or-later.
 
 ### Legal
 

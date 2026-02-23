@@ -1,3 +1,6 @@
+// Copyright (c) BARGHEST
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
 // Portions of this code are derived from androidqf (Android Quick Forensics)
 // Copyright (c) 2021–2022 Claudio Guarnieri.
 // Use of this software is governed by the MVT License 1.1, available at:

@@ -1,7 +1,12 @@
-# Copyright (c) 2020 Tailscale Inc & AUTHORS All rights reserved.
-# Copyright (c) 2024-2025 BARGHEST. Additional contributions dedicated to public domain under CC0 1.0.
-# Use of this source code is governed by a BSD-style
-# license that can be found in the LICENSE file.
+# Copyright (c) Tailscale Inc & contributors
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Portions Copyright (c) BARGHEST
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# This file contains code originally from Tailscale (BSD-3-Clause)
+# with modifications by BARGHEST. The modified version is licensed
+# under AGPL-3.0-or-later. See LICENSE for details.
 
 ## For signed release build JKS_PASSWORD must be set to the password for the jks keystore
 ## and JKS_PATH must be set to the path to the jks keystore.

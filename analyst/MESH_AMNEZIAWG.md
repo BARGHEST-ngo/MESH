@@ -251,7 +251,8 @@ When all obfuscation parameters are set to default values (Jc=0, S1=0, S2=0, H1=
 
 ## License
 
-MESH code is dedicated to the public domain under CC0 1.0
+MESH is licensed under the [GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)](LICENSE).
 
-Original Tailscale code remains under BSD-3-Clause license.
-AmneziaWG code is under MIT license.
+Portions of this software are a derivative work of [Tailscale](https://github.com/tailscale/tailscale), which is licensed under the BSD 3-Clause License. The original Tailscale copyright and license are preserved in accordance with the BSD-3-Clause requirements. AmneziaWG/Wireguard code is licensed under MIT license. See `.licenses/` for details.
+
+All modifications and additions by BARGHEST are Copyright (c) BARGHEST and licensed under AGPL-3.0-or-later.
