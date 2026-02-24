@@ -30,5 +30,11 @@
 	},
 	"mounts": [
 		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/root/.android,type=bind,consistency=cached"
-	]
+	],
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {
+			"autoPull": true,
+			"version": "latest"
+		}
+	}
 }
