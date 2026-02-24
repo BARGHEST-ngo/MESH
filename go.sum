@@ -86,8 +86,8 @@ github.com/digitalocean/go-smbios v0.0.0-20180907143718-390a4f403a8e h1:vUmf0yez
 github.com/digitalocean/go-smbios v0.0.0-20180907143718-390a4f403a8e/go.mod h1:YTIHhz/QFSYnu/EhlF2SpU2Uk+32abacUYA5ZPljz1A=
 github.com/dismantl/amnezia-wireguard-go v0.1.4 h1:khzrJjTDqoqp3zHyOciOJ0CK6dkyF5BdTYc/HEOAm0c=
 github.com/dismantl/amnezia-wireguard-go v0.1.4/go.mod h1:Zls3lR6b2x7Dktrhlrq5SJm9ChkJsy53pn95oiRGAKc=
-github.com/dismantl/mesh-tailscale v0.0.0-20260224190133-5e7d805c4a65 h1:1EyDVVFz9hDW6NIKGtQMMIiyWkgqipOBQ4C1UZmGUmw=
-github.com/dismantl/mesh-tailscale v0.0.0-20260224190133-5e7d805c4a65/go.mod h1:ehlmbd/iwkVzN5+vbq0dxbR0GcliPfev/1lhHfAgVwQ=
+github.com/dismantl/mesh-tailscale v0.0.0-20260224195419-9d01fb56bba5 h1:kkJNT0fYI6V3/wCv/jg5vdHXwZ4bAdFw1SBULq787/w=
+github.com/dismantl/mesh-tailscale v0.0.0-20260224195419-9d01fb56bba5/go.mod h1:ehlmbd/iwkVzN5+vbq0dxbR0GcliPfev/1lhHfAgVwQ=
 github.com/djherbis/times v1.6.0 h1:w2ctJ92J8fBvWPxugmXIv7Nz7Q3iDMKNx9v5ocVH20c=
 github.com/djherbis/times v1.6.0/go.mod h1:gOHeRAz2h+VJNZ5Gmc/o7iD9k4wW7NMVqieYCY99oc0=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=

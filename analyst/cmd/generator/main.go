@@ -178,7 +178,7 @@ func main() {
 		log.Printf("Restored .git directory\n")
 	}
 
-	// Reset file permissions
+	// Reset file permissions (https://stackoverflow.com/a/4408378)
 	cmd = exec.Command(
 		"/bin/sh", "-c",
 		"git diff -p -R --no-ext-diff --no-color --diff-filter=M | grep -E \"^(diff|(old|new) mode)\" --color=never | git apply",
