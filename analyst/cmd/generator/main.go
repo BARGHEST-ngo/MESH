@@ -1,14 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/mod/modfile"
 )
 
 func main() {
+	// go mod verify should already have been run by go:generate
+	// so we can be sure that the module files we're about to copy
+	// haven't been tampered with.
+	// TODO: have the pentesters verify this. Do GONOSUMDB or GOSUMDB
+	// env vars affect this?
+
 	// Get absolute path to current module's go.mod file
 	output, err := exec.Command("go", "env", "GOMOD").Output()
 	if err != nil {
@@ -18,11 +27,72 @@ func main() {
 	rootModPath := filepath.Dir(goModPath)
 	analystDir := filepath.Join(rootModPath, "analyst")
 	patchesDir := filepath.Join(analystDir, "patches")
-	buildDir := filepath.Join(rootModPath, "tailscale")
+	tailscaleDir := filepath.Join(rootModPath, "tailscale")
+
+	// If tailscale dir already exists, copy out .git directory and remove it
+	var gitDir string
+	if _, err := os.Stat(tailscaleDir); err == nil {
+		gitDir = filepath.Join(tailscaleDir, ".git")
+		if err := os.Rename(gitDir, filepath.Join(analystDir, "tailscale.git")); err != nil {
+			log.Fatalf("failed to move .git directory: %v", err)
+		}
+		if err := os.RemoveAll(tailscaleDir); err != nil {
+			log.Fatalf("failed to remove tailscale directory: %v", err)
+		}
+	}
+
+	// Parse go.mod to get tailscale.com version
+	modContents, err := os.ReadFile(goModPath)
+	if err != nil {
+		log.Fatalf("failed to read go.mod: %v", err)
+	}
+	modFile, err := modfile.Parse("go.mod", modContents, nil)
+	if err != nil {
+		log.Fatalf("failed to parse go.mod: %v", err)
+	}
+	var tailscaleVersion string
+	for _, req := range modFile.Require {
+		if req.Mod.Path == "tailscale.com" {
+			tailscaleVersion = req.Mod.Version
+			break
+		}
+	}
+	if tailscaleVersion == "" {
+		log.Fatalf("tailscale.com not found in go.mod")
+	}
+	log.Printf("Found tailscale.com version %q in go.mod", tailscaleVersion)
+
+	if err := exec.Command("go", "mod", "download", "tailscale.com@"+tailscaleVersion).Run(); err != nil {
+		log.Fatalf("failed to download tailscale.com module: %v", err)
+	}
+
+	// Get Go module cache directory
+	output, err = exec.Command("go", "env", "GOMODCACHE").Output()
+	if err != nil {
+		log.Fatalf("failed to get GOMODCACHE: %v", err)
+	}
+	modCachePath := string(output[:len(output)-1]) // remove trailing newline
+	modPath := filepath.Join(modCachePath, "tailscale.com@"+tailscaleVersion)
+	fmt.Println("Located tailscale.com module:", modPath)
+
+	// Copy the tailscale.com module to build directory
+	cmd := exec.Command("cp", "-r", modPath, tailscaleDir)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		log.Fatalf("failed to copy tailscale.com module to build directory: %v\nOutput: %s", err, output)
+	}
+
+	// chmod -R u+w the copied directory to ensure we have read/write permissions
+	if err := os.Chmod(tailscaleDir, 0755); err != nil {
+		log.Fatalf("failed to set permissions on copied tailscale.com module: %v", err)
+	}
+	if err := exec.Command("chmod", "-R", "u+w", tailscaleDir).Run(); err != nil {
+		log.Fatalf("failed to set permissions on copied tailscale.com module: %v", err)
+	}
+	log.Printf("Copied tailscale.com module to %q\n", tailscaleDir)
 
 	// Add files from cli directory to the tailscale.com/cmd/tailscale/cli package in the build directory
 	analystCliDir := filepath.Join(rootModPath, "analyst", "cli")
-	tailscaleCliDir := filepath.Join(buildDir, "cmd", "tailscale", "cli")
+	tailscaleCliDir := filepath.Join(tailscaleDir, "cmd", "tailscale", "cli")
 	analystFiles, err := os.ReadDir(analystCliDir)
 	if err != nil {
 		log.Fatalf("failed to read analyst/cli directory: %v", err)
@@ -50,7 +120,7 @@ func main() {
 
 	// Add files from wgcfg directory to the tailscale.com/wgengine/wgcfg package in the build directory
 	analystWgcfgDir := filepath.Join(rootModPath, "analyst", "wgcfg")
-	tailscaleWgcfgDir := filepath.Join(buildDir, "wgengine", "wgcfg")
+	tailscaleWgcfgDir := filepath.Join(tailscaleDir, "wgengine", "wgcfg")
 	analystFiles, err = os.ReadDir(analystWgcfgDir)
 	if err != nil {
 		log.Fatalf("failed to read analyst/wgcfg directory: %v", err)
@@ -84,7 +154,7 @@ func main() {
 	}
 	for _, p := range patches {
 		patchPath := filepath.Join(patchesDir, p.Name())
-		cmd := exec.Command("patch", "-p1", "-i", patchPath, "-d", buildDir)
+		cmd := exec.Command("patch", "-p1", "-i", patchPath, "-d", tailscaleDir)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Fatalf("failed to apply patch %q: %v\nOutput: %s", patchPath, err, output)
@@ -94,10 +164,28 @@ func main() {
 
 	// Run go mod tidy in the build directory
 	log.Println("Running go mod tidy...")
-	cmd := exec.Command("go", "mod", "tidy")
-	cmd.Dir = buildDir
+	cmd = exec.Command("go", "mod", "tidy")
+	cmd.Dir = tailscaleDir
 	if output, err := cmd.CombinedOutput(); err != nil {
 		log.Fatalf("failed to run go mod tidy: %v\nOutput: %s", err, output)
+	}
+
+	// Replace .git directory if we moved it out earlier
+	if gitDir != "" {
+		if err := os.Rename(filepath.Join(analystDir, "tailscale.git"), gitDir); err != nil {
+			log.Fatalf("failed to move .git directory back: %v", err)
+		}
+		log.Printf("Restored .git directory\n")
+	}
+
+	// Reset file permissions
+	cmd = exec.Command(
+		"/bin/sh", "-c",
+		"git diff -p -R --no-ext-diff --no-color --diff-filter=M | grep -E \"^(diff|(old|new) mode)\" --color=never | git apply",
+	)
+	cmd.Dir = tailscaleDir
+	if output, err := cmd.CombinedOutput(); err != nil {
+		log.Fatalf("failed to reset permissions on copied tailscale.com module: %v\nOutput: %s", err, output)
 	}
 
 	log.Println("Done.")

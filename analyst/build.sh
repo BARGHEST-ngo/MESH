@@ -24,10 +24,6 @@ if [ -z "$GO_MOD_DIR" ] || [ ! -d "$GO_MOD_DIR" ]; then
 	echo -e "${RED}Error: Could not determine Go module directory${NC}" >&2
 	exit 1
 fi
-cd "$GO_MOD_DIR/analyst"
-
-echo -e "${GREEN}Running go generate...${NC}"
-go generate .
 
 eval `CGO_ENABLED=0 GOOS=$(go env GOHOSTOS) GOARCH=$(go env GOHOSTARCH) go run tailscale.com/cmd/mkversion`
 

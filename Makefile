@@ -2,6 +2,10 @@
 tidy: ## Run go mod tidy
 	go mod tidy
 
+.PHONY: generate
+generate: ## Generate code
+	go generate ./...
+
 .PHONY: analyst
 analyst: ## Build MESH analyst client
 	./analyst/build.sh

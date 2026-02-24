@@ -11,7 +11,6 @@ require (
 	github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da
 	github.com/toqueteos/webbrowser v1.2.1
 	golang.org/x/mobile v0.0.0-20260217195705-b56b3793a9c4
-	golang.org/x/tools v0.42.0
 	tailscale.com v1.94.1
 )
 
@@ -99,6 +98,7 @@ require (
 	golang.org/x/term v0.40.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
+	golang.org/x/tools v0.42.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	golang.zx2c4.com/wireguard/windows v0.5.3 // indirect
 	gvisor.dev/gvisor v0.0.0-20250606233247-e3c4c4cad86f // indirect
@@ -108,6 +108,7 @@ replace (
 	github.com/mvt-project/androidqf_ward => github.com/BARGHEST-ngo/androidqf_mesh v0.1.0
 	github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da => github.com/dismantl/amnezia-wireguard-go v0.1.4
 	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
+	tailscale.com v1.94.1 => github.com/dismantl/mesh-tailscale v0.0.0-20260224190133-5e7d805c4a65
 )
 
 tool (
