@@ -95,8 +95,7 @@ export function useExpirePreAuthKey() {
             }
 
             const request: V1ExpirePreAuthKeyRequest = {
-                user: user.id, // Use the user ID instead of name
-                key: data.key,
+                id: user.id, // Use the user ID instead of name
             }
             const response = await apiClient.post<V1ExpirePreAuthKeyResponse>('/preauthkey/expire', request)
             return response.data
