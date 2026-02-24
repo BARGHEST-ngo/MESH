@@ -35,7 +35,7 @@ ldflags="-X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/ver
 
 tags="${TAGS:+$TAGS,}ts_include_cli,ts_omit_aws,ts_omit_cloud,ts_omit_kube,ts_omit_synology,ts_omit_appconnectors,ts_omit_cli,ts_omit_completion,ts_omit_cliconndiag,ts_omit_clientupdate,ts_omit_c2n,ts_omit_oauthkey,ts_omit_outboundproxy,ts_omit_peerapiclient,ts_omit_peerapiserver,ts_omit_portlist,ts_omit_relayserver,ts_omit_wakeonlan,ts_omit_tap,ts_omit_bird,ts_omit_logtail"
 
-BUILD_DIR="$GO_MOD_DIR/analyst/build/tailscale.com"
+BUILD_DIR="$GO_MOD_DIR/tailscale"
 if [ ! -d "$BUILD_DIR" ]; then
 	echo -e "${RED}Error: Build directory does not exist: $BUILD_DIR${NC}" >&2
 	exit 1

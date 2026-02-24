@@ -27,11 +27,10 @@ func main() {
 	rootModPath := filepath.Dir(goModPath)
 	analystDir := filepath.Join(rootModPath, "analyst")
 	patchesDir := filepath.Join(analystDir, "patches")
-	buildDir := filepath.Join(analystDir, "build")
-	tailscaleDir := filepath.Join(buildDir, "tailscale.com")
+	buildDir := filepath.Join(rootModPath, "tailscale")
 
-	// Only proceed if tailscaleDir does not exist
-	if _, err := os.Stat(tailscaleDir); err == nil {
+	// Only proceed if buildDir does not exist
+	if _, err := os.Stat(buildDir); err == nil {
 		log.Printf("build directory already exists, skipping generation")
 		return
 	}
@@ -53,16 +52,13 @@ func main() {
 	fmt.Println("Located tailscale.com module:", modPath)
 
 	// Copy the tailscale.com module to build directory
-	if err := os.MkdirAll(buildDir, 0755); err != nil {
-		log.Fatalf("failed to create build directory: %v", err)
-	}
-	cmd := exec.Command("cp", "-r", modPath, tailscaleDir)
+	cmd := exec.Command("cp", "-r", modPath, buildDir)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		log.Fatalf("failed to copy tailscale.com module to build directory: %v\nOutput: %s", err, output)
 	}
 
 	// chmod -R 0755 the copied directory to ensure we have read/write permissions
-	if err := filepath.Walk(tailscaleDir, func(path string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(buildDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -70,11 +66,11 @@ func main() {
 	}); err != nil {
 		log.Fatalf("failed to set permissions on copied tailscale.com module: %v", err)
 	}
-	log.Printf("Copied tailscale.com module to %q\n", tailscaleDir)
+	log.Printf("Copied tailscale.com module to %q\n", buildDir)
 
 	// Add files from cli directory to the tailscale.com/cmd/tailscale/cli package in the build directory
 	analystCliDir := filepath.Join(rootModPath, "analyst", "cli")
-	tailscaleCliDir := filepath.Join(tailscaleDir, "cmd", "tailscale", "cli")
+	tailscaleCliDir := filepath.Join(buildDir, "cmd", "tailscale", "cli")
 	analystFiles, err := os.ReadDir(analystCliDir)
 	if err != nil {
 		log.Fatalf("failed to read analyst/cli directory: %v", err)
@@ -102,7 +98,7 @@ func main() {
 
 	// Add files from wgcfg directory to the tailscale.com/wgengine/wgcfg package in the build directory
 	analystWgcfgDir := filepath.Join(rootModPath, "analyst", "wgcfg")
-	tailscaleWgcfgDir := filepath.Join(tailscaleDir, "wgengine", "wgcfg")
+	tailscaleWgcfgDir := filepath.Join(buildDir, "wgengine", "wgcfg")
 	analystFiles, err = os.ReadDir(analystWgcfgDir)
 	if err != nil {
 		log.Fatalf("failed to read analyst/wgcfg directory: %v", err)
@@ -136,7 +132,7 @@ func main() {
 	}
 	for _, p := range patches {
 		patchPath := filepath.Join(patchesDir, p.Name())
-		cmd := exec.Command("patch", "-p1", "-i", patchPath, "-d", tailscaleDir)
+		cmd := exec.Command("patch", "-p1", "-i", patchPath, "-d", buildDir)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Fatalf("failed to apply patch %q: %v\nOutput: %s", patchPath, err, output)
@@ -147,7 +143,7 @@ func main() {
 	// Run go mod tidy in the build directory
 	log.Println("Running go mod tidy...")
 	cmd = exec.Command("go", "mod", "tidy")
-	cmd.Dir = tailscaleDir
+	cmd.Dir = buildDir
 	if output, err := cmd.CombinedOutput(); err != nil {
 		log.Fatalf("failed to run go mod tidy: %v\nOutput: %s", err, output)
 	}
