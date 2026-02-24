@@ -8,7 +8,6 @@ analyst: ## Build MESH analyst client
 
 .PHONY: clean
 clean: ## Clean up build artifacts
-	rm -rf tailscale
 	rm -f analyst/mesh
 
 .PHONY: help

@@ -1,23 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"golang.org/x/tools/go/packages"
 )
 
 func main() {
-	// go mod verify should already have been run by go:generate
-	// so we can be sure that the module files we're about to copy
-	// haven't been tampered with.
-	// TODO: have the pentesters verify this. Do GONOSUMDB or GOSUMDB
-	// env vars affect this?
-
 	// Get absolute path to current module's go.mod file
 	output, err := exec.Command("go", "env", "GOMOD").Output()
 	if err != nil {
@@ -28,45 +19,6 @@ func main() {
 	analystDir := filepath.Join(rootModPath, "analyst")
 	patchesDir := filepath.Join(analystDir, "patches")
 	buildDir := filepath.Join(rootModPath, "tailscale")
-
-	// Only proceed if buildDir does not exist
-	if _, err := os.Stat(buildDir); err == nil {
-		log.Printf("build directory already exists, skipping generation")
-		return
-	}
-
-	// Load the tailscale.com package to find its module directory
-	pkgs, err := packages.Load(
-		&packages.Config{
-			Mode: packages.NeedName | packages.NeedFiles | packages.NeedModule,
-			Dir:  rootModPath,
-		},
-		"tailscale.com",
-	)
-	if err != nil {
-		log.Fatalf("failed to load package tailscale.com: %v", err)
-	} else if len(pkgs) != 1 {
-		log.Fatalf("expected 1 package, got %d", len(pkgs))
-	}
-	modPath := pkgs[0].Module.Dir
-	fmt.Println("Located tailscale.com module:", modPath)
-
-	// Copy the tailscale.com module to build directory
-	cmd := exec.Command("cp", "-r", modPath, buildDir)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		log.Fatalf("failed to copy tailscale.com module to build directory: %v\nOutput: %s", err, output)
-	}
-
-	// chmod -R 0755 the copied directory to ensure we have read/write permissions
-	if err := filepath.Walk(buildDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		return os.Chmod(path, 0755)
-	}); err != nil {
-		log.Fatalf("failed to set permissions on copied tailscale.com module: %v", err)
-	}
-	log.Printf("Copied tailscale.com module to %q\n", buildDir)
 
 	// Add files from cli directory to the tailscale.com/cmd/tailscale/cli package in the build directory
 	analystCliDir := filepath.Join(rootModPath, "analyst", "cli")
@@ -142,7 +94,7 @@ func main() {
 
 	// Run go mod tidy in the build directory
 	log.Println("Running go mod tidy...")
-	cmd = exec.Command("go", "mod", "tidy")
+	cmd := exec.Command("go", "mod", "tidy")
 	cmd.Dir = buildDir
 	if output, err := cmd.CombinedOutput(); err != nil {
 		log.Fatalf("failed to run go mod tidy: %v\nOutput: %s", err, output)
