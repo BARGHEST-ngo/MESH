@@ -52,3 +52,6 @@ client/web/build/assets
 
 /analyst/build
 /analyst/mesh
+
+# pnpm
+.pnpm-store

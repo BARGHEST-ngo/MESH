@@ -1,0 +1,25 @@
+services:
+  # Development container with all build tools and dependencies
+  dev:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: mesh-dev
+    volumes:
+      - .:/workspace:cached
+    working_dir: /workspace
+    command: sleep infinity
+    depends_on:
+      - headscale
+      - nginx
+    network_mode: service:nginx
+    environment:
+      - ANDROID_SDK_ROOT=/usr/local/android-sdk
+      - ANDROID_HOME=/usr/local/android-sdk
+    entrypoint: /bin/sh -c "cd control-plane/mesh-ui && pnpm run dev"
+
+  # Override nginx configuration for development
+  nginx:
+    environment:
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+      - NGINX_MODE=dev

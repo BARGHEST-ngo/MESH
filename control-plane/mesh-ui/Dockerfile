@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -10,7 +10,10 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-EXPOSE 3000
+RUN pnpm run build
 
-CMD ["pnpm", "run", "dev"]
+FROM nginx:alpine
 
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80

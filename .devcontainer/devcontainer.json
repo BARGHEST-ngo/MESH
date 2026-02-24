@@ -1,0 +1,34 @@
+{
+	"name": "MESH Development",
+	"dockerComposeFile": [
+		"../compose.yml",
+		"compose.dev.yml"
+	],
+	"service": "dev",
+	"workspaceFolder": "/workspace",
+	"shutdownAction": "stopCompose",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"fwcd.kotlin",
+				"mathiasfrohlich.Kotlin",
+				"vscjava.vscode-java-pack",
+				"vscjava.vscode-gradle",
+				"golang.go",
+				"ahmadalli.vscode-nginx-conf"
+			],
+			"settings": {
+				"java.configuration.runtimes": [
+					{
+						"name": "JavaSE-17",
+						"path": "/usr/lib/jvm/msopenjdk-current",
+						"default": true
+					}
+				]
+			}
+		}
+	},
+	"mounts": [
+		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/root/.android,type=bind,consistency=cached"
+	]
+}
