@@ -31,6 +31,7 @@
 	"mounts": [
 		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/root/.android,type=bind,consistency=cached"
 	],
+	"postAttachCommand": "cd control-plane/mesh-ui && pnpm install --frozen-lockfile && pnpm run dev",
 	"features": {
 		"ghcr.io/devcontainers/features/git-lfs:1": {
 			"autoPull": true,

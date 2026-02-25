@@ -16,7 +16,6 @@ services:
     environment:
       - ANDROID_SDK_ROOT=/usr/local/android-sdk
       - ANDROID_HOME=/usr/local/android-sdk
-    entrypoint: /bin/sh -c "cd control-plane/mesh-ui && pnpm run dev"
 
   # Override nginx configuration for development
   nginx:
