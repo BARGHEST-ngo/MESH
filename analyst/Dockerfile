@@ -1,0 +1,23 @@
+FROM golang:1.26-alpine AS build
+
+RUN apk add --no-cache git patch
+
+WORKDIR /usr/src/app
+
+# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY analyst ./analyst
+RUN go generate ./...
+COPY .git ./.git
+RUN ./analyst/build.sh
+
+FROM alpine:latest
+
+WORKDIR /usr/bin
+
+COPY --from=build /usr/src/app/analyst/mesh /usr/bin/mesh
+COPY --from=build /usr/src/app/analyst/meshcli /usr/bin/meshcli
+
+CMD ["sleep", "infinity"]

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Copyright (c) BARGHEST
 # SPDX-License-Identifier: AGPL-3.0-or-later
 

@@ -1,6 +1,6 @@
 services:
   # Development container with all build tools and dependencies
-  dev:
+  analyst:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile
@@ -9,9 +9,6 @@ services:
       - .:/workspace:cached
     working_dir: /workspace
     command: sleep infinity
-    depends_on:
-      - headscale
-      - nginx
     network_mode: service:nginx
     environment:
       - ANDROID_SDK_ROOT=/usr/local/android-sdk

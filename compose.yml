@@ -26,3 +26,18 @@ services:
     ports:
       - "127.0.0.1:80:80"
     entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+
+  analyst:
+    build:
+      context: .
+      dockerfile: analyst/Dockerfile
+    restart: unless-stopped
+    container_name: mesh-analyst
+    volumes:
+      - ./analyst/data:/var/run/tailscale
+    depends_on:
+      - nginx
+      - headscale
+    environment:
+      - LOGIN_URL=${LOGIN_URL}
+      - AUTH_KEY=${AUTH_KEY}
