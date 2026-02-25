@@ -336,7 +336,6 @@ clean: ## Remove build artifacts. Does not purge docker build envs. Use dockerRe
 	-rm -rf android/build $(DEBUG_APK) $(RELEASE_AAB) $(LIBTAILSCALE_AAR) android/libs *.apk *.aab
 	@echo "Cleaning cached toolchain"
 	-rm -rf $(HOME)/.cache/tailscale-go{,.extracted}
-	-pkill -f gradle
 
 .PHONY: help
 help: ## Show this help
