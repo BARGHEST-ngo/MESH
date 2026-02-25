@@ -15,7 +15,8 @@
 				"vscjava.vscode-java-pack",
 				"vscjava.vscode-gradle",
 				"golang.go",
-				"ahmadalli.vscode-nginx-conf"
+				"ahmadalli.vscode-nginx-conf",
+				"Augment.vscode-augment"
 			],
 			"settings": {
 				"java.configuration.runtimes": [
