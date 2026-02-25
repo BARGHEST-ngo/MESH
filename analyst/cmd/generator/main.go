@@ -184,7 +184,7 @@ func main() {
 	// Reset file permissions (https://stackoverflow.com/a/4408378)
 	cmd = exec.Command(
 		"/bin/sh", "-c",
-		"git diff -p -R --no-ext-diff --no-color --diff-filter=M | grep -E \"^(diff|(old|new) mode)\" --color=never | git apply",
+		"git diff -p -R --no-ext-diff --no-color --diff-filter=M | grep -A 1 -B 1 \"old mode\" --color=never | grep -E \"^(diff|(old|new) mode)\" --color=never | git apply",
 	)
 	cmd.Dir = tailscaleDir
 	if output, err := cmd.CombinedOutput(); err != nil {

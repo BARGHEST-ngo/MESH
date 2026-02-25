@@ -1,5 +1,5 @@
 diff --git a/cmd/tailscale/cli/cli.go b/cmd/tailscale/cli/cli.go
-index 5ebc23a5b..93eb2faf3 100644
+index 5ebc23a5b..862c1b1e6 100644
 --- a/cmd/tailscale/cli/cli.go
 +++ b/cmd/tailscale/cli/cli.go
 @@ -20,6 +20,7 @@
@@ -23,7 +23,21 @@ index 5ebc23a5b..93eb2faf3 100644
  	rootCmd := newRootCmd()
  	if err := rootCmd.Parse(args); err != nil {
  		if errors.Is(err, flag.ErrHelp) {
-@@ -243,6 +250,9 @@ func newRootCmd() *ffcli.Command {
+@@ -233,16 +240,19 @@ func newRootCmd() *ffcli.Command {
+ 
+ 	var rootCmd *ffcli.Command
+ 	rootCmd = &ffcli.Command{
+-		Name:       "tailscale",
+-		ShortUsage: "tailscale [flags] <subcommand> [command flags]",
+-		ShortHelp:  "The easiest, most secure way to use WireGuard.",
++		Name:       "meshcli",
++		ShortUsage: "meshcli [flags] <subcommand> [command flags]",
++		ShortHelp:  "Censorship-resisting overlay network for digital forensics.",
+ 		LongHelp: strings.TrimSpace(`
+-For help on subcommands, add --help after: "tailscale status --help".
++For help on subcommands, add --help after: "meshcli status --help".
+ 
+ This CLI is still under active development. Commands and flags will
  change in the future.
  `),
  		Subcommands: nonNilCmds(

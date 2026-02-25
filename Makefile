@@ -1,8 +1,6 @@
 # Copyright (c) BARGHEST
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-ANDROID_CLIENT_DIR := android-client
-
 .PHONY: tidy
 tidy: ## Run go mod tidy
 	go mod tidy
@@ -15,13 +13,8 @@ generate: ## Generate code
 analyst: ## Build MESH analyst client
 	./analyst/build.sh
 
-.PHONY: android
-android: ## Build MESH Android client
-	cd $(ANDROID_CLIENT_DIR) && $(MAKE) apk
-
 .PHONY: clean
 clean: ## Clean up build artifacts
-	cd $(ANDROID_CLIENT_DIR) && $(MAKE) clean
 	rm -f analyst/mesh
 
 .PHONY: help
