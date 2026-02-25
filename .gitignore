@@ -26,6 +26,7 @@ vendor/
 
 # Ignore personal VS Code settings
 .vscode/
+.augment/
 
 # Support personal project-specific GOPATH
 .gopath/
