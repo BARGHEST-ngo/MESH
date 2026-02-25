@@ -6,16 +6,8 @@
 ## For signed release build JKS_PASSWORD must be set to the password for the jks keystore
 ## and JKS_PATH must be set to the path to the jks keystore.
 
-# The docker image to use for the build environment.  Changing this
-# will force a rebuild of the docker image.  If there is an existing image
-# with this name, it will be used.
-#
-# The convention here is mesh-android-build-amd64-<date>
-DOCKER_IMAGE := mesh-android-build-amd64-012326-1
-
 DEBUG_APK := mesh-debug.apk
 RELEASE_AAB := mesh-release.aab
-RELEASE_TV_AAB := mesh-tv-release.aab
 
 # Define output filenames.
 LIBTAILSCALE_AAR := android/libs/libtailscale.aar
@@ -27,11 +19,11 @@ ABS_UNSTRIPPED_AAR := $(shell pwd)/$(UNSTRIPPED_AAR)
 
 # Android SDK & Tools settings.
 ifeq ($(shell uname),Linux)
-    ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip"
-    ANDROID_TOOLS_SUM := "bd1aa17c7ef10066949c88dc6c9c8d536be27f992a1f3b5a584f9bd2ba5646a0  commandlinetools-linux-9477386_latest.zip"
+    ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-linux-14742923_latest.zip"
+    ANDROID_TOOLS_SUM := "48833c34b761c10cb20bcd16582129395d121b27  commandlinetools-linux-14742923_latest.zip"
 else
-    ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip"
-    ANDROID_TOOLS_SUM := "2072ffce4f54cdc0e6d2074d2f381e7e579b7d63e915c220b96a7db95b2900ee  commandlinetools-mac-9477386_latest.zip"
+    ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-mac-14742923_latest.zip"
+    ANDROID_TOOLS_SUM := "cc27cca4b84bfdbc7df17e3d0a01d0c640d8ee71  commandlinetools-mac-14742923_latest.zip"
 endif
 ANDROID_SDK_PACKAGES := 'platforms;android-34' 'extras;android;m2repository' 'ndk;23.1.7779620' 'platform-tools' 'build-tools;34.0.0'
 
@@ -77,7 +69,7 @@ else
     export PATH := $(JAVA_HOME)/bin:$(PATH)
 endif
 
-AVD_BASE_IMAGE := "system-images;android-33;google_apis;"
+AVD_BASE_IMAGE := "system-images;android-34;google_apis;"
 export HOST_ARCH := $(shell uname -m)
 ifeq ($(HOST_ARCH),aarch64)
     AVD_IMAGE := "$(AVD_BASE_IMAGE)arm64-v8a"
@@ -90,14 +82,7 @@ AVD ?= mesh-$(HOST_ARCH)
 export AVD_IMAGE
 export AVD
 
-# Use our toolchain or the one that is specified, do not perform dynamic toolchain switching.
-GOTOOLCHAIN := local
-export GOTOOLCHAIN
-
-TOOLCHAINDIR ?=
-export TOOLCHAINDIR
-
-GOBIN := $(PWD)/android/build/go/bin
+GOBIN := $(HOME)/go/bin
 export GOBIN
 
 export PATH := $(GOBIN):$(ANDROID_HOME)/cmdline-tools/latest/bin:$(ANDROID_HOME)/platform-tools:$(PATH)
@@ -147,35 +132,25 @@ release-apk-signed: jarsign-env $(RELEASE_APK)
 release: jarsign-env $(RELEASE_AAB)
 	@jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore $(JKS_PATH) -storepass:env JKS_PASSWORD $(RELEASE_AAB) mesh
 
-# Builds the release AAB and signs it (androidTV variant)
-.PHONY: release-tv
-release-tv: jarsign-env $(RELEASE_TV_AAB)
-	@jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore $(JKS_PATH) -storepass:env JKS_PASSWORD $(RELEASE_TV_AAB) mesh
-
 # gradle-dependencies groups together the android sources and libtailscale needed to assemble tests/debug/release builds.
 .PHONY: gradle-dependencies
-gradle-dependencies: $(shell find android -type f -not -path "android/build/*" -not -path '*/.*') $(LIBTAILSCALE_AAR)
+gradle-dependencies: $(shell find android -type f -not -path "android/build/*" -not -path '*/.*') $(LIBTAILSCALE_AAR) tailscale.version
 
 $(RELEASE_AAB): version gradle-dependencies
 	@echo "Building release AAB"
 	(cd android && ./gradlew test bundleRelease)
 	install -C ./android/build/outputs/bundle/release/android-release.aab $@
 
-$(RELEASE_TV_AAB): version gradle-dependencies
-	@echo "Building TV release AAB"
-	(cd android && ./gradlew test bundleRelease_tv)
-	install -C ./android/build/outputs/bundle/release_tv/android-release_tv.aab $@
-
 mesh-test.apk: version gradle-dependencies
 	(cd android && ./gradlew assembleApplicationTestAndroidTest)
 	install -C ./android/build/outputs/apk/androidTest/applicationTest/android-applicationTest-androidTest.apk $@
 
-barghest.version: ../go.mod ../go.sum $(wildcard .git/HEAD)
-	@bash -c "go run tailscale.com/cmd/mkversion > barghest.version"
+tailscale.version: ../go.mod ../go.sum $(wildcard ../.git/HEAD)
+	@bash -c "go run tailscale.com/cmd/mkversion > tailscale.version"
 
 .PHONY: version
 version:
-	@cat barghest.version
+	@cat tailscale.version
 
 # ------------------------------------------------------------------------------
 # Go Build Targets (Unstripped AAR, Debug Symbols, Stripped SO, Packaging)
@@ -194,14 +169,14 @@ $(GOBIN)/gobind: ../go.mod ../go.sum
 	go install golang.org/x/mobile/cmd/gobind
 
 .PHONY: build-unstripped-aar
-build-unstripped-aar: $(GOBIN)/gomobile
+build-unstripped-aar: tailscale.version $(GOBIN)/gomobile
 	@echo "Running gomobile bind to generate unstripped AAR..."
 	@echo "Output file: $(ABS_UNSTRIPPED_AAR)"
 	mkdir -p $(dir $(ABS_UNSTRIPPED_AAR))
 	rm -f $(ABS_UNSTRIPPED_AAR)
 	# The -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 is specific to NDK 23
 	# to support 16kb page sizes.  Your mileage may vary with other NDK versions.
-	$(GOBIN)/gomobile bind -target android -androidapi 26 \
+	gomobile bind -target android -androidapi 26 \
 		-ldflags "-linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
 		-o $(ABS_UNSTRIPPED_AAR) ./libtailscale || { echo "gomobile bind failed"; exit 1; }
 	@if [ ! -f $(ABS_UNSTRIPPED_AAR) ]; then \
@@ -257,7 +232,6 @@ env:
 	@echo "ANDROID_HOME=$(ANDROID_HOME)"
 	@echo "ANDROID_STUDIO_ROOT=$(ANDROID_STUDIO_ROOT)"
 	@echo "JAVA_HOME=$(JAVA_HOME)"
-	@echo "TOOLCHAINDIR=$(TOOLCHAINDIR)"
 	@echo "AVD_IMAGE=$(AVD_IMAGE)"
 
 # Ensure that JKS_PATH, JKS_PASSWORD, and JKS_ALIAS are set before we attempt a build
@@ -284,25 +258,9 @@ androidpath:
 	@echo "export ANDROID_SDK_ROOT=$(ANDROID_SDK_ROOT)"
 	@echo 'export PATH=$(ANDROID_HOME)/cmdline-tools/latest/bin:$(ANDROID_HOME)/platform-tools:$$PATH'
 
-.PHONY: tag_release
-tag_release: debug-symbols ## Tag the current commit with the current version
-	source barghest.version && git tag -a "$${VERSION_LONG}" -m "OSS and Version updated to $${VERSION_LONG}"
-
-.PHONY: bumposs ## Bump to the latest oss and update the versions.
-bumposs: update-oss
-	source barghest.version && git commit -sm "android: bump OSS" -m "OSS and Version updated to $${VERSION_LONG}" go.toolchain.rev android/build.gradle ../go.mod ../go.sum
-	source barghest.version && git tag -a "$${VERSION_LONG}" -m "OSS and Version updated to $${VERSION_LONG}"
-
 .PHONY: bump_version_code ## Bump the version code in build.gradle
 bump_version_code:
 	sed -i'.bak' "s/versionCode .*/versionCode $$(expr $$(awk '/versionCode ([0-9]+)/{print $$2}' android/build.gradle) + 1)/" android/build.gradle && rm android/build.gradle.bak
-
-.PHONY: update-oss ## Update the tailscale.com go module
-update-oss:
-	curl -f https://raw.githubusercontent.com/tailscale/tailscale/refs/heads/main/go.toolchain.rev > go.toolchain.rev.new
-	mv go.toolchain.rev.new go.toolchain.rev
-	GOPROXY=direct go get tailscale.com@main
-	go mod tidy -compat=1.24
 
 # Get the commandline tools package, this provides (among other things) the sdkmanager binary.
 $(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager:
@@ -367,37 +325,10 @@ install: $(DEBUG_APK) ## Install the debug APK on a connected device
 run: install ## Run the debug APK on a connected device
 	adb shell am start -n com.tailscale.ipn/com.tailscale.ipn.MainActivity
 
-.PHONY: docker-build-image
-docker-build-image: ## Builds the docker image for the android build environment if it does not exist
-	@echo "Checking if docker image $(DOCKER_IMAGE) already exists..."
-	@if ! docker images $(DOCKER_IMAGE) -q | grep -q . ; then \
-		echo "Image does not exist. Building..."; \
-		docker build -f docker/DockerFile.amd64-build -t $(DOCKER_IMAGE) .; \
-	fi
-
-.PHONY: docker-run-build
-docker-run-build: clean jarsign-env docker-build-image ## Runs the docker image for the android build environment and builds release
-	@docker run --rm -v $(CURDIR):/build/mesh-android --env JKS_PASSWORD=$(JKS_PASSWORD) --env JKS_PATH=$(JKS_PATH) $(DOCKER_IMAGE)
-
-.PHONY: docker-remove-build-image
-docker-remove-build-image: ## Removes the current docker build image
-	docker rmi --force $(DOCKER_IMAGE)
-
-.PHONY: docker-all ## Makes a fresh docker environment, builds docker and cleans up. For CI.
-docker-all: docker-build-image docker-run-build $(DOCKER_IMAGE)
-
-.PHONY: docker-shell
-docker-shell: docker-build-image ## Builds a docker image with the android build env and opens a shell
-	docker run --rm -v $(CURDIR):/build/mesh-android -it $(DOCKER_IMAGE) /bin/bash
-
-.PHONY: docker-remove-shell-image
-docker-remove-shell-image: ## Removes all docker shell image
-	@echo "docker-remove-shell-image retained for backward compatibility, but is a no-op; docker-shell now uses build image"
-
 .PHONY: clean
 clean: ## Remove build artifacts. Does not purge docker build envs. Use dockerRemoveEnv for that.
 	@echo "Cleaning up old build artifacts"
-	-rm -rf android/build $(DEBUG_APK) $(RELEASE_AAB) $(RELEASE_TV_AAB) $(LIBTAILSCALE_AAR) android/libs *.apk *.aab
+	-rm -rf android/build $(DEBUG_APK) $(RELEASE_AAB) $(LIBTAILSCALE_AAR) android/libs *.apk *.aab
 	@echo "Cleaning cached toolchain"
 	-rm -rf $(HOME)/.cache/tailscale-go{,.extracted}
 	-pkill -f gradle

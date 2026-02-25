@@ -11,7 +11,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.6.1'
+        classpath 'com.android.tools.build:gradle:8.13.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath("com.ncorti.ktfmt.gradle:plugin:0.17.0")
@@ -21,9 +21,6 @@ buildscript {
 repositories {
     google()
     mavenCentral()
-    flatDir {
-        dirs 'libs'
-    }
 }
 
 apply plugin: 'kotlin-android'
@@ -32,7 +29,7 @@ apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 apply plugin: 'com.ncorti.ktfmt.gradle'
 
 android {
-    ndkVersion "23.1.7779620"
+    ndkVersion = "23.1.7779620"
     compileSdkVersion 34
     defaultConfig {
         minSdkVersion 26
@@ -55,9 +52,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    lintOptions {
-        warningsAsErrors true
-    }
 
     kotlinOptions {
         jvmTarget = "17"
@@ -67,14 +61,14 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
-        buildConfig true
-        compose true
+        buildConfig = true
+        compose = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "$compose_version"
     }
     flavorDimensions "version"
-    namespace 'com.barghest.mesh'
+    namespace = 'com.barghest.mesh'
 
     buildTypes {
         applicationTest {
@@ -92,7 +86,7 @@ android {
 
             minifyEnabled true
 
-            shrinkResources true
+            shrinkResources = true
 
             proguardFiles getDefaultProguardFile(
                     'proguard-android-optimize.txt'),
@@ -104,7 +98,10 @@ android {
         }
     }
 
-    testBuildType "applicationTest"
+    testBuildType = "applicationTest"
+    lint {
+        warningsAsErrors = true
+    }
 }
 
 dependencies {
@@ -150,7 +147,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose-m3:1.15.0")
 
     // Tailscale dependencies.
-    implementation ':libtailscale@aar'
+    implementation files('libs/libtailscale.aar')
 
     // Integration Tests
     androidTestImplementation composeBom
@@ -187,10 +184,10 @@ def getLocalProperty(key, defaultValue) {
 
 
 def getVersionProperty(key) {
-    // barghest.version is created / updated by the makefile, it is in a loosely
+    // tailscale.version is created / updated by the makefile, it is in a loosely
     // Makfile/envfile format, which is also loosely a properties file format.
-    //      make barghest.version
+    //      make tailscale.version
     def versionProps = new Properties()
-    versionProps.load(project.file('../barghest.version').newDataInputStream())
+    versionProps.load(project.file('../tailscale.version').newDataInputStream())
     return versionProps.getProperty(key).replaceAll('^\"|\"$', '')
 }

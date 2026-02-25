@@ -1,3 +1,5 @@
+ANDROID_CLIENT_DIR := android-client
+
 .PHONY: tidy
 tidy: ## Run go mod tidy
 	go mod tidy
@@ -12,6 +14,7 @@ analyst: ## Build MESH analyst client
 
 .PHONY: clean
 clean: ## Clean up build artifacts
+	cd $(ANDROID_CLIENT_DIR) && $(MAKE) clean
 	rm -f analyst/mesh
 
 .PHONY: help
