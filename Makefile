@@ -12,6 +12,10 @@ generate: ## Generate code
 analyst: ## Build MESH analyst client
 	./analyst/build.sh
 
+.PHONY: android
+android: ## Build MESH Android client
+	cd $(ANDROID_CLIENT_DIR) && $(MAKE) apk
+
 .PHONY: clean
 clean: ## Clean up build artifacts
 	cd $(ANDROID_CLIENT_DIR) && $(MAKE) clean
