@@ -20,10 +20,10 @@ ABS_UNSTRIPPED_AAR := $(shell pwd)/$(UNSTRIPPED_AAR)
 # Android SDK & Tools settings.
 ifeq ($(shell uname),Linux)
     ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-linux-14742923_latest.zip"
-    ANDROID_TOOLS_SUM := "48833c34b761c10cb20bcd16582129395d121b27  commandlinetools-linux-14742923_latest.zip"
+    ANDROID_TOOLS_SUM := "04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7  commandlinetools-linux-14742923_latest.zip"
 else
     ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-mac-14742923_latest.zip"
-    ANDROID_TOOLS_SUM := "cc27cca4b84bfdbc7df17e3d0a01d0c640d8ee71  commandlinetools-mac-14742923_latest.zip"
+    ANDROID_TOOLS_SUM := "04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7  commandlinetools-mac-14742923_latest.zip"
 endif
 ANDROID_SDK_PACKAGES := 'platforms;android-34' 'extras;android;m2repository' 'ndk;23.1.7779620' 'platform-tools' 'build-tools;34.0.0'
 
