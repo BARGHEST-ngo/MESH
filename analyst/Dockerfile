@@ -19,5 +19,7 @@ WORKDIR /usr/bin
 
 COPY --from=build /usr/src/app/analyst/mesh /usr/bin/mesh
 COPY --from=build /usr/src/app/analyst/meshcli /usr/bin/meshcli
+COPY analyst/entrypoint.sh /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
 
-CMD ["sleep", "infinity"]
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
