@@ -32,7 +32,7 @@
 > [!IMPORTANT]
 > **Public Alpha**: MESH is currently in **public alpha** and under active development. It is **not production-ready**. A full penetration test is in progress. Until it is complete, do **not** use this project in production environments. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues.
 
-**MESH Forensics enables remote mobile forensics by assigning CGNAT-range IP addresses to devices over an encrypted, censorship-resistant peer-to-peer mesh network.**
+**MESH Forensics enables remote mobile forensics over an encrypted, censorship-resistant peer-to-peer mesh network.**
 
 Mobile devices are often placed behind carrier-grade NAT (CGNAT), firewalls, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics typically requires centralized VPN servers or risky port-forwarding.
 
