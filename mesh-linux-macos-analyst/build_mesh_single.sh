@@ -92,9 +92,9 @@ fi
 
 echo -e "${GREEN}Building single mesh binary (daemon + CLI)...${NC}"
 if [ "$VERBOSE" = true ]; then
-    ./tool/go build -v -tags ts_include_cli -o "${OUTPUT_DIR}/${BINARY_NAME}" ./cmd/tailscaled
+    ./tool/go build -v -tags ts_include_cli,ts_omit_logtail -o "${OUTPUT_DIR}/${BINARY_NAME}" ./cmd/tailscaled
 else
-    ./tool/go build -tags ts_include_cli -o "${OUTPUT_DIR}/${BINARY_NAME}" ./cmd/tailscaled
+    ./tool/go build -tags ts_include_cli,ts_omit_logtail -o "${OUTPUT_DIR}/${BINARY_NAME}" ./cmd/tailscaled
 fi
 
 if [ $? -eq 0 ]; then
