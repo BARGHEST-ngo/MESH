@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}"
+echo "${BLUE}"
 echo "        ███╗   ███╗███████╗███████╗██╗  ██╗"
 echo "        ████╗ ████║██╔════╝██╔════╝██║  ██║"
 echo "        ██╔████╔██║█████╗  ███████╗███████║"
@@ -18,12 +18,12 @@ echo "        ██║╚██╔╝██║██╔══╝  ╚═══�
 echo "        ██║ ╚═╝ ██║███████╗███████║██║  ██║"
 echo "        ╚═╝     ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝"
 echo "        by Barghest.asia. No rights reserved."
-echo -e "${NC}"
+echo "${NC}"
 echo ""
 
 GO_MOD_DIR="$(dirname "$(go env GOMOD)")"
 if [ -z "$GO_MOD_DIR" ] || [ ! -d "$GO_MOD_DIR" ]; then
-	echo -e "${RED}Error: Could not determine Go module directory${NC}" >&2
+	echo "${RED}Error: Could not determine Go module directory${NC}" >&2
 	exit 1
 fi
 
@@ -35,12 +35,12 @@ tags="${TAGS:+$TAGS,}ts_omit_aws,ts_omit_cloud,ts_omit_kube,ts_omit_synology,ts_
 
 BUILD_DIR="$GO_MOD_DIR/tailscale"
 if [ ! -d "$BUILD_DIR" ]; then
-	echo -e "${RED}Error: Build directory does not exist: $BUILD_DIR${NC}" >&2
+	echo "${RED}Error: Build directory does not exist: $BUILD_DIR${NC}" >&2
 	exit 1
 fi
 cd "$BUILD_DIR"
 
-echo -e "${GREEN}Building mesh binary...${NC}"
+echo "${GREEN}Building mesh binary...${NC}"
 go build -tags "$tags" -trimpath -ldflags "$ldflags" -o "$GO_MOD_DIR/analyst/mesh" ./cmd/tailscaled
 
-echo -e "${GREEN}Build complete!${NC}"
+echo "${GREEN}Build complete!${NC}"
