@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+# Copyright (c) BARGHEST
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+version: '3'
+
+dotenv: ['.env']
+
+tasks:
+  tidy:
+    desc: Run go mod tidy
+    cmds:
+      - go mod tidy
+  generate:
+    desc: Generate code
+    cmds:
+      - go generate ./...
+  analyst:
+    desc: Build MESH analyst client
+    cmds:
+      - ./analyst/build.sh
+  android:
+    desc: Build MESH Android client
+    cmds:
+      - make -C android-client apk
+  clean:
+    desc: Clean up build artifacts
+    cmds:
+      - rm -f analyst/mesh
+      - make -C android-client clean

@@ -86,3 +86,7 @@ RUN ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools
 		"platform-tools" \
 		"build-tools;34.0.0" \
 	&& "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --list_installed
+
+# Install Task
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash \
+	&& apt-get install -y task
