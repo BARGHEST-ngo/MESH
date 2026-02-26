@@ -5,7 +5,7 @@ if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
     exit 1
 fi
 
-/usr/bin/mesh --verbose=1 --socket=/var/run/tailscale/tailscaled.sock &
+/usr/bin/mesh --tun=userspace-networking --verbose=1 --socket=/var/run/tailscale/tailscaled.sock &
 
 sleep 2
 
