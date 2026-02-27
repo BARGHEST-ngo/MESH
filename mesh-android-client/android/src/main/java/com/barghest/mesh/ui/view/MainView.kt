@@ -155,7 +155,10 @@ fun MainView(
 
   LoadingIndicator.Wrap {
     Box(modifier = Modifier.fillMaxSize()) {
-      Scaffold(contentWindowInsets = WindowInsets.Companion.statusBars) { paddingInsets ->
+      Scaffold(
+          containerColor = MaterialTheme.colorScheme.surfaceContainer,
+          contentWindowInsets = WindowInsets.Companion.statusBars,
+      ) { paddingInsets ->
       Column(
           modifier = Modifier
               .fillMaxWidth()
@@ -509,7 +512,6 @@ fun ConnectView(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (!isPrepared) {
-                    TailscaleLogoView(modifier = Modifier.size(50.dp))
                     Spacer(modifier = Modifier.size(1.dp))
                     Text(
                         text = stringResource(id = R.string.welcome_to_mesh),

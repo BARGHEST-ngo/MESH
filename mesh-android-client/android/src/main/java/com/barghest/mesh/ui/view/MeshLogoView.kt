@@ -26,7 +26,7 @@ fun TailscaleLogoView(
     modifier: Modifier
 ) {
       Image(
-          painter = painterResource(id = R.drawable.ic_launcher_foreground),
+          painter = painterResource(id = R.mipmap.mesh_foreground),
           contentDescription = "MESH Logo",
           modifier = modifier.fillMaxWidth().fillMaxHeight().fillMaxSize())
   }

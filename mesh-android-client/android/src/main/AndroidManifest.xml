@@ -33,10 +33,10 @@
         android:name=".App"
         android:allowBackup="false"
         android:banner="@drawable/tv_banner"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/mesh_round"
         android:label="MESH"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/mesh_round"
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.App.SplashScreen">
         <activity
