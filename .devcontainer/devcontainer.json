@@ -17,7 +17,8 @@
 				"golang.go",
 				"ahmadalli.vscode-nginx-conf",
 				"Augment.vscode-augment",
-				"task.vscode-task"
+				"task.vscode-task",
+				"redhat.vscode-yaml"
 			],
 			"settings": {
 				"java.configuration.runtimes": [
@@ -38,6 +39,13 @@
 		"ghcr.io/devcontainers/features/git-lfs:1": {
 			"autoPull": true,
 			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"moby": false,
+			"installDockerBuildx": true,
+			"installDockerComposeSwitch": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "v2"
 		}
 	}
 }

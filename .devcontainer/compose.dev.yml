@@ -7,7 +7,9 @@ services:
     container_name: mesh-dev
     volumes:
       - .:/workspace:cached
+      - /var/run/docker.sock:/var/run/docker-host.sock # Docker-outside-of-Docker
     working_dir: /workspace
+    entrypoint: /usr/local/share/docker-init.sh
     command: sleep infinity
     network_mode: service:nginx
     environment:
