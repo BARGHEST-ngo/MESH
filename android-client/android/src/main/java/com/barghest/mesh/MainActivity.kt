@@ -72,6 +72,7 @@ import com.barghest.mesh.ui.util.AndroidTVUtil
 import com.barghest.mesh.ui.util.set
 import com.barghest.mesh.ui.util.universalFit
 import com.barghest.mesh.ui.view.ADBSetup
+import com.barghest.mesh.ui.view.onboarding.OnboardingScreen
 import com.barghest.mesh.ui.view.AboutView
 import com.barghest.mesh.ui.view.AWGSettingsView
 import com.barghest.mesh.ui.view.DeviceInfoView
@@ -298,9 +299,10 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 Surface(color = MaterialTheme.colorScheme.inverseSurface) { // Background for the letterbox
                     Surface(modifier = Modifier.universalFit()) { // Letterbox for AndroidTV
+                        val startDest = if (isIntroScreenViewedSet()) "main" else "onboarding"
                         NavHost(
                             navController = navController,
-                            startDestination = "main",
+                            startDestination = startDest,
                             enterTransition = {
                                 slideInHorizontally(
                                     animationSpec = tween(250, easing = LinearOutSlowInEasing),
@@ -479,6 +481,14 @@ class MainActivity : ComponentActivity() {
                                     backToSettings = backTo("main")
                                 )
                             }
+                            composable("onboarding") {
+                                OnboardingScreen(onComplete = {
+                                    setIntroScreenViewed(true)
+                                    navController.navigate("main") {
+                                        popUpTo("onboarding") { inclusive = true }
+                                    }
+                                })
+                            }
                             composable("ADBSetup") {
                                 ADBSetup(
                                     onNavigateHome = {
@@ -594,6 +604,11 @@ class MainActivity : ComponentActivity() {
             }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
+    }
+
+    private fun isIntroScreenViewedSet(): Boolean {
+        return getSharedPreferences("introScreen", Context.MODE_PRIVATE)
+            .getBoolean("seen", false)
     }
 
     private fun setIntroScreenViewed(seen: Boolean) {
