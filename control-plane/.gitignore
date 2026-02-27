@@ -14,3 +14,4 @@ db.sqlite
 noise_private.key
 .env
 db.sql*
+config.yaml

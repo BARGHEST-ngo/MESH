@@ -5,13 +5,11 @@ services:
     container_name: headscale
     volumes:
       - ./control-plane/headscale/config:/etc/headscale
-      - ./control-plane/headscale/lib:/var/lib/headscale
+      - headscale-data:/var/lib/headscale
     tmpfs:
       - /var/run/headscale
     command: serve
 
-  # https://github.com/juanfont/headscale/issues/623
-  # nginx reverse proxies to headscale and mesh-ui, adding security-related headers (CORS, CSP, etc.)
   nginx:
     build: ./control-plane/mesh-ui
     restart: unless-stopped
@@ -31,13 +29,17 @@ services:
     build:
       context: .
       dockerfile: analyst/Dockerfile
-    restart: unless-stopped
     container_name: mesh-analyst
     volumes:
-      - ./analyst/data:/var/run/tailscale
+      - analyst-data:/var/run/tailscale
     depends_on:
       - nginx
       - headscale
+    env_file: [.env, .authkey]
     environment:
-      - LOGIN_URL=${LOGIN_URL}
+      - LOGIN_URL=${LOGIN_URL:-http://mesh-ui}
       - AUTH_KEY=${AUTH_KEY}
+
+volumes:
+  headscale-data:
+  analyst-data:

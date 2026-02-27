@@ -10,7 +10,7 @@
 #
 # https://myheadscale.example.com:443
 #
-server_url: https://spherically-unjeopardized-celsa.ngrok-free.dev
+server_url: https://CONTROL_PLANE_DOMAIN
 
 # Address to listen to / bind to on the server
 #

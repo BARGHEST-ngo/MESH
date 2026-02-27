@@ -4,25 +4,108 @@
 
 version: '3'
 
-dotenv: ['.env']
+vars:
+  API_KEY_EXPIRATION: 3h
+
+dotenv:
+  - .env
+  - .authkey
 
 tasks:
+  configureDotEnv:
+    desc: Configure .env file
+    requires:
+      vars:
+        - name: EPHEMERAL_DEPLOYMENT
+          enum: ["true", "false"]
+        - CONTROL_PLANE_DOMAIN
+    vars:
+      DEFAULT_CORS_ORIGIN: "https://{{.CONTROL_PLANE_DOMAIN}}"
+    cmds:
+      - '[ -f .authkey ] || (touch .authkey && chmod 600 .authkey)'
+      - grep -s CONTROL_PLANE_DOMAIN .env || echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN}}" >> .env
+      - grep -s EPHEMERAL_DEPLOYMENT .env || echo "EPHEMERAL_DEPLOYMENT={{.EPHEMERAL_DEPLOYMENT}}" >> .env
+      - grep -s CORS_ORIGIN .env || echo "CORS_ORIGIN={{.CORS_ORIGIN | default .DEFAULT_CORS_ORIGIN }}" >> .env
+      - cmd: grep -s LOGIN_URL .env || echo "LOGIN_URL={{.LOGIN_URL | default .DEFAULT_LOGIN_URL }}" >> .env
+        if: '{{eq .EPHEMERAL_DEPLOYMENT "false"}}'
+    silent: true
+
+  configureControlPlane:
+    desc: Configure MESH control plane
+    requires:
+      vars:
+        - CONTROL_PLANE_DOMAIN
+    cmd: >
+      sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN}}/g"
+      control-plane/headscale/config/config.example.yaml > control-plane/headscale/config/config.yaml
+    silent: true
+    sources:
+      - control-plane/headscale/config/config.example.yaml
+    generates:
+      - control-plane/headscale/config/config.yaml
+    deps:
+      - configureDotEnv
+
+  apikey:
+    desc: Generate a Headscale API key
+    cmd: >
+      [ $(docker ps -f name=headscale -q | wc -l) == 1 ] &&
+      docker exec -it headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}} ||
+      echo "Control plane is not running. Start it with 'task up' first."
+    silent: true
+
+  build:
+    desc: Build MESH Docker containers
+    cmd: docker compose build
+    deps:
+      - configureControlPlane
+
+  up:
+    desc: Start MESH Docker containers
+    cmd: docker compose up -d --build
+    deps:
+      - configureControlPlane
+
+  down:
+    desc: Stop MESH Docker containers
+    cmd: docker compose down
+
+  analyst:
+    desc: Start MESH analyst client
+    requires:
+      vars:
+        - AUTH_KEY
+    cmd: >
+      echo "AUTH_KEY={{.AUTH_KEY}}" > .authkey &&
+      AUTH_KEY={{.AUTH_KEY}} docker compose run --rm -it analyst meshcli {{.CLI_ARGS}}
+    silent: true
+    deps:
+      - configureDotEnv
+
+#################################
+# Development tasks
+#################################
+
   tidy:
     desc: Run go mod tidy
     cmds:
       - go mod tidy
+
   generate:
     desc: Generate code
     cmds:
       - go generate ./...
-  analyst:
+
+  buildAnalyst:
     desc: Build MESH analyst client
     cmds:
       - ./analyst/build.sh
-  android:
+
+  buildAndroid:
     desc: Build MESH Android client
     cmds:
       - make -C android-client apk
+
   clean:
     desc: Clean up build artifacts
     cmds:

@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY analyst ./analyst
+COPY analyst/src ./analyst
 RUN go generate ./...
 COPY .git ./.git
 RUN ./analyst/build.sh
@@ -18,8 +18,9 @@ FROM alpine:latest
 WORKDIR /usr/bin
 
 COPY --from=build /usr/src/app/analyst/mesh /usr/bin/mesh
-COPY --from=build /usr/src/app/analyst/meshcli /usr/bin/meshcli
+COPY analyst/meshcli /usr/bin/meshcli
 COPY analyst/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
+CMD ["/usr/bin/meshcli"]

@@ -54,3 +54,8 @@ client/web/build/assets
 
 # pnpm
 .pnpm-store
+
+# Task
+.task
+.env
+.authkey
