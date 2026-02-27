@@ -50,7 +50,7 @@ function isMissingPolicyError(err: unknown): boolean {
 function networksWithApprovedExitNodes(nodes: V1Node[]): Set<string> {
     const names = new Set<string>()
     for (const node of nodes) {
-        const networkName = node.user?.name
+        const networkName = node.preAuthKey?.user?.name
         if (!networkName) continue
         const isExit = EXIT_ROUTES.every(r => node.approvedRoutes?.includes(r))
         if (isExit) names.add(networkName)
