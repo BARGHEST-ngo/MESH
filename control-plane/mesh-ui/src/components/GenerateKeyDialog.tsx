@@ -5,11 +5,24 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { useCreatePreAuthKey } from '../api/usePreAuthKeys'
 import { Copy, Check } from 'lucide-react'
+import { encrypt } from '../lib/onboardingCrypto'
 
 interface GenerateKeyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   networkName: string
+}
+
+function isLocalhost(url: string): boolean {
+  if (!url) return false
+  const lower = url.toLowerCase()
+  return (
+    lower.includes('localhost') ||
+    lower.includes('127.0.0.1') ||
+    lower.includes('::1') ||
+    lower.startsWith('http://192.168.') ||
+    lower.startsWith('http://10.')
+  )
 }
 
 export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateKeyDialogProps) {
@@ -19,15 +32,34 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
   const [deviceTag, setDeviceTag] = useState<'analyst' | 'mobile_node'>('analyst')
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  
+  const [controlPlaneURL, setControlPlaneURL] = useState('') 
+  const [urlError, setUrlError] = useState('')
   const createKey = useCreatePreAuthKey()
 
   const handleGenerate = async () => {
     try {
+      setUrlError('')
+
+      if (deviceTag === 'mobile_node') {
+        const trimmedURL = controlPlaneURL.trim()
+        if (!trimmedURL) {
+          setUrlError('Control Plane URL is required for mobile nodes')
+          console.error('Control Plane URL is required for mobile nodes')
+          return
+        }
+        try {
+          new URL(trimmedURL)
+        } catch {
+          setUrlError('Invalid URL format. Must start with https://')
+          console.error('Invalid URL format')
+          return
+        }
+      }
+
       const days = parseInt(expirationDays) || 1
       const expiration = new Date()
       expiration.setDate(expiration.getDate() + days)
-
+      
       const result = await createKey.mutateAsync({
         user: networkName,
         reusable,
@@ -35,8 +67,17 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
         expiration: expiration.toISOString(),
         aclTags: [`tag:${deviceTag}`],
       })
+
+      const authKey = result.preAuthKey?.key
       
-      setGeneratedKey(result.preAuthKey?.key || null)
+      // TODO: For mobile nodes, encrypt the key + URL
+      // if (deviceTag === 'mobile_node') {
+      //   const { uri, pin } = encrypt(controlPlaneURL.trim(), authKey)
+      //   // Display intent uri and pin instead of raw authKey
+      // }
+      
+      setGeneratedKey(authKey || null)
+      
     } catch (error) {
       console.error('Failed to generate key:', error)
     }
@@ -57,6 +98,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
     setExpirationDays('1')
     setDeviceTag('analyst')
     setCopied(false)
+    setUrlError('')
     onOpenChange(false)
   }
 
@@ -78,7 +120,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                   <Label htmlFor="reusable">Reusable</Label>
                   <p className="text-xs text-muted-foreground">Allow multiple devices to use this key</p>
                 </div>
-                <input
+                <Input
                   id="reusable"
                   type="checkbox"
                   checked={reusable}
@@ -92,7 +134,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                   <Label htmlFor="ephemeral">Ephemeral</Label>
                   <p className="text-xs text-muted-foreground">Devices will be deleted when they disconnect</p>
                 </div>
-                <input
+                <Input
                   id="ephemeral"
                   type="checkbox"
                   checked={ephemeral}
@@ -100,6 +142,8 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                   className="h-4 w-4"
                 />
               </div>
+
+
 
               <div>
                 <Label htmlFor="deviceTag">Device Tag</Label>
@@ -128,6 +172,30 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                   </button>
                 </div>
               </div>
+
+              
+              {deviceTag === 'mobile_node' && (
+              <div>
+                <Label htmlFor="controlPlaneURL">ControlPlaneURL</Label>
+                <Input
+                  id="controlPlaneURL"
+                  type="text"
+                  value={controlPlaneURL}
+                  onChange={(e) => { setControlPlaneURL(e.target.value); setUrlError('') }}
+                  placeholder="https://publicControlplaneURL.example.com"
+                  className={`mt-2 ${urlError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                  required
+                  />
+              <p className="text-xs text-muted-foreground mt-2">
+                  Public URL that field devices will use to connect to you
+              </p>
+              {isLocalhost(controlPlaneURL) && (
+                <p className="text-xs text-yellow-401 mt-1">
+                Warning: This appears to be a local URL. Field devices won't be able to reach it.
+                </p>
+              )} 
+              </div>
+              )}
 
               <div>
                 <Label htmlFor="expiration">Expiration (days)</Label>
