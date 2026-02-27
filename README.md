@@ -76,7 +76,7 @@ Forensic traffic flows directly between endpoints whenever possible.
 - Optional kill-switch containment  
 - Rapid mesh creation and teardown  
 
-<img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/4b305c4c-c0f9-49bf-8e59-9ccecdfadb86" />
+<img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/2e539f33-d46a-4396-b25e-43c23e9e4040" />
 
 <img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/31947724-d826-4807-b984-9b87473e6847" />
 
