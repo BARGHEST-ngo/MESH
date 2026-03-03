@@ -18,7 +18,8 @@
 				"ahmadalli.vscode-nginx-conf",
 				"Augment.vscode-augment",
 				"task.vscode-task",
-				"redhat.vscode-yaml"
+				"redhat.vscode-yaml",
+				"github.vscode-github-actions"
 			],
 			"settings": {
 				"java.configuration.runtimes": [
