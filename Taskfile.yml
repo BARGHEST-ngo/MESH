@@ -106,6 +106,16 @@ tasks:
     cmds:
       - make -C android-client apk
 
+  buildAndroidRelease:
+    desc: Build MESH Android client for release
+    cmds:
+      - make -C android-client release-apk
+
+  buildAndroidSigned:
+    desc: Build signed MESH Android client for release
+    cmds:
+      - make -C android-client release-apk-signed
+
   clean:
     desc: Clean up build artifacts
     cmds:
