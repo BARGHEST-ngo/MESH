@@ -183,10 +183,7 @@ def getLocalProperty(key, defaultValue) {
 
 
 def getVersionProperty(key) {
-    // tailscale.version is created / updated by the makefile, it is in a loosely
-    // Makfile/envfile format, which is also loosely a properties file format.
-    //      make tailscale.version
     def versionProps = new Properties()
-    versionProps.load(project.file('../tailscale.version').newDataInputStream())
+    versionProps.load(project.file('../barghest.version').newDataInputStream())
     return versionProps.getProperty(key).replaceAll('^\"|\"$', '')
 }

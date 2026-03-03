@@ -139,7 +139,7 @@ release: jarsign-env $(RELEASE_AAB)
 
 # gradle-dependencies groups together the android sources and libtailscale needed to assemble tests/debug/release builds.
 .PHONY: gradle-dependencies
-gradle-dependencies: $(shell find android -type f -not -path "android/build/*" -not -path '*/.*') $(LIBTAILSCALE_AAR) tailscale.version
+gradle-dependencies: $(shell find android -type f -not -path "android/build/*" -not -path '*/.*') $(LIBTAILSCALE_AAR)
 
 $(RELEASE_AAB): version gradle-dependencies
 	@echo "Building release AAB"
@@ -149,13 +149,6 @@ $(RELEASE_AAB): version gradle-dependencies
 mesh-test.apk: version gradle-dependencies
 	(cd android && ./gradlew assembleApplicationTestAndroidTest)
 	install -C ./android/build/outputs/apk/androidTest/applicationTest/android-applicationTest-androidTest.apk $@
-
-tailscale.version: ../go.mod ../go.sum $(wildcard ../.git/HEAD)
-	@bash -c "go run tailscale.com/cmd/mkversion > tailscale.version"
-
-.PHONY: version
-version:
-	@cat tailscale.version
 
 # ------------------------------------------------------------------------------
 # Go Build Targets (Unstripped AAR, Debug Symbols, Stripped SO, Packaging)
@@ -174,7 +167,7 @@ $(GOBIN)/gobind: ../go.mod ../go.sum
 	go install golang.org/x/mobile/cmd/gobind
 
 .PHONY: build-unstripped-aar
-build-unstripped-aar: tailscale.version $(GOBIN)/gomobile
+build-unstripped-aar: $(GOBIN)/gomobile
 	@echo "Running gomobile bind to generate unstripped AAR..."
 	@echo "Output file: $(ABS_UNSTRIPPED_AAR)"
 	mkdir -p $(dir $(ABS_UNSTRIPPED_AAR))
