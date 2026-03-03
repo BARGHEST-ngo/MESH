@@ -6,7 +6,7 @@ The security of this project is important. If you discover a security vulnerabil
 
 MESH is used in highly risky environments and a public disclosure may contribute to adversarial actions. 
 
-Please report all security vulnerabilities via email:
+Please report all security vulnerabilities via email or using the Report Button on this page:
 
 **info [ @ ] barghest [ . ] asia**
 
