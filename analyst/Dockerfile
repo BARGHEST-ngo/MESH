@@ -7,10 +7,10 @@ WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY analyst/src ./analyst
+COPY analyst ./analyst
 RUN go generate ./...
 COPY .git ./.git
-RUN ./analyst/build.sh
+RUN ./analyst/src/build.sh
 
 FROM eclipse-temurin:25-jre AS android-sdk
 
@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && mv "${ANDROID_SDK_ROOT}/tmp/cmdline-tools" "${ANDROID_SDK_ROOT}/cmdline-tools/latest" \
     && rm -rf "${ANDROID_SDK_ROOT}/tmp" \
     && yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses || true \
-    && "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" "platform-tools;37.0.0"
+    && "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" "platform-tools"
 
 FROM debian:bookworm-slim
 

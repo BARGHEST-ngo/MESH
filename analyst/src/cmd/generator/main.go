@@ -28,15 +28,15 @@ func main() {
 	}
 	goModPath := string(output[:len(output)-1]) // remove trailing newline
 	rootModPath := filepath.Dir(goModPath)
-	analystDir := filepath.Join(rootModPath, "analyst")
-	patchesDir := filepath.Join(analystDir, "patches")
+	analystSrcDir := filepath.Join(rootModPath, "analyst", "src")
+	patchesDir := filepath.Join(analystSrcDir, "patches")
 	tailscaleDir := filepath.Join(rootModPath, "tailscale")
 
 	// If tailscale dir already exists, copy out .git directory and remove it
 	var gitDir string
 	if _, err := os.Stat(tailscaleDir); err == nil {
 		gitDir = filepath.Join(tailscaleDir, ".git")
-		if err := os.Rename(gitDir, filepath.Join(analystDir, "tailscale.git")); err != nil {
+		if err := os.Rename(gitDir, filepath.Join(analystSrcDir, "tailscale.git")); err != nil {
 			log.Fatalf("failed to move .git directory: %v", err)
 		}
 		if err := os.RemoveAll(tailscaleDir); err != nil {
@@ -94,14 +94,14 @@ func main() {
 	log.Printf("Copied tailscale.com module to %q\n", tailscaleDir)
 
 	// Add files from cli directory to the tailscale.com/cmd/tailscale/cli package in the build directory
-	analystCliDir := filepath.Join(rootModPath, "analyst", "cli")
+	analystCliDir := filepath.Join(analystSrcDir, "cli")
 	tailscaleCliDir := filepath.Join(tailscaleDir, "cmd", "tailscale", "cli")
 	analystFiles, err := os.ReadDir(analystCliDir)
 	if err != nil {
-		log.Fatalf("failed to read analyst/cli directory: %v", err)
+		log.Fatalf("failed to read analyst/src/cli directory: %v", err)
 	}
 
-	log.Println("Copying analyst/cli files to tailscale.com/cmd/tailscale/cli in build directory...")
+	log.Println("Copying analyst/src/cli files to tailscale.com/cmd/tailscale/cli in build directory...")
 	for _, f := range analystFiles {
 		// Skip directories and non-Go files
 		if f.IsDir() || !strings.HasSuffix(f.Name(), ".go") {
@@ -122,14 +122,14 @@ func main() {
 	}
 
 	// Add files from wgcfg directory to the tailscale.com/wgengine/wgcfg package in the build directory
-	analystWgcfgDir := filepath.Join(rootModPath, "analyst", "wgcfg")
+	analystWgcfgDir := filepath.Join(analystSrcDir, "wgcfg")
 	tailscaleWgcfgDir := filepath.Join(tailscaleDir, "wgengine", "wgcfg")
 	analystFiles, err = os.ReadDir(analystWgcfgDir)
 	if err != nil {
-		log.Fatalf("failed to read analyst/wgcfg directory: %v", err)
+		log.Fatalf("failed to read analyst/src/wgcfg directory: %v", err)
 	}
 
-	log.Println("Copying analyst/wgcfg files to tailscale.com/wgengine/wgcfg in build directory...")
+	log.Println("Copying analyst/src/wgcfg files to tailscale.com/wgengine/wgcfg in build directory...")
 	for _, f := range analystFiles {
 		// Skip directories and non-Go files
 		if f.IsDir() || !strings.HasSuffix(f.Name(), ".go") {
@@ -175,7 +175,7 @@ func main() {
 
 	// Replace .git directory if we moved it out earlier
 	if gitDir != "" {
-		if err := os.Rename(filepath.Join(analystDir, "tailscale.git"), gitDir); err != nil {
+		if err := os.Rename(filepath.Join(analystSrcDir, "tailscale.git"), gitDir); err != nil {
 			log.Fatalf("failed to move .git directory back: %v", err)
 		}
 		log.Printf("Restored .git directory\n")

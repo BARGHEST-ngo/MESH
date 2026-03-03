@@ -99,7 +99,7 @@ tasks:
   buildAnalyst:
     desc: Build MESH analyst client
     cmds:
-      - ./analyst/build.sh
+      - ./analyst/src/build.sh
 
   buildAndroid:
     desc: Build MESH Android client
