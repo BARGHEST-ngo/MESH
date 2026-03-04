@@ -1,0 +1,110 @@
+site_name: MESH Docs
+site_url: https://barghest-ngo.github.io/docs.meshforensics.org/
+repo_url: https://github.com/BARGHEST-ngo/MESH
+repo_name: BARGHEST-ngo/MESH
+edit_uri: edit/main/docs/
+exclude_docs: |
+  /README.md
+
+theme:
+  name: material
+  logo: assets/images/White.png
+  favicon: assets/images/White.png
+  palette:
+    # Light mode
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: black
+      accent: black
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: black
+      accent: white
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace
+    code: JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace
+  features:
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/BARGHEST-ngo/MESH
+      name: MESH on GitHub
+  generator: false
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - tables
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home:
+      - index.md
+  - Overview:
+      - overview/index.md
+      - Features: overview/features.md
+      - Architecture: overview/architecture.md
+      - Use Cases: overview/use-cases.md
+      - Platform Support: overview/platform-support.md
+      - About: overview/about.md
+  - Getting Started:
+      - getting-started/index.md
+      - Prerequisites: getting-started/prerequisites.md
+      - Control plane setup: getting-started/control-plane.md
+      - Analyst client: getting-started/analyst-client.md
+      - Endpoint client: getting-started/endpoint-client.md
+      - Verification: getting-started/verification.md
+      - Next steps: getting-started/next-steps.md
+  - Configuration:
+      - installation/index.md
+      - Control plane: installation/control-plane.md
+      - Analyst client: installation/analyst-client.md
+      - Endpoint clients: installation/endpoint-clients.md
+  - User Guide:
+      - user-guide/index.md
+      - User guide: user-guide/user-guide.md
+      - Architecture details: user-guide/architecture.md
+  - Advanced:
+      - advanced/index.md
+      - AmneziaWG configuration: advanced/amneziawg.md
+      - Control plane advanced: advanced/control-plane-advanced.md
+      - Exit node and PCAP: advanced/exit-node-pcap.md
+  - Reference:
+      - reference/index.md
+      - CLI reference: reference/cli-reference.md
+      - Troubleshooting: reference/troubleshooting.md

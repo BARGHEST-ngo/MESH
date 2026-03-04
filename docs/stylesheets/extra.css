@@ -1,0 +1,98 @@
+/* Import JetBrains Mono font */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+/* Logo styling - custom size */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  width: 48px;
+  height: 48px;
+}
+
+/* Logo color - invert for light mode (since logo is white) */
+[data-md-color-scheme="default"] .md-header__button.md-logo img {
+  filter: invert(1);
+}
+
+/* Logo color - normal for dark mode */
+[data-md-color-scheme="slate"] .md-header__button.md-logo img {
+  filter: none;
+}
+
+/* Site title styling - MESH branding */
+.md-header__title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Custom link styling to match barghest.asia */
+.md-content a {
+  position: relative;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.445, 0.05, 0.55, 0.95);
+}
+
+.md-content a::after {
+  content: "";
+  background: #292524;
+  width: calc(100% + 9px);
+  height: 1px;
+  position: absolute;
+  bottom: -2px;
+  left: -4px;
+  transition: all 0.2s cubic-bezier(0.445, 0.05, 0.55, 0.95);
+}
+
+.md-content a:hover::after {
+  height: calc(100% + 4px);
+  z-index: -1;
+}
+
+.md-content a:hover {
+  color: #fff;
+}
+
+/* Full-width layout for pages with hidden navigation */
+.md-sidebar--primary[hidden] ~ .md-content {
+  margin-left: 0;
+}
+
+.md-sidebar--primary[hidden] ~ .md-content .md-content__inner {
+  max-width: 100%;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+/* Center content when both sidebars are hidden (landing page) */
+.md-sidebar--primary[hidden] ~ .md-content .md-content__inner,
+.md-sidebar--secondary[hidden] ~ .md-content .md-content__inner {
+  max-width: 1200px;
+}
+
+/* Improve grid cards spacing on landing page */
+.md-content .grid.cards {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Better spacing for landing page sections */
+.md-sidebar--primary[hidden] ~ .md-content h2 {
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.md-sidebar--primary[hidden] ~ .md-content h1 {
+  text-align: center;
+  font-size: 3rem;
+  margin-bottom: 2rem;
+}
+
+/* Center important callouts on landing page */
+.md-sidebar--primary[hidden] ~ .md-content .admonition {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+

@@ -41,6 +41,10 @@
 			"installDockerComposeSwitch": true,
 			"version": "latest",
 			"dockerDashComposeVersion": "v2"
+		},
+		"ghcr.io/devcontainers-extra/features/mkdocs:2": {
+			"version": "latest",
+			"plugins": "mkdocs-material"
 		}
 	},
 	"remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" }

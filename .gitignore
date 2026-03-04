@@ -59,3 +59,6 @@ client/web/build/assets
 .task
 .env
 .authkey
+
+# MkDocs build output
+site/
