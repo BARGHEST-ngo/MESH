@@ -7,9 +7,8 @@ WORKDIR /usr/src/app
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY analyst ./analyst
+COPY analyst/src ./analyst/src
 RUN go generate ./...
-COPY .git ./.git
 RUN ./analyst/src/build.sh
 
 FROM eclipse-temurin:25-jre AS android-sdk
@@ -41,8 +40,8 @@ ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROI
 
 RUN groupadd --gid 10001 mesh \
     && useradd  --uid 10001 --gid mesh --shell /sbin/nologin --create-home mesh \
-    && mkdir -p /var/run/tailscale \
-    && chown mesh:mesh /var/run/tailscale
+    && mkdir -p /home/mesh/.tailscale \
+    && chown -R mesh:mesh /home/mesh/.tailscale
 
 COPY --from=android-sdk /opt/java/openjdk              $JAVA_HOME
 COPY --from=android-sdk /usr/local/android-sdk         $ANDROID_SDK_ROOT

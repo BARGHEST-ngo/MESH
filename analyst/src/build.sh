@@ -27,11 +27,7 @@ if [ -z "$GO_MOD_DIR" ] || [ ! -d "$GO_MOD_DIR" ]; then
 	exit 1
 fi
 
-eval `CGO_ENABLED=0 GOOS=$(go env GOHOSTOS) GOARCH=$(go env GOHOSTARCH) go run tailscale.com/cmd/mkversion`
-
-ldflags="-X tailscale.com/version.longStamp=${VERSION_LONG} -X tailscale.com/version.shortStamp=${VERSION_SHORT}"
-
-tags="${TAGS:+$TAGS,}" # ts_omit_aws,ts_omit_cloud,ts_omit_kube,ts_omit_synology,ts_omit_appconnectors,ts_omit_cli,ts_omit_completion,ts_omit_cliconndiag,ts_omit_clientupdate,ts_omit_c2n,ts_omit_oauthkey,ts_omit_outboundproxy,ts_omit_peerapiclient,ts_omit_peerapiserver,ts_omit_portlist,ts_omit_relayserver,ts_omit_wakeonlan,ts_omit_tap,ts_omit_bird,ts_omit_logtail"
+tags="${TAGS:+$TAGS,}ts_omit_logtail" # ts_omit_aws,ts_omit_cloud,ts_omit_kube,ts_omit_synology,ts_omit_appconnectors,ts_omit_cli,ts_omit_completion,ts_omit_cliconndiag,ts_omit_clientupdate,ts_omit_c2n,ts_omit_oauthkey,ts_omit_outboundproxy,ts_omit_peerapiclient,ts_omit_peerapiserver,ts_omit_portlist,ts_omit_relayserver,ts_omit_wakeonlan,ts_omit_tap,ts_omit_bird"
 
 BUILD_DIR="$GO_MOD_DIR/tailscale"
 if [ ! -d "$BUILD_DIR" ]; then
@@ -41,6 +37,6 @@ fi
 cd "$BUILD_DIR"
 
 echo "${GREEN}Building mesh binary...${NC}"
-go build -tags "$tags" -trimpath -ldflags "$ldflags" -o "$GO_MOD_DIR/analyst/mesh" ./cmd/tailscaled
+go build -tags "$tags" -trimpath -o "$GO_MOD_DIR/analyst/mesh" ./cmd/tailscaled
 
 echo "${GREEN}Build complete!${NC}"

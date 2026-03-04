@@ -9,7 +9,6 @@ vars:
 
 dotenv:
   - .env
-  - .authkey
 
 tasks:
   configureDotEnv:
@@ -18,12 +17,11 @@ tasks:
       vars:
         - name: EPHEMERAL_DEPLOYMENT
           enum: ["true", "false"]
-        - CONTROL_PLANE_DOMAIN
     vars:
-      DEFAULT_CORS_ORIGIN: "https://{{.CONTROL_PLANE_DOMAIN}}"
+      DEFAULT_CORS_ORIGIN: https://{{.CONTROL_PLANE_DOMAIN | default "localhost"}}
     cmds:
-      - '[ -f .authkey ] || (touch .authkey && chmod 600 .authkey)'
-      - grep -s CONTROL_PLANE_DOMAIN .env || echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN}}" >> .env
+      - '[ -f .env ] || (touch .env && chmod 600 .env)'
+      - grep -s CONTROL_PLANE_DOMAIN .env || echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN | default "localhost"}}" >> .env
       - grep -s EPHEMERAL_DEPLOYMENT .env || echo "EPHEMERAL_DEPLOYMENT={{.EPHEMERAL_DEPLOYMENT}}" >> .env
       - grep -s CORS_ORIGIN .env || echo "CORS_ORIGIN={{.CORS_ORIGIN | default .DEFAULT_CORS_ORIGIN }}" >> .env
       - cmd: grep -s LOGIN_URL .env || echo "LOGIN_URL={{.LOGIN_URL | default .DEFAULT_LOGIN_URL }}" >> .env
@@ -49,8 +47,7 @@ tasks:
   apikey:
     desc: Generate a Headscale API key
     cmd: >
-      [ $(docker ps -f name=headscale -q | wc -l) == 1 ] &&
-      docker exec -it headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}} ||
+      docker compose exec headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}} ||
       echo "Control plane is not running. Start it with 'task up' first."
     silent: true
 
@@ -76,11 +73,13 @@ tasks:
       vars:
         - AUTH_KEY
     cmd: >
-      echo "AUTH_KEY={{.AUTH_KEY}}" > .authkey &&
-      AUTH_KEY={{.AUTH_KEY}} docker compose run --rm -it analyst meshcli {{.CLI_ARGS}}
+      grep -s AUTH_KEY .env && sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.AUTH_KEY}}/" .env || echo "AUTH_KEY={{.AUTH_KEY}}" >> .env &&
+      export AUTH_KEY={{.AUTH_KEY}} &&
+      docker compose up -d &&
+      docker compose exec analyst meshcli {{.CLI_ARGS}}
     silent: true
     deps:
-      - configureDotEnv
+      - configureControlPlane
 
 #################################
 # Development tasks

@@ -1,12 +1,6 @@
 {
 	"name": "MESH Development",
-	"dockerComposeFile": [
-		"../compose.yml",
-		"compose.dev.yml"
-	],
-	"service": "analyst",
-	"workspaceFolder": "/workspace",
-	"shutdownAction": "stopCompose",
+	"build": { "dockerfile": "Dockerfile" },
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -35,7 +29,7 @@
 	"mounts": [
 		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/root/.android,type=bind,consistency=cached"
 	],
-	"postStartCommand": "cd control-plane/mesh-ui && pnpm install --frozen-lockfile && nohup bash -c 'pnpm run dev &'",
+	"forwardPorts": [80],
 	"features": {
 		"ghcr.io/devcontainers/features/git-lfs:1": {
 			"autoPull": true,
@@ -48,5 +42,6 @@
 			"version": "latest",
 			"dockerDashComposeVersion": "v2"
 		}
-	}
+	},
+	"remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" }
 }
