@@ -46,10 +46,12 @@ RUN groupadd --gid 10001 mesh \
 COPY --from=android-sdk /opt/java/openjdk              $JAVA_HOME
 COPY --from=android-sdk /usr/local/android-sdk         $ANDROID_SDK_ROOT
 COPY --from=build       /usr/src/app/analyst/mesh      /usr/bin/mesh
-COPY --chmod=755        analyst/meshcli                /usr/bin/meshcli
 COPY --chmod=755        analyst/entrypoint.sh          /usr/bin/entrypoint.sh
+COPY                    analyst/amneziawg.conf.example /etc/mesh/amneziawg.conf.example
 
 USER mesh
 
+# Add bash alias for meshcli
+RUN echo "alias meshcli='/usr/bin/mesh cli'" >> /home/mesh/.bashrc
+
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
-CMD ["/usr/bin/meshcli"]

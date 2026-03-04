@@ -13,7 +13,8 @@
 				"Augment.vscode-augment",
 				"task.vscode-task",
 				"redhat.vscode-yaml",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"eamodio.gitlens"
 			],
 			"settings": {
 				"java.configuration.runtimes": [

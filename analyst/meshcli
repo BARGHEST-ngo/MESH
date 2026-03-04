@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-exec mesh cli --socket="/home/mesh/.tailscale/tailscaled.sock" "$@"

@@ -59,7 +59,7 @@ tasks:
 
   up:
     desc: Start MESH Docker containers
-    cmd: docker compose up -d --build
+    cmd: docker compose up
     deps:
       - configureControlPlane
 
@@ -67,19 +67,23 @@ tasks:
     desc: Stop MESH Docker containers
     cmd: docker compose down
 
-  analyst:
-    desc: Start MESH analyst client
+  setAuthKey:
+    desc: Set auth key and start MESH analyst client
     requires:
       vars:
         - AUTH_KEY
     cmd: >
       grep -s AUTH_KEY .env && sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.AUTH_KEY}}/" .env || echo "AUTH_KEY={{.AUTH_KEY}}" >> .env &&
       export AUTH_KEY={{.AUTH_KEY}} &&
-      docker compose up -d &&
-      docker compose exec analyst meshcli {{.CLI_ARGS}}
+      docker compose up -d analyst
     silent: true
     deps:
       - configureControlPlane
+
+  analyst:
+    desc: Enter an interactive shell in the MESH analyst client container
+    cmd: docker compose exec analyst /bin/bash
+    silent: true
 
 #################################
 # Development tasks
