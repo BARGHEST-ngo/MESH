@@ -75,7 +75,8 @@ tasks:
     cmd: >
       grep -s AUTH_KEY .env && sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.AUTH_KEY}}/" .env || echo "AUTH_KEY={{.AUTH_KEY}}" >> .env &&
       export AUTH_KEY={{.AUTH_KEY}} &&
-      docker compose up -d analyst
+      docker compose up -d analyst &&
+      echo "Auth key set and analyst client started. Run 'task analyst' to enter the container."
     silent: true
     deps:
       - configureControlPlane
@@ -100,7 +101,7 @@ tasks:
       - go generate ./...
 
   buildAnalyst:
-    desc: Build MESH analyst client
+    desc: Build MESH analyst client for local development
     cmds:
       - ./analyst/src/build.sh
 

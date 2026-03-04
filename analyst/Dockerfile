@@ -51,7 +51,27 @@ COPY                    analyst/amneziawg.conf.example /etc/mesh/amneziawg.conf.
 
 USER mesh
 
-# Add bash alias for meshcli
-RUN echo "alias meshcli='/usr/bin/mesh cli'" >> /home/mesh/.bashrc
+# Configure .bashrc: meshcli alias and interactive welcome message
+RUN printf '%s\n' \
+    '' \
+    'alias meshcli="/usr/bin/mesh cli"' \
+    '' \
+    '# Display welcome message for interactive shells only' \
+    'if [[ $- == *i* ]]; then' \
+    '  printf "\n\033[1;36m╔══════════════════════════════════════════════╗\033[0m\n"' \
+    '  printf "\033[1;36m║\033[0m\033[1;37m          MESH Analyst Container              \033[0m\033[1;36m║\033[0m\n"' \
+    '  printf "\033[1;36m╚══════════════════════════════════════════════╝\033[0m\n\n"' \
+    '  printf "  \033[1;33mForensic Tools:\033[0m\n\n"' \
+    '  printf "    \033[1;32mmeshcli\033[0m    MESH CLI — manage MESH network connections\n"' \
+    '  printf "               Usage: meshcli status | meshcli up | meshcli down\n\n"' \
+    '  printf "    \033[1;32madb\033[0m        Android Debug Bridge — connect to Android devices\n"' \
+    '  printf "               Usage: adb devices | adb shell | adb pull <remote> <local>\n\n"' \
+    '  printf "    \033[1;32msdkmanager\033[0m Android SDK Manager — manage Android SDK packages\n"' \
+    '  printf "               Usage: sdkmanager --list\n\n"' \
+    '  printf "  \033[1;33mLogs:\033[0m\n"' \
+    '  printf "    ~/.tailscale/mesh.log     MESH daemon log\n"' \
+    '  printf "    ~/.tailscale/meshcli.log  MESH CLI log\n\n"' \
+    'fi' \
+    >> /home/mesh/.bashrc
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
