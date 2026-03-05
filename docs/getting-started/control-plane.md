@@ -2,151 +2,71 @@
 
 The control plane coordinates your MESH network. We use Docker for easy deployment.
 
-## Step 1: Clone the Repository
+## Step 1: Install prerequisites
+
+Install Docker and Docker Compose if you haven't already. You can find the instructions for your specific operating system [here](https://docs.docker.com/get-docker/).
+
+The only other prerequisites are Git and Task. You can install Task by following the instructions [here](https://taskfile.dev/docs/installation). On Debian-based Linux systems such as Ubuntu you can install Task with:
+
+```bash
+curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
+sudo apt update && sudo apt install -y task
+```
+
+## Step 2: Clone the Repository
 
 ```bash
 git clone https://github.com/BARGHEST-ngo/mesh.git
-cd mesh/mesh-control-plane
+cd mesh
 ```
 
-## Step 2: Configure Headscale
-
-Create a configuration file:
+## Step 3: Configure and start the control plane
 
 ```bash
-mkdir -p config
-cat > config/config.yaml << EOF
-server_url: https://your-domain.com
-listen_addr: 0.0.0.0:8080
-metrics_listen_addr: 0.0.0.0:9090
-
-grpc_listen_addr: 0.0.0.0:50443
-grpc_allow_insecure: false
-
-private_key_path: /var/lib/headscale/private.key
-noise_private_key_path: /var/lib/headscale/noise_private.key
-base_domain: your-domain.com
-
-ip_prefixes:
-  - 100.64.0.0/10
-  - fd7a:115c:a1e0::/48
-
-derp:
-  server:
-    enabled: true
-    region_id: 999
-    region_code: "custom"
-    region_name: "Custom DERP"
-    stun_listen_addr: "0.0.0.0:3478"
-
-  urls:
-    - https://controlplane.tailscale.com/derpmap/default
-
-  auto_update_enabled: true
-  update_frequency: 24h
-
-database:
-  type: sqlite3
-  sqlite:
-    path: /var/lib/headscale/db.sqlite
-
-log:
-  level: info
-  format: text
-
-dns_config:
-  override_local_dns: false
-  nameservers:
-    - 1.1.1.1
-    - 8.8.8.8
-  magic_dns: true
-  base_domain: mesh.local
-
-acl_policy_path: /etc/headscale/acl.yaml
-EOF
+task controlPlane
 ```
 
-!!! important "Replace Configuration Values"
-    Replace `your-domain.com` with your actual domain or server IP address. If you want to use your own DERP server, you should change the `urls` to your own. You can learn more about DERP here. We use Tailscale's DERP relay's by default.
-
-## Step 3: Create ACL Policy
-
-Access Control Lists (ACLs) define which nodes can communicate with each other.
-
-```bash
-cat > config/acl.yaml << EOF
-acls:
-  - action: accept
-    src:
-      - "*"
-    dst:
-      - "*:*"
-EOF
-```
-
-!!! warning "Permissive ACL"
-    The default configuration allows all nodes to communicate with each other. For production deployments, see the [ACL documentation](../installation/control-plane.md#access-control-lists-acls) for more restrictive policies.
-
-## Step 4: Start the control plane
-
-```bash
-docker-compose up -d
-```
+When first run, you will be prompted for the type of control plane you want to deploy. You can choose between an ephemeral control plane that runs on your local workstation and is only accessible using a third party tunneling service, or a persistent control plane run on a virtual private server (VPS) that is accessible from the internet.
 
 Verify the containers are running:
 
 ```bash
-docker ps
+docker compose logs
 ```
 
 You should see containers for:
 
 - `headscale` - The control plane server
-- `headscale-ui` - The web management interface
+- `mesh-ui` - The MESH web management interface
 
-## Step 5: Access the Web UI
+## Step 4: Access the Web UI
 
 The control plane includes a web-based management interface. Access it at:
 
-- **Local access**: `https://localhost:3000/login`
-- **Remote access**: `https://your-domain:8443/login`
+- **Local access**: `http://localhost/login`
+- **Remote access**: `https://your-domain.com/login`
 
-!!! tip "Self-Signed Certificate"
-    The web UI uses a self-signed certificate by default. Your browser will show a security warning - this is expected. Click "Advanced" and proceed to the site. You should use a reverse proxy to serve the web UI over HTTPS. **It is required for the control plane to be accessible on HTTPS publicly**
-
-## Step 6: Create an API Key
-
-Before using the web UI, create an API key:
+You will be prompted to enter an API key in order to use the management functionality, which you can do by running the following:
 
 ```bash
-docker exec headscale headscale apikeys create --expiration 90d
+task apikey
 ```
 
 **Example output:**
 
 ```
-abc123def456ghi789jkl012mno345pqr678stu901vwx234yz
+hskey-api-RJyX-n70PaGg-cOh40d9NlJn5FkLTOpwS6ajrkvGrv-WLjAU4eFauE4iK59gVYh4m7O4rqAykxa7e
 ```
 
-!!! important "Copy your API key"
-    Copy this key immediately - you won't be able to see it again.
-
-## Step 7: Connect to the Web UI
-
-1. Open the web UI in your browser
-2. Enter your **Ccntrol plane URL**: `http://localhost:3000`
-3. Paste your **API Key** from Step 6
-4. Click **ACCESS SYSTEM**
+Enter this key into the web UI and click **ACCESS SYSTEM**.
 
 ![alt text](image.png)
 
 You're now connected to the control plane.
 
-## Step 8: Create a new network
+## Step 5: Create a new network
 
 Before creating pre-authentication keys for nodes, you need to create a network (or namespace). This should be the network that you'll join nodes to for a forensics mesh.
-
-**Using the Web UI (Recommended):**
 
 - Navigate to the **[ NEW NETWORK ]** tab in the sidebar
 
@@ -164,7 +84,7 @@ Before creating pre-authentication keys for nodes, you need to create a network 
 
 For production deployments, see the [ACL documentation](../installation/control-plane.md#access-control-lists-acls).
 
-## Step 9: Create a Pre-authentication key
+## Step 6: Create a Pre-authentication key
 
 Pre-auth keys allow nodes to join the mesh without interactive authentication. You'll need this key to connect clients.
 
@@ -192,10 +112,10 @@ Verify your control plane is running correctly:
 docker ps
 
 # Check control plane logs
-docker logs headscale
+docker compose logs
 
-# Test API endpoint
-curl http://localhost:8080/health
+# Test control plane API endpoint
+curl https://your-domain.com/health
 ```
 
 ## Next steps

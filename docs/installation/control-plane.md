@@ -14,66 +14,97 @@ The control plane is responsible for:
 
 ### Configuration
 
-The configuration file allows you to control the key aspects of your control plane server.
-If you haven't already created the file following the 'Getting Started' guide, you can do so like this:
+The configuration file allows you to control the key aspects of your control plane server. This file is created automatically when you run `task controlPlane` for the first time. You can also create it manually if you prefer.
 
-```bash
-cat > config/config.yaml << 'EOF'
+```yaml
 server_url: https://mesh.yourdomain.com
 listen_addr: 0.0.0.0:8080
-metrics_listen_addr: 0.0.0.0:9090
-
-grpc_listen_addr: 0.0.0.0:50443
+metrics_listen_addr: 127.0.0.1:9090
+grpc_listen_addr: 127.0.0.1:50443
 grpc_allow_insecure: false
 
-private_key_path: /var/lib/headscale/private.key
-noise_private_key_path: /var/lib/headscale/noise_private.key
-base_domain: mesh.yourdomain.com
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
 
-ip_prefixes:
-  - 100.64.0.0/10
-  - fd7a:115c:a1e0::/48
+prefixes:
+  v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48
+  allocation: sequential
 
 derp:
   server:
-    enabled: true
+    enabled: false
     region_id: 999
-    region_code: "mesh"
-    region_name: "MESH DERP"
+    region_code: "headscale"
+    region_name: "Headscale Embedded DERP"
+    verify_clients: true
     stun_listen_addr: "0.0.0.0:3478"
+    private_key_path: /var/lib/headscale/derp_server_private.key
+    automatically_add_embedded_derp_region: true
+    ipv4: 198.51.100.1
+    ipv6: 2001:db8::1
 
   urls:
-    - https://controlplane.tailscale.com/derpmap/default
+   - https://controlplane.tailscale.com/derpmap/default
 
-  auto_update_enabled: true
-  update_frequency: 24h
+  paths: []
+  auto_update_enabled: false
+  update_frequency: 3h
+
+disable_check_updates: false
+ephemeral_node_inactivity_timeout: 30m
 
 database:
-  type: sqlite3
+  type: sqlite
+  debug: false
+  gorm:
+    prepare_stmt: true
+    parameterized_queries: true
+    skip_err_record_not_found: true
+    slow_threshold: 1000
+
   sqlite:
     path: /var/lib/headscale/db.sqlite
+    write_ahead_log: true
+    wal_autocheckpoint: 1000
 
 log:
   level: info
   format: text
 
-dns_config:
-  override_local_dns: false
-  nameservers:
-    - 1.1.1.1
-    - 8.8.8.8
+policy:
+  mode: database
+  path: ""
+
+dns:
   magic_dns: true
   base_domain: mesh.local
+  override_local_dns: true
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 1.0.0.1
+      - 2606:4700:4700::1111
+      - 2606:4700:4700::1001
+    split: {}
 
-acl_policy_path: /etc/headscale/acl.yaml
-EOF
+  search_domains: []
+  extra_records: []
+
+unix_socket: /var/run/headscale/headscale.sock
+unix_socket_permission: "0770"
+
+logtail:
+  enabled: false
+
+randomize_client_port: false
 ```
 
 Replace `mesh.yourdomain.com` with your actual domain or IP.
 
 ## Configuration parameters explained
 
-Understanding each configuration parameter is essential for properly securing and operating your MESH control plane.
+Full documentation for each of the configuration parameters can be found in the [example config provided in the MESH repository](https://github.com/BARGHEST-ngo/MESH/blob/main/control-plane/headscale/config.example.yaml). Most of the values should not be changed, but those you may want to change are discussed below.
 
 ### Server and network settings
 
@@ -97,75 +128,12 @@ The public URL/IP where your control plane is accessible. This is the URL/IP tha
 - Using HTTP exposes authentication tokens to network eavesdropping
 - Must be accessible from all networks where clients will connect
 
-#### `listen_addr`
+#### `prefixes`
 
 ```yaml
-listen_addr: 0.0.0.0:8080
-```
-
-The address and port where Headscale's HTTP API listens internally.
-
-**When to modify:**
-
-- Change port if 8080 conflicts with other services
-- Use `127.0.0.1:8080` if only accessing via reverse proxy on same host
-- Keep `0.0.0.0` if reverse proxy is on different host
-
-**Security implications:**
-
-- Should not be directly exposed to the internet
-- Always use a reverse proxy with HTTPS in front of this
-- Firewall this port to only allow reverse proxy access
-
-#### `metrics_listen_addr`
-
-```yaml
-metrics_listen_addr: 0.0.0.0:9090
-```
-
-Prometheus metrics endpoint for monitoring.
-
-**When to modify:**
-
-- Change port if 9090 conflicts
-- Use `127.0.0.1:9090` to restrict to localhost only
-
-**Security implications:**
-
-- Metrics may contain sensitive information about your network topology
-- Should not be publicly accessible
-- Firewall appropriately or bind to localhost
-
-#### `grpc_listen_addr` and `grpc_allow_insecure`
-
-```yaml
-grpc_listen_addr: 0.0.0.0:50443
-grpc_allow_insecure: false
-```
-
-The gRPC API used by the `headscale` CLI tool and web UI.
-
-**When to modify:**
-
-- Change port if 50443 conflicts
-- **Never** set `grpc_allow_insecure: true` in production
-
-**Security implications:**
-
-- `grpc_allow_insecure: false` requires TLS for gRPC connections
-- Setting to `true` exposes administrative API without encryption
-- This API has full control over your mesh network
-- Firewall this port to only allow administrative access
-
-!!! danger "Critical security setting"
-    **Never** set `grpc_allow_insecure: true` in production. This would allow anyone with network access to fully control your mesh network without authentication or encryption.
-
-#### `ip_prefixes`
-
-```yaml
-ip_prefixes:
-  - 100.64.0.0/10      # IPv4 CGNAT range
-  - fd7a:115c:a1e0::/48  # IPv6 ULA range
+prefixes:
+  v4: 100.64.0.0/10
+  v6: fd7a:115c:a1e0::/48
 ```
 
 The IP address ranges assigned to mesh nodes.
@@ -175,7 +143,7 @@ The IP address ranges assigned to mesh nodes.
 - Rarely needs modification
 - Change only if these ranges conflict with existing networks
 - Must use private/CGNAT ranges to avoid internet routing conflicts
-- You can use these when want to seperate IP ranges in cases.
+- You can use these when you want to seperate IP ranges in cases.
 
 **Security implications:**
 
@@ -189,7 +157,7 @@ The IP address ranges assigned to mesh nodes.
 
 ```yaml
 database:
-  type: sqlite3
+  type: sqlite
   sqlite:
     path: /var/lib/headscale/db.sqlite
 ```
@@ -205,22 +173,23 @@ Database backend for storing mesh state.
 **Security implications:**
 
 - Database contains all mesh configuration and node keys
-- Ensure regular backups
+- Ensure regular backups for persistent control plane deployments
 - Protect database file with appropriate filesystem permissions
 - Consider encrypting the filesystem or using encrypted storage
 
 ### DNS configuration
 
-#### `dns_config`
+#### `dns`
 
 ```yaml
-dns_config:
-  override_local_dns: false
-  nameservers:
-    - 1.1.1.1
-    - 8.8.8.8
+dns:
   magic_dns: true
   base_domain: mesh.local
+  override_local_dns: true
+  nameservers:
+    global:
+      - 1.1.1.1
+      - 8.8.8.8
 ```
 
 DNS settings for mesh nodes.
@@ -279,7 +248,7 @@ derp:
     stun_listen_addr: "0.0.0.0:3478"
 ```
 
-MESH includes a built-in DERP server for convenience.By default, the controlplane acting as the DERP relay is set to false. This is because it automatically uses the [Tailscale DERP relays](https://login.tailscale.com/derpmap/default).
+MESH includes a built-in DERP server for convenience. By default, the control plane acting as the DERP relay is set to false. This is because it automatically uses the [Tailscale DERP relays](https://login.tailscale.com/derpmap/default).
 
 !!! danger "Is DERP safe?"
     MESH'sarchitecture is end-to-end encrypted using WireGuard between your devices. That holds whether traffic is direct or relayed through DERP. Because of that DERP can see:
@@ -338,8 +307,8 @@ derp:
   urls:
     - https://controlplane.tailscale.com/derpmap/default
 
-  auto_update_enabled: true
-  update_frequency: 24h
+  auto_update_enabled: false
+  update_frequency: 3h
 ```
 
 You can use external DERP servers in addition to or instead of the built-in server.
@@ -406,7 +375,7 @@ derp:
     - https://derp.asia.yourdomain.com/derpmap
 
   auto_update_enabled: true
-  update_frequency: 24h
+  update_frequency: 3h
 ```
 
 **Hybrid deployment (own + Tailscale's):**
@@ -424,7 +393,7 @@ derp:
     - https://controlplane.tailscale.com/derpmap/default
 
   auto_update_enabled: true
-  update_frequency: 24h
+  update_frequency: 3h
 ```
 
 ## Access Control Lists (ACLs)
@@ -507,8 +476,7 @@ acls:
 
 #### Testing ACL (permissive - DO NOT USE IN PRODUCTION)
 
-```bash
-cat > config/acl.yaml << 'EOF'
+```yaml
 # WARNING: This is for testing only!
 # Allows all traffic between all nodes
 acls:
@@ -517,7 +485,6 @@ acls:
       - "*"
     dst:
       - "*:*"
-EOF
 ```
 
 !!! warning "Testing only"
@@ -845,33 +812,23 @@ acls:
 
 ### Testing and validating ACLs
 
-After creating or modifying ACLs, always test them:
+After creating or modifying ACLs in the MESH control plane web UI, always test them:
 
-#### 1. Apply the new ACL configuration
-
-```bash
-# Copy new ACL file
-cp acl.yaml config/acl.yaml
-
-# Restart Headscale to apply
-docker-compose restart headscale
-```
-
-#### 2. Test from analyst workstation
+#### 1. Test from analyst workstation
 
 ```bash
 # Should succeed: Analyst accessing endpoint
 ping 100.64.2.1  # Endpoint mesh IP
 
 # Should succeed: ADB connection
-adb connect 100.64.2.1:5555
+meshcli adbpair 100.64.2.1:5555
 ```
 
-#### 3. Test endpoint isolation
+#### 2. Test endpoint isolation
 
 ```bash
 # On endpoint device (via ADB shell)
-adb shell
+meshcli adbshell
 
 # Should FAIL: Endpoint trying to access another endpoint
 ping 100.64.2.2  # Another endpoint's mesh IP
@@ -880,14 +837,14 @@ ping 100.64.2.2  # Another endpoint's mesh IP
 ping 100.64.1.1  # Analyst mesh IP
 ```
 
-#### 4. Check logs
+#### 4. Check logs on control plane
 
 ```bash
 # View ACL enforcement logs
-docker logs headscale | grep -i acl
+docker compose logs headscale | grep -i acl
 
 # Look for denied connections
-docker logs headscale | grep -i denied
+docker compose logs headscale | grep -i denied
 ```
 
 ### Common ACL mistakes and how to avoid them
@@ -1016,13 +973,13 @@ Pre-auth keys should be rotated regularly:
 
 ```bash
 # List existing keys
-docker exec headscale headscale preauthkeys list
+docker compose exec headscale headscale preauthkeys list
 
 # Expire old keys
-docker exec headscale headscale preauthkeys expire --user default KEY_ID
+docker compose exec headscale headscale preauthkeys expire --user default KEY_ID
 
 # Create new key
-docker exec headscale headscale preauthkeys create --user default --reusable --expiration 24h
+docker compose exec headscale headscale preauthkeys create --user default --reusable --expiration 24h
 ```
 
 **Best practices:**
@@ -1038,10 +995,10 @@ Remove nodes when investigations complete using the UI or via the backend via:
 
 ```bash
 # List nodes
-docker exec headscale headscale nodes list
+docker compose exec headscale headscale nodes list
 
 # Remove a node
-docker exec headscale headscale nodes delete --identifier NODE_ID
+docker compose exec headscale headscale nodes delete --identifier NODE_ID
 ```
 
 **When to remove nodes:**
@@ -1055,14 +1012,16 @@ docker exec headscale headscale nodes delete --identifier NODE_ID
 
 Monitor ACL enforcement:
 
-```bash
+```yaml
 # Enable detailed logging in config.yaml
 log:
   level: debug  # or trace for maximum detail
   format: json  # easier to parse
+```
 
+```bash
 # Monitor logs in real-time
-docker logs -f headscale | grep -i acl
+docker compose logs -f headscale | grep -i acl
 ```
 
 **What to monitor:**
@@ -1072,138 +1031,23 @@ docker logs -f headscale | grep -i acl
 - Failed authentication attempts
 - ACL rule changes
 
-### Applying ACL changes
-
-After modifying ACLs, apply the changes:
-
-```bash
-# Method 1: Restart Headscale (applies immediately)
-docker-compose restart headscale
-
-# Method 2: Reload ACLs without restart (if supported)
-docker exec headscale headscale policy reload
-```
-
-**Important notes:**
-
-- ACL changes apply to new connections immediately
-- Existing connections may remain until they reconnect
-- Test ACL changes in a development environment first
-- Keep backups of working ACL configurations
-
-### Restart Services
-
-```bash
-docker-compose restart
-```
-
 ## Exposing the control plane
 
 The control plane needs to be accessible from the internet for nodes to connect. You have several options:
 
-### Option 1: Reverse Proxy (Recommended)
-
-Use Nginx or Caddy as a reverse proxy with automatic HTTPS:
-
-#### Caddy (Easiest)
-
-```bash
-# Install Caddy
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update
-sudo apt install caddy
-
-# Create Caddyfile
-sudo cat > /etc/caddy/Caddyfile << 'EOF'
-mesh.yourdomain.com {
-    reverse_proxy localhost:8080
-}
-EOF
-
-# Restart Caddy
-sudo systemctl restart caddy
-```
-
-#### Nginx
-
-```bash
-# Install Nginx and Certbot
-sudo apt install nginx certbot python3-certbot-nginx
-
-# Create Nginx config
-sudo cat > /etc/nginx/sites-available/mesh << 'EOF'
-server {
-    listen 80;
-    server_name mesh.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-EOF
-
-# Enable site
-sudo ln -s /etc/nginx/sites-available/mesh /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-
-# Get SSL certificate
-sudo certbot --nginx -d mesh.yourdomain.com
-```
-
-### Option 2: Ngrok (Ephemeral/Development/Testing)
-
-For a quick ephemeral session and/or when you don't have a public IP you can use services like NGROK:
-
-```bash
-# Install ngrok
-curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-sudo apt update
-sudo apt install ngrok
-
-# Authenticate (get token from ngrok.com)
-ngrok config add-authtoken YOUR_TOKEN
-
-# Expose Headscale
-ngrok http 8080
-```
-
-Use the ngrok URL (e.g., `https://abc123.ngrok.io`) as your `server_url` in the Headscale config.
+TODO
 
 ## Backup and Restore
 
+When deploying a persistent control plane it is important to back up the database and configuration files.
+
 ### Backup
 
-```bash
-# Stop Headscale
-docker-compose stop headscale
-
-# Backup database and config
-tar -czf mesh-backup-$(date +%Y%m%d).tar.gz config/ data/
-
-# Restart Headscale
-docker-compose start headscale
-```
+TODO
 
 ### Restore
 
-```bash
-# Stop Headscale
-docker-compose stop headscale
-
-# Restore from backup
-tar -xzf mesh-backup-20240101.tar.gz
-
-# Restart Headscale
-docker-compose start headscale
-```
+TODO
 
 ## Troubleshooting
 
@@ -1212,12 +1056,11 @@ docker-compose start headscale
 **Check logs:**
 
 ```bash
-docker logs headscale
+docker compose logs headscale
 ```
 
 **Common issues:**
 
-- Port already in use: `sudo lsof -i :8080`
 - Invalid config: Check `config/config.yaml` syntax
 - Permission issues: `sudo chown -R 1000:1000 data/`
 
