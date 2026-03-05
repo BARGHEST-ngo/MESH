@@ -16,14 +16,6 @@ Barghest’s team brings together senior experience in reverse engineering, zero
 
 ### Community support
 
-**Discord**
-: Join our community for real-time chat and support
-: [Join Discord](https://discord.com/invite/)
-
-**GitHub discussions**
-: Ask questions and share ideas
-: [GitHub Discussions](https://github.com/BARGHEST-ngo/mesh/discussions)
-
 **GitHub issues**
 : Report bugs and request features
 : [GitHub Issues](https://github.com/BARGHEST-ngo/mesh/issues)
@@ -43,9 +35,6 @@ MESH is open source and welcomes contributions from the community.
 **Report bugs**
 : Found a bug? Report it on [GitHub Issues](https://github.com/BARGHEST-ngo/mesh/issues)
 
-**Suggest features**
-: Have an idea? Share it on [GitHub Discussions](https://github.com/BARGHEST-ngo/mesh/discussions)
-
 **Submit code**
 : Fix bugs or add features with pull requests
 
@@ -57,15 +46,6 @@ MESH is open source and welcomes contributions from the community.
 
 **Translate**
 : Help translate MESH into other languages
-
-### Development
-
-See the [Contributing Guide](https://github.com/BARGHEST-ngo/mesh/blob/main/CONTRIBUTING.md) for:
-
-- Development setup
-- Code style guidelines
-- Pull request process
-- Testing requirements
 
 ## Acknowledgments
 
