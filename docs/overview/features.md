@@ -176,7 +176,7 @@ MESH is designed for quick deployment in time-sensitive investigations.
 - Docker-based deployment for easy management
 
 !!! success "Quick deployment"
-    From zero to first forensic collection in under 1 hour. See the [Getting started Guide](../getting-started/index.md).
+    From zero to first forensic collection in under 1 hour. See the [Getting started Guide](../setup/index.md).
 
 ## Security and privacy
 

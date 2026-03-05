@@ -82,19 +82,14 @@ nav:
       - Use Cases: overview/use-cases.md
       - Platform Support: overview/platform-support.md
       - About: overview/about.md
-  - Getting Started:
-      - getting-started/index.md
-      - Prerequisites: getting-started/prerequisites.md
-      - Control plane setup: getting-started/control-plane.md
-      - Analyst client: getting-started/analyst-client.md
-      - Endpoint client: getting-started/endpoint-client.md
-      - Verification: getting-started/verification.md
-      - Next steps: getting-started/next-steps.md
-  - Configuration:
-      - installation/index.md
-      - Control plane: installation/control-plane.md
-      - Analyst client: installation/analyst-client.md
-      - Endpoint clients: installation/endpoint-clients.md
+  - Setup:
+      - setup/index.md
+      - Prerequisites: setup/prerequisites.md
+      - Control plane setup: setup/control-plane.md
+      - Analyst client: setup/analyst-client.md
+      - Endpoint client: setup/endpoint-client.md
+      - Verification: setup/verification.md
+      - Next steps: setup/next-steps.md
   - User Guide:
       - user-guide/index.md
       - User guide: user-guide/user-guide.md
@@ -106,5 +101,8 @@ nav:
       - Exit node and PCAP: advanced/exit-node-pcap.md
   - Reference:
       - reference/index.md
+      - Configuration: reference/configuration.md
+      - ACL Policies: reference/policies.md
+      - Security: reference/security.md
       - CLI reference: reference/cli-reference.md
       - Troubleshooting: reference/troubleshooting.md

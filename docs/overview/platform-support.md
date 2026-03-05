@@ -6,19 +6,18 @@ MESH is designed to work across multiple platforms to support diverse forensic i
 
 The following platforms are currently supported in the public alpha release:
 
-| Platform | Status | Role | Minimum Version |
-|----------|--------|------|-----------------|
-| **Android** | ✅ Supported | Endpoint client | Android 8.0 (Oreo) |
-| **Linux** | ✅ Supported | Analyst client | Ubuntu 20.04+, Debian 11+ |
-| **macOS** | ✅ Supported | Analyst client | macOS 11 (Big Sur) |
-| **Control plane** | ✅ Supported | Self-hosted Server | Docker 20.10+ |
+| Component | Android | iOS | Linux | macOS | Windows |
+|-----------|---------|-----|-------|-------|---------|
+| **Control plane** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Analyst client** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Endpoint client** | ✅ Android 8.0+ | ❌ Coming Q4 2026 | ❌ | ❌ | ❌ |
 
 ### Android (endpoint client)
 
 **Supported Versions:**
 
 - Android 8.0 (Oreo) and later
-- Tested on Android 8.0 through Android 14
+- Tested on Android 8.0 through Android 16
 
 **Features:**
 
@@ -37,82 +36,32 @@ The following platforms are currently supported in the public alpha release:
 
 **Installation:**
 
-- Build from source (see [Endpoint client guide](../installation/endpoint-clients.md))
+- Build from source (see [Endpoint client guide](../setup/endpoint-clients.md))
 - Pre-built APKs available on [GitHub Releases](https://github.com/BARGHEST-ngo/mesh/releases)
 
-### Linux (analyst client)
-
-**Supported Distributions:**
-
-- Ubuntu 20.04 LTS and later
-- Debian 11 (Bullseye) and later
-- Fedora 35 and later
-- RHEL/CentOS 8 and later
-- Arch Linux (latest)
-
-**Features:**
-
-- WireGuard/AmneziaWG VPN
-- meshcli command-line interface
-- ADB integration
-- Route advertisement
-- Exit node support
-- Subnet routing
-
-**Requirements:**
-
-- Go 1.21 or later (for building from source)
-- Root/sudo access
-- ADB (Android Debug Bridge)
-
-**Installation:**
-
-- Build from source (see [Analyst client guide](../installation/analyst-client.md))
-- Pre-built binaries coming soon
-
-### macOS (analyst client)
-
-**Supported Versions:**
-
-- macOS 11 (Big Sur) and later
-- Tested on macOS 11, 12 (Monterey), 13 (Ventura), 14 (Sonoma)
-
-**Features:**
-
-- WireGuard/AmneziaWG VPN
-- meshcli command-line interface
-- ADB integration
-- Route advertisement
-- Exit node support
-- Subnet routing
-
-**Requirements:**
-
-- Go 1.21 or later (for building from source)
-- Xcode Command Line Tools
-- ADB (Android Platform Tools)
-
-**Installation:**
-
-- Build from source (see [Analyst client guide](../installation/analyst-client.md))
-- Pre-built binaries coming soon
-
-### Control plane (self-Hosted Server)
+### Analyst client
 
 **Supported Platforms:**
 
-- Any Linux distribution with Docker support
-- Tested on Ubuntu 20.04+, Debian 11+, RHEL 8+
+- Any operating system with Docker support
+- Tested on Ubuntu 20.04+, Debian 11+, RHEL 8+, macOS 11+, Windows 10+
 
-**Features:**
+**Requirements:**
 
-- Headscale coordination server
-- Web-based management UI
-- API for automation
-- SQLite or PostgreSQL database
-- DERP relay server
-- ACL policy enforcement
-- Multi-user support
+- Docker Engine 20.10 or later
+- Docker Compose 2.0 or later
+
+**Installation:**
+
+- Docker Compose deployment (see [Analyst client guide](../setup/analyst-client.md))
+- Pre-built container images coming soon
+
+### Control plane
+
+**Supported Platforms:**
+
+- Any operating system with Docker support
+- Tested on Ubuntu 20.04+, Debian 11+, RHEL 8+, macOS 11+, Windows 10+
 
 **Requirements:**
 
@@ -120,11 +69,12 @@ The following platforms are currently supported in the public alpha release:
 - Docker Compose 2.0 or later
 - 1GB RAM minimum (2GB recommended)
 - 10GB disk space
-- Public IP or domain name (recommended)
+- Public IP or domain name (persistent deployment) or tunneling service (ephemeral deployment)
 
 **Installation:**
 
-- Docker Compose deployment (see [Control plane guide](../installation/control-plane.md))
+- Docker Compose deployment (see [Control plane guide](../setup/control-plane.md))
+- Pre-built container images coming soon
 
 ## Planned Support (2026)
 
@@ -132,10 +82,9 @@ The following platforms are planned for future releases:
 
 | Platform | Expected | Role | Status |
 |----------|----------|------|--------|
-| **iOS** | Q4 2026 | Endpoint bridge client | In development |
-| **Windows** | Q4 2026 | Analyst client | Planned |
+| **iOS** | Q4 2026 | Endpoint client | In development |
 
-### iOS (endpoint bridge client) - Q4 2026
+### iOS (endpoint client) - Q4 2026
 
 **Planned Features:**
 
@@ -158,35 +107,7 @@ The following platforms are planned for future releases:
 - Expected release: Q4 2026
 
 !!! info "iOS Development"
-    iOS support is actively being developed. Follow progress on [GitHub](https://github.com/BARGHEST-ngo/mesh) or join the [Discord community](https://discord.com/invite/) for updates.
-
-### Windows (analyst client) - Q4 2026
-
-**Planned Features:**
-
-- WireGuard/AmneziaWG VPN
-- meshcli command-line interface
-- ADB integration
-- Route advertisement
-- Exit node support
-
-**Requirements (Estimated):**
-
-- Windows 10 version 1809 or later
-- Windows 11 (all versions)
-- Administrator access
-
-**Status:**
-
-- Planned for Q4 2026
-- Development not yet started
-- Community contributions welcome
-
-## Community contributions
-
-MESH is open source and welcomes community contributions for platform support:
-
-See the [Contributing Guide](https://github.com/BARGHEST-ngo/mesh/blob/main/CONTRIBUTING.md) for more information.
+    iOS support is actively being developed. Follow progress on [GitHub](https://github.com/BARGHEST-ngo/mesh) for updates.
 
 ## Compatibility Notes
 

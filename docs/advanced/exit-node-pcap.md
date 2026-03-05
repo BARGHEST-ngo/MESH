@@ -30,7 +30,7 @@ An exit node routes all internet traffic from endpoint devices through the analy
 
 Before configuring exit node functionality:
 
-1. **Working MESH deployment** - Complete the [Getting started guide](../getting-started/index.md)
+1. **Working MESH deployment** - Complete the [Getting started guide](../setup/index.md)
 2. **Analyst node** - A locked down, virutal linux node with sufficient storage for packet captures
 3. **Root access** - Required for configuring routing and packet capture
 4. **Technical skills** - Familiar with networking, iptables, and packet analysis

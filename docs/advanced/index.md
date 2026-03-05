@@ -63,7 +63,7 @@ Additional advanced topics will be added to this section:
 
 Before diving into advanced topics, ensure you have:
 
-1. **Working MESH deployment** - Complete the [Getting started guide](../getting-started/index.md)
+1. **Working MESH deployment** - Complete the [Getting started guide](../setup/index.md)
 2. **Basic understanding** - Familiar with MESH architecture and components
 3. **Production experience** - Tested MESH in development environment
 4. **Technical skills** - Comfortable with Linux, networking, and Docker

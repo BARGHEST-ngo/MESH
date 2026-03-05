@@ -2,6 +2,12 @@
 
 The control plane coordinates your MESH network. We use Docker for easy deployment.
 
+## Exposing the control plane
+
+The control plane needs to be accessible from the internet for nodes to connect. You have several options:
+
+TODO
+
 ## Step 1: Install prerequisites
 
 Install Docker and Docker Compose if you haven't already. You can find the instructions for your specific operating system [here](https://docs.docker.com/get-docker/).
@@ -82,7 +88,7 @@ Before creating pre-authentication keys for nodes, you need to create a network 
 
 - (Optional) Modify ACLs to ensure nodes are segregated properly
 
-For production deployments, see the [ACL documentation](../installation/control-plane.md#access-control-lists-acls).
+For production deployments, see the [ACL documentation](../reference/policies.md).
 
 ## Step 6: Create a Pre-authentication key
 
@@ -121,8 +127,6 @@ curl https://your-domain.com/health
 ## Next steps
 
 Your control plane is now ready. The next step is to install the analyst client on your acquision node.
-
-For detailed control plane configuration, see the [Control plane documentation](../installation/control-plane.md).
 
 ---
 

@@ -62,4 +62,4 @@ Thank you to all the developers and contributors who make these projects possibl
 
 ---
 
-**Ready to get started?** Head to the [Getting started Guide](../getting-started/index.md) →
+**Ready to get started?** Head to the [Getting started Guide](../setup/index.md) →

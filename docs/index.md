@@ -77,16 +77,16 @@ Ready to get started? Follow our step-by-step guide:
 
     Complete setup guide from zero to your first forensic collection
 
-    [:octicons-arrow-right-24: Start here](getting-started/index.md)
+    [:octicons-arrow-right-24: Start here](setup/index.md)
 
 </div>
 
 **Or jump directly to a specific component:**
 
-1. **[Set up the control plane](getting-started/control-plane.md)** - Deploy your self-hosted coordination server
-2. **[Install the analyst client](getting-started/analyst-client.md)** - Set up your Linux/macOS forensic workstation
-3. **[Deploy the endpoint client](getting-started/endpoint-client.md)** - Install the MESH app on target devices
-4. **[Verify your setup](getting-started/verification.md)** - Test connectivity and run your first collection
+1. **[Set up the control plane](setup/control-plane.md)** - Deploy your self-hosted coordination server
+2. **[Install the analyst client](setup/analyst-client.md)** - Set up your Linux/macOS forensic workstation
+3. **[Deploy the endpoint client](setup/endpoint-client.md)** - Install the MESH app on target devices
+4. **[Verify your setup](setup/verification.md)** - Test connectivity and run your first collection
 
 ## Learn more
 
