@@ -6,85 +6,195 @@ version: '3'
 
 vars:
   API_KEY_EXPIRATION: 3h
+  # EPHEMERAL_DESCRIPTION: 'Ephemeral (runs on your workstation and accessed via tunneling service like ngrok)'
+  # PERSISTENT_DESCRIPTION: 'Persistent (runs on a dedicated internet-facing server)'
 
 dotenv:
   - .env
 
+silent: true
+
 tasks:
-  configureDotEnv:
-    desc: Configure .env file
-    requires:
-      vars:
-        - name: EPHEMERAL_DEPLOYMENT
-          enum: ["true", "false"]
-    vars:
-      DEFAULT_CORS_ORIGIN: https://{{.CONTROL_PLANE_DOMAIN | default "localhost"}}
-    cmds:
-      - '[ -f .env ] || (touch .env && chmod 600 .env)'
-      - grep -s CONTROL_PLANE_DOMAIN .env || echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN | default "localhost"}}" >> .env
-      - grep -s EPHEMERAL_DEPLOYMENT .env || echo "EPHEMERAL_DEPLOYMENT={{.EPHEMERAL_DEPLOYMENT}}" >> .env
-      - grep -s CORS_ORIGIN .env || echo "CORS_ORIGIN={{.CORS_ORIGIN | default .DEFAULT_CORS_ORIGIN }}" >> .env
-      - cmd: grep -s LOGIN_URL .env || echo "LOGIN_URL={{.LOGIN_URL | default .DEFAULT_LOGIN_URL }}" >> .env
-        if: '{{eq .EPHEMERAL_DEPLOYMENT "false"}}'
-    silent: true
 
-  configureControlPlane:
-    desc: Configure MESH control plane
-    requires:
-      vars:
-        - CONTROL_PLANE_DOMAIN
-    cmd: >
-      sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN}}/g"
-      control-plane/headscale/config/config.example.yaml > control-plane/headscale/config/config.yaml
-    silent: true
-    sources:
-      - control-plane/headscale/config/config.example.yaml
-    generates:
-      - control-plane/headscale/config/config.yaml
-    deps:
-      - configureDotEnv
-
-  apikey:
-    desc: Generate a Headscale API key
-    cmd: >
-      docker compose exec headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}} ||
-      echo "Control plane is not running. Start it with 'task up' first."
-    silent: true
+#################################
+# User-facing tasks
+#################################
 
   build:
     desc: Build MESH Docker containers
     cmd: docker compose build
+
+  controlPlane:
+    desc: Start MESH control plane
+    prompt: Does the above configuration look correct?
+    cmd: docker compose up headscale ui
     deps:
       - configureControlPlane
 
-  up:
-    desc: Start MESH Docker containers
-    cmd: docker compose up
-    deps:
-      - configureControlPlane
+  configureControlPlane:
+    cmds:
+      - task: controlPlaneType
+      - task: controlPlaneDomain
+      - task: printDotEnv
 
   down:
     desc: Stop MESH Docker containers
     cmd: docker compose down
 
-  setAuthKey:
-    desc: Set auth key and start MESH analyst client
-    requires:
-      vars:
-        - AUTH_KEY
+  apikey:
+    desc: Generate a Headscale API key
     cmd: >
-      grep -s AUTH_KEY .env && sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.AUTH_KEY}}/" .env || echo "AUTH_KEY={{.AUTH_KEY}}" >> .env &&
-      export AUTH_KEY={{.AUTH_KEY}} &&
-      docker compose up -d analyst &&
-      echo "Auth key set and analyst client started. Run 'task analyst' to enter the container."
-    silent: true
-    deps:
-      - configureControlPlane
+      docker compose exec headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}} ||
+      echo "Control plane is not running locally. Either start it with 'task controlPlane' first or
+        run 'task apikey' on the control plane server."
 
   analyst:
     desc: Enter an interactive shell in the MESH analyst client container
-    cmd: docker compose exec analyst /bin/bash
-    silent: true
+    prompt: Does the above configuration look correct?
+    cmds:
+      - docker compose up -d --no-recreate analyst
+      - docker compose exec analyst /bin/bash
+    deps:
+      - configureAnalyst
+
+  configureAnalyst:
+    cmds:
+      - task: loginUrl
+      - task: analystAuthKey
+      - task: printDotEnv
+
+  setAuthKey:
+    desc: Set a new auth key for the analyst client
+    cmds:
+      - |
+        printf "\033[1;36m╔═════════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m What is the new auth key to use for the analyst client? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚═════════════════════════════════════════════════════════╝\033[0m\n"
+      - task: promptAnalystAuthKey
+
+#################################
+# Internal tasks
+#################################
+
+  controlPlaneType:
+    internal: true
+    if: '[ -z $CONTROL_PLANE_TYPE ]'
+    cmds:
+      - |
+        printf "\033[1;36m╔══════════════════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m Will you be setting up an ephemeral or persistent control plane? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚══════════════════════════════════════════════════════════════════╝\033[0m\n"
+      - task: promptControlPlaneType
+
+  promptControlPlaneType:
+    internal: true
+    requires:
+      vars:
+        - name: CONTROL_PLANE_TYPE
+          enum:
+            - Ephemeral (runs on your workstation and accessed via tunneling service like ngrok)
+            - Persistent (runs on a dedicated internet-facing server)
+    vars:
+      CONTROL_PLANE_TYPE_VALUE: "{{.CONTROL_PLANE_TYPE}}"
+      FINAL_CONTROL_PLANE_TYPE: '{{if .CONTROL_PLANE_TYPE_VALUE | contains "Ephemeral"}}Ephemeral{{else}}Persistent{{end}}'
+    cmd: echo CONTROL_PLANE_TYPE={{.FINAL_CONTROL_PLANE_TYPE}} >> .env && printf "\033[1;32m{{.FINAL_CONTROL_PLANE_TYPE}} control plane selected.\033[0m\n\n"
+    deps:
+      - createDotEnv
+
+  controlPlaneDomain:
+    internal: true
+    if: '[ -z $CONTROL_PLANE_DOMAIN ]'
+    cmds:
+      - |
+        printf "\033[1;36m╔═════════════════════════════════════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m What domain name will be used to access your control plane (e.g. mesh.example.com)? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚═════════════════════════════════════════════════════════════════════════════════════╝\033[0m\n"
+        printf "\033[1;35mThis can be a domain name you own or one provided by your tunneling service.\033[0m\n"
+        printf "\033[1;35mLeave blank to use "localhost" (only for testing).\033[0m\n"
+      - task: promptControlPlaneDomain
+
+  promptControlPlaneDomain:
+    internal: true
+    requires:
+      vars:
+        - CONTROL_PLANE_DOMAIN
+    vars:
+      DEFAULT_CORS_ORIGIN: https://{{.CONTROL_PLANE_DOMAIN | default "localhost"}}
+    cmds:
+      - printf "\033[1;32mDomain name set to {{.CONTROL_PLANE_DOMAIN | default "localhost"}}.\033[0m\n\n"
+      - echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN | default "localhost"}}" >> .env
+      - echo "CORS_ORIGIN={{.CORS_ORIGIN | default .DEFAULT_CORS_ORIGIN }}" >> .env
+      - task: headscaleConfig
+        vars:
+          CONTROL_PLANE_DOMAIN: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
+    deps:
+      - createDotEnv
+
+  headscaleConfig:
+    internal: true
+    cmd: >
+      sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN}}/g"
+      control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
+    sources:
+      - control-plane/headscale/config.example.yaml
+    generates:
+      - control-plane/headscale/config.yaml
+
+  loginUrl:
+    internal: true
+    if: '[ "$CONTROL_PLANE_TYPE" != "Ephemeral" -a -z $LOGIN_URL ]'
+    cmds:
+      - |
+        printf "\033[1;36m╔═════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m What is the URL of the control plane to connect to? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚═════════════════════════════════════════════════════╝\033[0m\n"
+      - task: promptLoginUrl
+
+  promptLoginUrl:
+    internal: true
+    requires:
+      vars:
+        - LOGIN_URL
+    vars:
+      LOGIN_URL_VALUE: '{{.LOGIN_URL}}'
+      FINAL_LOGIN_URL: '{{if not (.LOGIN_URL_VALUE | hasPrefix "http")}}https://{{end}}{{.LOGIN_URL_VALUE}}'
+    cmds:
+      - printf "\033[1;32mLogin URL set to {{.FINAL_LOGIN_URL}}.\033[0m\n\n"
+      - echo "LOGIN_URL={{.FINAL_LOGIN_URL}}" >> .env
+    deps:
+      - createDotEnv
+
+  analystAuthKey:
+    internal: true
+    if: '[ -z $AUTH_KEY ]'
+    cmds:
+      - |
+        printf "\033[1;36m╔══════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m What is the auth key for the analyst client? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚══════════════════════════════════════════════╝\033[0m\n"
+      - task: promptAnalystAuthKey
+
+  promptAnalystAuthKey:
+    internal: true
+    requires:
+      vars:
+        - NEW_AUTH_KEY
+    cmds:
+      - printf "\033[1;32mAnalyst auth key set to {{.NEW_AUTH_KEY}}.\033[0m\n\n"
+      - >
+        grep -s AUTH_KEY .env &&
+        sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.NEW_AUTH_KEY}}/" .env ||
+        echo "AUTH_KEY={{.NEW_AUTH_KEY}}" >> .env
+    deps:
+      - createDotEnv
+
+  printDotEnv:
+    internal: true
+    cmd: echo ""; cat .env; echo ""
+
+  createDotEnv:
+    internal: true
+    cmd: '[ -f .env ] || (touch .env && chmod 600 .env)'
 
 #################################
 # Development tasks

@@ -3,7 +3,7 @@ services:
     image: docker.io/headscale/headscale:0.28.0
     restart: unless-stopped
     volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale/config:/etc/headscale
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale:/etc/headscale
       - headscale-data:/var/lib/headscale
     tmpfs:
       - /var/run/headscale
