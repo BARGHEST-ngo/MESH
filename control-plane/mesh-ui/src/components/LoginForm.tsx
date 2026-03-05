@@ -79,7 +79,7 @@ export default function LoginForm() {
         <div className="text-center text-xs text-muted-foreground font-mono space-y-1">
           <div>Run the following command from the terminal to generate auth key:</div>
           <code className="block bg-muted px-2 py-1 rounded text-[10px]">
-            docker exec -it headscale headscale apikeys create --expiration 3h
+            task apikey
           </code>
         </div>
       </div>
