@@ -109,7 +109,7 @@ apk: $(DEBUG_APK)
 .PHONY: mesh-debug
 mesh-debug: $(DEBUG_APK)
 
-$(DEBUG_APK): libtailscale debug-symbols version gradle-dependencies build-unstripped-aar
+$(DEBUG_APK): libtailscale debug-symbols gradle-dependencies build-unstripped-aar
 	(cd android && ./gradlew test assembleDebug)
 	install -C android/build/outputs/apk/debug/android-debug.apk $@
 
@@ -118,7 +118,7 @@ RELEASE_APK := mesh-release-unsigned.apk
 .PHONY: release-apk
 release-apk: $(RELEASE_APK)
 
-$(RELEASE_APK): libtailscale version gradle-dependencies
+$(RELEASE_APK): libtailscale gradle-dependencies
 	@echo "Building release APK (unsigned)"
 	(cd android && ./gradlew assembleRelease)
 	install -C android/build/outputs/apk/release/android-release-unsigned.apk $@
@@ -141,12 +141,12 @@ release: jarsign-env $(RELEASE_AAB)
 .PHONY: gradle-dependencies
 gradle-dependencies: $(shell find android -type f -not -path "android/build/*" -not -path '*/.*') $(LIBTAILSCALE_AAR)
 
-$(RELEASE_AAB): version gradle-dependencies
+$(RELEASE_AAB): gradle-dependencies
 	@echo "Building release AAB"
 	(cd android && ./gradlew test bundleRelease)
 	install -C ./android/build/outputs/bundle/release/android-release.aab $@
 
-mesh-test.apk: version gradle-dependencies
+mesh-test.apk: gradle-dependencies
 	(cd android && ./gradlew assembleApplicationTestAndroidTest)
 	install -C ./android/build/outputs/apk/androidTest/applicationTest/android-applicationTest-androidTest.apk $@
 
