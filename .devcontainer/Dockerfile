@@ -84,7 +84,7 @@ RUN ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools
 		"extras;android;m2repository" \
 		"ndk;23.1.7779620" \
 		"platform-tools" \
-		"build-tools;34.0.0" \
+		"build-tools;36.0.0" \
 	&& "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --list_installed
 
 # Install Task
