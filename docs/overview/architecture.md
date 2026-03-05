@@ -52,7 +52,7 @@ The **Control plane** is a self-hosted coordination server that manages your mes
 - **Route management** - Control subnet routing and exit nodes
 
 !!! info "Control plane setup"
-    See the [Control plane documentation](../installation/control-plane.md) for detailed setup and configuration.
+    See the [Control plane documentation](../setup/control-plane.md) for detailed setup and configuration.
 
 ## 2. Analyst client
 
@@ -88,7 +88,7 @@ The **Analyst client** runs on your forensic collection node (Linux or macOS) an
 - **macOS** - macOS 11 (Big Sur) and later
 
 !!! info "Analyst client Setup"
-    See the [Analyst client documentation](../installation/analyst-client.md) for installation and usage.
+    See the [Analyst client documentation](../setup/analyst-client.md) for installation and usage.
 
 ## 3. Endpoint client
 
@@ -125,7 +125,7 @@ The **Endpoint client** runs on the target device being analysed (right now we o
 - **iOS** - Planned for Q4 2026
 
 !!! info "Endpoint client Setup"
-    See the [Endpoint client documentation](../installation/endpoint-clients.md) for installation and configuration.
+    See the [Endpoint client documentation](../setup/endpoint-clients.md) for installation and configuration.
 
 ## How they work together
 

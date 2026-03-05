@@ -317,7 +317,7 @@ If the connection works with obfuscation but not without, DPI is likely blocking
 
 ## Next steps
 
-- **[Getting started](../getting-started/index.md)** - Set up your first mesh network
-- **[Analyst client](../installation/analyst-client.md)** - Install the analyst client
-- **[Endpoint client](../installation/endpoint-clients.md)** - Deploy to Android devices
+- **[Getting started](../setup/index.md)** - Set up your first mesh network
+- **[Analyst client](../setup/analyst-client.md)** - Install the analyst client
+- **[Endpoint client](../setup/endpoint-clients.md)** - Deploy to Android devices
 - **[Troubleshooting](../reference/troubleshooting.md)** - Common issues and solutions

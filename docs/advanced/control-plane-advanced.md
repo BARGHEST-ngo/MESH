@@ -1,16 +1,16 @@
 # Advanced control plane configuration
 
-Advanced configuration options for MESH control plane deployments, including custom DERP servers and PostgreSQL database setup.
+Advanced configuration options for MESH control plane deployments, including custom DERP servers.
 
 !!! warning "Advanced users only"
-    These configurations are for advanced users with production deployments or specific requirements. Most users should use the default configuration from the [Getting started guide](../getting-started/control-plane.md).
+    These configurations are for advanced users with production deployments or specific requirements. Most users should use the default configuration from the [Getting started guide](../setup/control-plane.md).
 
 ## Prerequisites
 
 Before implementing advanced configurations:
 
-1. **Working deployment** - Complete the [Getting started guide](../getting-started/index.md)
-2. **Basic understanding** - Familiar with [control plane configuration](../installation/control-plane.md)
+1. **Working deployment** - Complete the [Getting started guide](../setup/index.md)
+2. **Basic understanding** - Familiar with [control plane configuration](../setup/control-plane.md)
 3. **Production experience** - Tested MESH in development environment
 4. **Technical skills** - Comfortable with Linux, networking, Docker, and YAML
 
@@ -184,17 +184,16 @@ sudo ufw enable
 
 ### Update control plane configuration
 
-Mount the custom DERP map in your `docker-compose.yml`:
+Mount the custom DERP map in your `compose.yml`:
 
 ```yaml
 services:
   headscale:
-    image: headscale/headscale:latest
-    container_name: headscale
+    image: docker.io/headscale/headscale:0.28.0
     restart: unless-stopped
     volumes:
-      - ./config:/etc/headscale
-      - ./data:/var/lib/headscale
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale:/etc/headscale
+      - headscale-data:/var/lib/headscale
       - ./derp.yaml:/etc/headscale/derp.yaml  # Add custom DERP map
     # ... rest of configuration
 ```
@@ -202,7 +201,7 @@ services:
 Restart Headscale to apply changes:
 
 ```bash
-docker-compose restart headscale
+docker compose restart headscale
 ```
 
 ### Verify DERP server connectivity
@@ -217,7 +216,7 @@ nc -u -v derp-eu.yourdomain.com 3478
 openssl s_client -connect derp-eu.yourdomain.com:443
 
 # Check from Headscale logs
-docker logs headscale | grep -i derp
+docker compose logs headscale | grep -i derp
 ```
 
 ### DERP server placement strategy
@@ -284,286 +283,6 @@ docker exec derp netstat -an | grep :3478
 - Scale horizontally by adding more DERP servers
 - Use multiple DERP servers per region for redundancy
 
-## PostgreSQL database
-
-For production deployments with high node counts or high availability requirements, use PostgreSQL instead of SQLite.
-
-### When to use PostgreSQL
-
-**Use PostgreSQL when:**
-
-- ✅ Large deployments (1000+ nodes)
-- ✅ High availability requirements
-- ✅ Need database replication
-- ✅ Multiple Headscale instances (clustering)
-- ✅ Advanced backup and recovery needs
-
-**Use SQLite when:**
-
-- ✅ Small to medium deployments (< 1000 nodes)
-- ✅ Single Headscale instance
-- ✅ Simplicity is preferred
-- ✅ Lower operational overhead
-
-**Trade-offs:**
-
-- ➕ Better performance at scale
-- ➕ Support for replication and high availability
-- ➕ Advanced backup and recovery options
-- ➕ Better concurrent access handling
-- ➖ More complex to deploy and maintain
-- ➖ Additional infrastructure required
-- ➖ Higher resource usage
-
-### Configure control plane for PostgreSQL
-
-Update `config/config.yaml`:
-
-```yaml
-database:
-  type: postgres
-  postgres:
-    host: postgres          # PostgreSQL hostname
-    port: 5432              # PostgreSQL port
-    name: headscale         # Database name
-    user: headscale         # Database user
-    pass: your-secure-password  # Database password
-    max_open_conns: 10      # Maximum open connections
-    max_idle_conns: 5       # Maximum idle connections
-    conn_max_idle_time: 3600s  # Connection max idle time
-```
-
-### Deploy PostgreSQL with Docker compose
-
-Add PostgreSQL to your `docker-compose.yml`:
-
-```yaml
-services:
-  headscale:
-    image: headscale/headscale:latest
-    container_name: headscale
-    restart: unless-stopped
-    depends_on:
-      - postgres  # Wait for PostgreSQL to start
-    volumes:
-      - ./config:/etc/headscale
-      - ./data:/var/lib/headscale
-    networks:
-      - mesh
-    # ... rest of configuration
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: headscale
-      POSTGRES_USER: headscale
-      POSTGRES_PASSWORD: your-secure-password
-      POSTGRES_INITDB_ARGS: "-E UTF8"
-    volumes:
-      - ./postgres-data:/var/lib/postgresql/data
-    networks:
-      - mesh
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U headscale"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-networks:
-  mesh:
-    driver: bridge
-```
-
-### Secure PostgreSQL password
-
-Use Docker secrets or environment files instead of hardcoding passwords:
-
-```bash
-# Create .env file (add to .gitignore!)
-cat > .env << 'EOF'
-POSTGRES_PASSWORD=your-secure-password-here
-EOF
-
-# Update docker-compose.yml to use environment variable
-```
-
-```yaml
-services:
-  postgres:
-    environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-```
-
-### Initialize database
-
-Start PostgreSQL and let Headscale initialize the schema:
-
-```bash
-# Start PostgreSQL first
-docker-compose up -d postgres
-
-# Wait for PostgreSQL to be ready
-docker-compose logs -f postgres
-# Wait for: "database system is ready to accept connections"
-
-# Start Headscale (will auto-create schema)
-docker-compose up -d headscale
-
-# Check Headscale logs
-docker logs headscale
-# Should see: "Database migrated successfully"
-```
-
-### Migrate from SQLite to PostgreSQL
-
-If you have an existing SQLite database:
-
-```bash
-# 1. Backup SQLite database
-cp data/db.sqlite data/db.sqlite.backup
-
-# 2. Export data from SQLite
-docker exec headscale headscale export > headscale-export.json
-
-# 3. Update config.yaml to use PostgreSQL
-
-# 4. Start PostgreSQL
-docker-compose up -d postgres
-
-# 5. Import data to PostgreSQL
-docker exec -i headscale headscale import < headscale-export.json
-
-# 6. Verify migration
-docker exec headscale headscale nodes list
-docker exec headscale headscale users list
-```
-
-!!! warning "Migration testing"
-    Always test migration in a development environment first. Keep SQLite backup until PostgreSQL is verified working.
-
-### PostgreSQL backup and recovery
-
-Regular backups are critical for production deployments:
-
-#### Automated backups
-
-```bash
-# Create backup script
-cat > backup-postgres.sh << 'EOF'
-#!/bin/bash
-BACKUP_DIR="/backups/postgres"
-DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="$BACKUP_DIR/headscale_$DATE.sql.gz"
-
-mkdir -p "$BACKUP_DIR"
-
-# Backup database
-docker exec postgres pg_dump -U headscale headscale | gzip > "$BACKUP_FILE"
-
-# Keep only last 30 days of backups
-find "$BACKUP_DIR" -name "headscale_*.sql.gz" -mtime +30 -delete
-
-echo "Backup completed: $BACKUP_FILE"
-EOF
-
-chmod +x backup-postgres.sh
-
-# Add to crontab (daily at 2 AM)
-(crontab -l 2>/dev/null; echo "0 2 * * * /path/to/backup-postgres.sh") | crontab -
-```
-
-#### Restore from backup
-
-```bash
-# Stop Headscale
-docker-compose stop headscale
-
-# Restore database
-gunzip -c /backups/postgres/headscale_20250101_020000.sql.gz | \
-  docker exec -i postgres psql -U headscale headscale
-
-# Start Headscale
-docker-compose start headscale
-```
-
-### PostgreSQL performance tuning
-
-For large deployments, tune PostgreSQL settings:
-
-```yaml
-# docker-compose.yml
-services:
-  postgres:
-    image: postgres:15-alpine
-    command:
-      - "postgres"
-      - "-c"
-      - "max_connections=200"
-      - "-c"
-      - "shared_buffers=256MB"
-      - "-c"
-      - "effective_cache_size=1GB"
-      - "-c"
-      - "maintenance_work_mem=64MB"
-      - "-c"
-      - "checkpoint_completion_target=0.9"
-      - "-c"
-      - "wal_buffers=16MB"
-      - "-c"
-      - "default_statistics_target=100"
-      - "-c"
-      - "random_page_cost=1.1"
-      - "-c"
-      - "effective_io_concurrency=200"
-      - "-c"
-      - "work_mem=2MB"
-      - "-c"
-      - "min_wal_size=1GB"
-      - "-c"
-      - "max_wal_size=4GB"
-```
-
-**Tuning parameters explained:**
-
-- `max_connections` - Maximum concurrent connections (adjust based on node count)
-- `shared_buffers` - Memory for caching data (25% of RAM recommended)
-- `effective_cache_size` - Estimate of OS cache (50-75% of RAM)
-- `work_mem` - Memory per query operation (adjust based on query complexity)
-
-### PostgreSQL monitoring
-
-Monitor database health and performance:
-
-```bash
-# Check database size
-docker exec postgres psql -U headscale -c "SELECT pg_size_pretty(pg_database_size('headscale'));"
-
-# Check active connections
-docker exec postgres psql -U headscale -c "SELECT count(*) FROM pg_stat_activity;"
-
-# Check slow queries
-docker exec postgres psql -U headscale -c "SELECT query, calls, total_time, mean_time FROM pg_stat_statements ORDER BY mean_time DESC LIMIT 10;"
-
-# Check table sizes
-docker exec postgres psql -U headscale -c "SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size FROM pg_tables WHERE schemaname = 'public' ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;"
-```
-
-### PostgreSQL high availability
-
-For mission-critical deployments, implement PostgreSQL replication:
-
-**Options:**
-
-- **Streaming replication** - Built-in PostgreSQL replication
-- **Patroni** - Automated failover and HA management
-- **pgpool-II** - Connection pooling and load balancing
-- **Managed services** - AWS RDS, Google Cloud SQL, Azure Database
-
-!!! info "High availability"
-    PostgreSQL HA setup is beyond the scope of this guide. Consult PostgreSQL documentation or use managed database services for production HA requirements.
-
 ## Troubleshooting advanced configurations
 
 ### Custom DERP servers not working
@@ -604,85 +323,6 @@ For mission-critical deployments, implement PostgreSQL replication:
 
    ```bash
    docker logs headscale | grep -i derp
-   ```
-
-### PostgreSQL connection errors
-
-**Symptoms:**
-
-- Headscale can't connect to PostgreSQL
-- "connection refused" errors
-- Database migration fails
-
-**Solutions:**
-
-1. **Verify PostgreSQL is running:**
-
-   ```bash
-   docker-compose ps postgres
-   docker logs postgres
-   ```
-
-2. **Check network connectivity:**
-
-   ```bash
-   # From Headscale container
-   docker exec headscale ping postgres
-   ```
-
-3. **Verify credentials:**
-
-   ```bash
-   # Test connection manually
-   docker exec postgres psql -U headscale -d headscale -c "SELECT 1;"
-   ```
-
-4. **Check Headscale configuration:**
-
-   ```bash
-   docker exec headscale cat /etc/headscale/config.yaml | grep -A 10 database
-   ```
-
-### Performance issues with PostgreSQL
-
-**Symptoms:**
-
-- Slow query responses
-- High CPU usage on PostgreSQL
-- Connection timeouts
-
-**Solutions:**
-
-1. **Check database size:**
-
-   ```bash
-   docker exec postgres psql -U headscale -c "SELECT pg_size_pretty(pg_database_size('headscale'));"
-   ```
-
-2. **Analyze slow queries:**
-
-   ```bash
-   # Enable query logging in docker-compose.yml
-   command:
-     - "postgres"
-     - "-c"
-     - "log_min_duration_statement=1000"  # Log queries > 1 second
-   ```
-
-3. **Vacuum database:**
-
-   ```bash
-   docker exec postgres psql -U headscale -c "VACUUM ANALYZE;"
-   ```
-
-4. **Check connection pool settings:**
-
-   ```yaml
-   # config.yaml
-   database:
-     postgres:
-       max_open_conns: 10
-       max_idle_conns: 5
    ```
 
 ## Next steps

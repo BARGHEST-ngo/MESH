@@ -1,9 +1,9 @@
-# Endpoint client Setup (Android)
+# Endpoint Client Setup (Android)
 
 The endpoint client runs on mobile devices and enables remote forensic collection over the mesh network.
 
 !!! info "Current support is limited to Android"
-    We currently only support Android forensics acquisions
+    We currently only support Android forensics acquisitions
 
 ## Step 1: Build the APK or download pre-compiled
 
@@ -13,19 +13,15 @@ Download the APK from [GitHub Releases](https://github.com/BARGHEST-ngo/mesh/rel
 
 **Building from source**
 
-Navigate to the Android client directory and build the APK:
-
 ```bash
-cd mesh/mesh-android-client
-
 # Build the release APK
-./gradlew assembleRelease
+task buildAndroidRelease
 ```
 
 The APK will be created at:
 
 ```
-app/build/outputs/apk/release/app-release.apk
+android-client/mesh-release-unsigned.apk
 ```
 
 !!! tip "Build Time"
@@ -64,10 +60,10 @@ You should see your device listed. If prompted on the device, tap **"Allow"** to
 
 ```bash
 # Install the APK using ADB
-adb install app-release.apk
+adb install mesh-release-unsigned.apk
 
 # Or if you downloaded from GitHub
-adb install mesh-android-client.apk
+adb install mesh-0.1.1-alpha.apk
 ```
 
 **4. Verify installation:**
@@ -165,7 +161,7 @@ adb devices
 
 ```bash
 # Install the APK wirelessly
-adb install app-release.apk
+adb install mesh-release-unsigned.apk
 ```
 
 ### Troubleshooting installation
@@ -203,12 +199,11 @@ Now configure the MESH app on your Android device.
 
 1. Tap **"Connect to Network"**
 2. Enter your **Control plane URL**: `https://your-domain.com`
-3. Enter the **Pre-auth key** you created during control plane setup
+3. Enter the **Pre-auth key** (obtained from control plane)
 4. Tap **"Connect"**
 
 !!! important "Replace values"
-    - Replace `your-domain.com` with your actual control plane URL
-    - Use the same pre-auth key you created in the control plane setup (if it's reusable)
+    Replace `your-domain.com` with your actual control plane URL
 
 ### Grant permissions
 
@@ -249,7 +244,7 @@ From your analyst workstation, verify you can see the Android device:
 
 ```bash
 # List all peers
-sudo ./meshcli status --peers
+meshcli status --peers
 ```
 
 You should see your Android device listed with its mesh IP address.
@@ -266,11 +261,11 @@ You should see your Android device listed with its mesh IP address.
 
 **Error: "INSTALL_PARSE_FAILED"**
 
-- The APK may be corrupted. Try rebuilding:
+The APK may be corrupted. Try rebuilding:
 
-  ```bash
-  ./gradlew clean assembleRelease
-  ```
+```bash
+task clean && task buildAndroidRelease
+```
 
 ### Can't connect to control plane
 
@@ -279,7 +274,7 @@ You should see your Android device listed with its mesh IP address.
 1. Verify the control plane URL is correct
 2. Check that the device has internet connectivity (WiFi or mobile data)
 3. Verify the pre-auth key is valid and not expired
-4. Check control plane logs: `docker logs headscale`
+4. Check control plane logs: `docker compose logs headscale`
 
 **"Invalid auth key" error:**
 
@@ -309,7 +304,7 @@ If the analyst workstation can't see the Android device:
 
 ```bash
 # Check if both nodes are online
-sudo ./meshcli status --peers
+meshcli status --peers
 
 # Try pinging the device
 ping 100.64.2.1  # Replace with actual mesh IP
@@ -324,8 +319,6 @@ If ping fails:
 ## Next steps
 
 Your endpoint client is now connected to the mesh! The next step is to verify connectivity and run your first forensic collection.
-
-For detailed endpoint client documentation, see the [Endpoint client documentation](../installation/endpoint-clients.md).
 
 ---
 

@@ -79,11 +79,11 @@ MESH is designed specifically for **digital forensics and mobile device analysis
 
 ## Getting started
 
-Ready to deploy MESH? Head to the [Getting started Guide](../getting-started/index.md) for step-by-step setup instructions.
+Ready to deploy MESH? Head to the [Getting started Guide](../setup/index.md) for step-by-step setup instructions.
 
 Already familiar with MESH? Jump to:
 
-- [Installation](../installation/index.md) - Detailed component installation
+- [Installation](../setup/index.md) - Detailed component installation
 - [User guide](../user-guide/index.md) - Forensic workflows and usage
 - [Advanced](../advanced/index.md) - Advanced configuration topics
 - [Reference](../reference/index.md) - CLI reference and troubleshooting
