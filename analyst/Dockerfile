@@ -63,11 +63,13 @@ RUN printf '%s\n' \
     '  printf "\033[1;36m╚══════════════════════════════════════════════╝\033[0m\n\n"' \
     '  printf "  \033[1;33mForensic Tools:\033[0m\n\n"' \
     '  printf "    \033[1;32mmeshcli\033[0m    MESH CLI — manage MESH network connections\n"' \
-    '  printf "               Usage: meshcli status | meshcli up | meshcli down\n\n"' \
-    '  printf "    \033[1;32madb\033[0m        Android Debug Bridge — connect to Android devices\n"' \
-    '  printf "               Usage: adb devices | adb shell | adb pull <remote> <local>\n\n"' \
-    '  printf "    \033[1;32msdkmanager\033[0m Android SDK Manager — manage Android SDK packages\n"' \
-    '  printf "               Usage: sdkmanager --list\n\n"' \
+    '  printf "               Usage: meshcli <subcommand> [command flags]\n\n"' \
+    '  printf "               SUBCOMMANDS\n"' \
+    '  printf "                 status       Show state of tailscaled and its connections\n"' \
+    '  printf "                 adbpair      Pair & connect to a device on the MESH network via ADB\n"' \
+    '  printf "                 adbcollect   Collects ADB data, using AndroidQF and WARD\n"' \
+    '  printf "                 adbdisable   The ADB disable utility disables the developer mode on the Android node\n\n"' \
+    '  printf "               For help on subcommands, add --help after: \"meshcli status --help\".\n\n"' \
     '  printf "  \033[1;33mLogs:\033[0m\n"' \
     '  printf "    ~/.tailscale/mesh.log     MESH daemon log\n"' \
     '  printf "    ~/.tailscale/meshcli.log  MESH CLI log\n\n"' \
