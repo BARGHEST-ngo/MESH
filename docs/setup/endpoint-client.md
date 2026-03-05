@@ -21,7 +21,7 @@ task buildAndroidRelease
 The APK will be created at:
 
 ```
-app/build/outputs/apk/release/app-release.apk
+android-client/mesh-release-unsigned.apk
 ```
 
 !!! tip "Build Time"
@@ -60,7 +60,7 @@ You should see your device listed. If prompted on the device, tap **"Allow"** to
 
 ```bash
 # Install the APK using ADB
-adb install app-release.apk
+adb install mesh-release-unsigned.apk
 
 # Or if you downloaded from GitHub
 adb install mesh-0.1.1-alpha.apk
@@ -161,7 +161,7 @@ adb devices
 
 ```bash
 # Install the APK wirelessly
-adb install app-release.apk
+adb install mesh-release-unsigned.apk
 ```
 
 ### Troubleshooting installation
