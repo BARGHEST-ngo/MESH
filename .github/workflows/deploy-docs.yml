@@ -39,8 +39,6 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@main
 
       - name: Build and deploy documentation
-        run: |
-          cd docs
-          mkdocs gh-deploy --force --clean
+        run: mkdocs gh-deploy --force --clean
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
