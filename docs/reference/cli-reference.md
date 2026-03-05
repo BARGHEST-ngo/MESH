@@ -437,4 +437,4 @@ sudo meshcli status --json | jq -r '.Peer[] | "\(.HostName): \(.CurAddr)"'
 
 - **[User guide](../user-guide/user-guide.md)** - Learn forensic workflows
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
-- **[Analyst client](../installation/analyst-client.md)** - Analyst client documentation
+- **[Analyst client](../setup/analyst-client.md)** - Analyst client documentation

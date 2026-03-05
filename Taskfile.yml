@@ -227,6 +227,14 @@ tasks:
     cmds:
       - go generate ./...
 
+  docs:
+    desc: Build documentation
+    cmd: mkdocs build
+
+  serveDocs:
+    desc: Serve documentation
+    cmd: mkdocs serve
+
   buildAnalyst:
     desc: Build MESH analyst client for local development
     cmds:

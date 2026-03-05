@@ -84,7 +84,6 @@ nav:
       - About: overview/about.md
   - Setup:
       - setup/index.md
-      - Prerequisites: setup/prerequisites.md
       - Control plane setup: setup/control-plane.md
       - Analyst client: setup/analyst-client.md
       - Endpoint client: setup/endpoint-client.md

@@ -36,7 +36,7 @@ The following platforms are currently supported in the public alpha release:
 
 **Installation:**
 
-- Build from source (see [Endpoint client guide](../setup/endpoint-clients.md))
+- Build from source (see [Endpoint client guide](../setup/endpoint-client.md))
 - Pre-built APKs available on [GitHub Releases](https://github.com/BARGHEST-ngo/mesh/releases)
 
 ### Analyst client

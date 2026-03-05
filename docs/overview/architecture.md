@@ -125,7 +125,7 @@ The **Endpoint client** runs on the target device being analysed (right now we o
 - **iOS** - Planned for Q4 2026
 
 !!! info "Endpoint client Setup"
-    See the [Endpoint client documentation](../setup/endpoint-clients.md) for installation and configuration.
+    See the [Endpoint client documentation](../setup/endpoint-client.md) for installation and configuration.
 
 ## How they work together
 

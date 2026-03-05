@@ -15,10 +15,6 @@ The setup process involves four main steps:
 3. **[Install the Endpoint client](endpoint-client.md)** - Deploy the MESH app on a client Android device
 4. **[Connect and Verify](verification.md)** - Establish the mesh and test connectivity
 
-## Before you begin
-
-Make sure you have the necessary [prerequisites](prerequisites.md) for each component you plan to deploy.
-
 ## Quick Navigation
 
 <div class="grid cards" markdown>
@@ -64,7 +60,3 @@ If you encounter issues during setup:
 - Check the [Troubleshooting guide](../reference/troubleshooting.md)
 - Review the [Architecture documentation](../overview/architecture.md) to understand how components work together
 - Report issues on [GitHub](https://github.com/BARGHEST-ngo/mesh/issues)
-
----
-
-**Ready to get started?** Begin with the [Prerequisites](prerequisites.md) →

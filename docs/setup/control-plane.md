@@ -127,7 +127,3 @@ curl https://your-domain.com/health
 ## Next steps
 
 Your control plane is now ready. The next step is to install the analyst client on your acquision node.
-
----
-
-← [Previous: Prerequisites](prerequisites.md) | [Next: Analyst client Setup](analyst-client.md) →
