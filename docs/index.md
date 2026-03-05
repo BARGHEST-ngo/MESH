@@ -12,22 +12,20 @@ hide:
 
 MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics. It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
 
-It adds hardened transport and obfuscation options such as [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked. This offers protection against the GFW and detection by Deep Packet Inspection (DPI) systems.
+**Key features:**
 
-It can create and tear down end-to-end mesh links between a locked-down analyst host and forensic clients (for example, Android devices) in seconds by removing hub-and-spoke topologies. MESH lets you spin up a forensics mesh, collect data, tear it down, and start again without complex configuration. This is remote forensic and network capture without a hub-and-spoke design.
+- **Censorship resistance** - Uses [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go) obfuscation for hostile or censored networks, and falls back to encrypted HTTPS relays when UDP is blocked. This offers protection against the GFW and detection by Deep Packet Inspection (DPI) systems.
+- **Peer-to-peer connections** - Creates direct encrypted tunnels between devices, removing the need for hub-and-spoke topologies
+- **Rapid deployment** - Spin up a forensics mesh, collect data, tear it down, and start again in minutes without complex configuration
 
-Key functions
+**What you can do with MESH:**
 
-- Builds peer-to-peer subnets for device analysis.
-- Provides end-to-end encryption via WireGuard/AmneziaWG and distributes keys automatically.
-- Creates a virtual TUN interface and assigns CGNAT-range addresses for use with ADB-over-Wifi & [Libimobile](https://github.com/libimobiledevice/libimobiledevice).
-- Advertises LAN routes or exit nodes for network monitoring and PCAP.
-- Intergrates directly with [AndroidQF](https://github.com/mvt-project/androidqf) for spyware IOC checks with [MVT](https://github.com/mvt-project/mvt)
-- Transfers forensic artifacts such as ADB bug reports and `dumpsys` output.
-- Runs a self-hostable control plane to create and manage meshes between analysts, enforce ACLs, and block compromised nodes on connection.
-- Supports kill-switch capabilities to block a device’s other network traffic while the forensics link remains active.
-- Supports ephemeral deployment and teardown on disconnect.
-- Enables rapid creation, isolation, and teardown of remote investigation nodes.
+- **Remote Android forensics** - Connect to Android devices anywhere in the world via ADB-over-WiFi
+- **Automated spyware detection** - Integrates with [AndroidQF](https://github.com/mvt-project/androidqf) and [MVT](https://github.com/mvt-project/mvt) for IOC checks
+- **Network monitoring** - Capture network traffic (PCAP) from remote devices
+- **Secure data transfer** - Collect forensic artifacts like bug reports and system dumps over encrypted connections
+- **Team collaboration** - Multiple analysts can work on different devices through the same secure network
+- **Quick setup and teardown** - Create investigation networks in minutes, tear them down when done
 
 ## Mesh networking, made for remote mobile forensics
 
