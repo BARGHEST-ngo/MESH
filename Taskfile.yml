@@ -132,9 +132,16 @@ tasks:
 
   headscaleConfig:
     internal: true
-    cmd: >
-      sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN}}/g"
-      control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
+    cmds:
+      - cmd: >
+          sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN}}/g"
+          control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
+        platforms: [linux, darwin]
+      - cmd: >
+          powershell -Command
+          "(Get-Content 'control-plane/headscale/config.example.yaml') -replace 'CONTROL_PLANE_DOMAIN', '{{.CONTROL_PLANE_DOMAIN}}' |
+          Set-Content 'control-plane/headscale/config.yaml'"
+        platforms: [windows]
     sources:
       - control-plane/headscale/config.example.yaml
     generates:
@@ -181,10 +188,20 @@ tasks:
         - NEW_AUTH_KEY
     cmds:
       - printf "\033[1;32mAnalyst auth key set to {{.NEW_AUTH_KEY}}.\033[0m\n\n"
-      - >
-        grep -s AUTH_KEY .env &&
-        sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.NEW_AUTH_KEY}}/" .env ||
-        echo "AUTH_KEY={{.NEW_AUTH_KEY}}" >> .env
+      - cmd: >
+          grep -s AUTH_KEY .env &&
+          sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.NEW_AUTH_KEY}}/" .env ||
+          echo "AUTH_KEY={{.NEW_AUTH_KEY}}" >> .env
+        platforms: [linux]
+      - cmd: >
+          grep -s AUTH_KEY .env &&
+          sed -i '' "s/^AUTH_KEY=.*$/AUTH_KEY={{.NEW_AUTH_KEY}}/" .env ||
+          echo "AUTH_KEY={{.NEW_AUTH_KEY}}" >> .env
+        platforms: [darwin]
+      - cmd: >
+          powershell -Command
+          "if (Select-String -Path '.env' -Pattern '^AUTH_KEY=' -Quiet) { (Get-Content '.env') -replace '^AUTH_KEY=.*$', 'AUTH_KEY={{.NEW_AUTH_KEY}}' | Set-Content '.env' } else { Add-Content '.env' 'AUTH_KEY={{.NEW_AUTH_KEY}}' }"
+        platforms: [windows]
     deps:
       - createDotEnv
 
