@@ -41,8 +41,8 @@ jobs:
 
       - name: Install Android NDK and Build Tools
         run: |
-          sdkmanager --install "ndk;23.1.7779620" "build-tools;36.0.0"
-          echo "$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_PATH
+          sdkmanager --install "ndk;23.2.8568313" "build-tools;36.0.0"
+          echo "$ANDROID_HOME/build-tools/36.0.0" >> $GITHUB_PATH
 
       - name: Decode Keystore
         env:

@@ -30,7 +30,7 @@ else
     ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-mac-14742923_latest.zip"
     ANDROID_TOOLS_SUM := "04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7  commandlinetools-mac-14742923_latest.zip"
 endif
-ANDROID_SDK_PACKAGES := 'platforms;android-34' 'extras;android;m2repository' 'ndk;23.1.7779620' 'platform-tools' 'build-tools;36.0.0'
+ANDROID_SDK_PACKAGES := 'platforms;android-34' 'extras;android;m2repository' 'ndk;23.2.8568313' 'platform-tools' 'build-tools;36.0.0'
 
 # Attempt to find an ANDROID_SDK_ROOT / ANDROID_HOME based either from
 # preexisting environment or common locations.

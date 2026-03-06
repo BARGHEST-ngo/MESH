@@ -11,7 +11,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:9.0.1'
+        classpath 'com.android.tools.build:gradle:9.1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath("com.ncorti.ktfmt.gradle:plugin:0.17.0")
@@ -31,7 +31,7 @@ apply plugin: 'com.ncorti.ktfmt.gradle'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 android {
-    ndkVersion = "23.1.7779620"
+    ndkVersion = "23.2.8568313"
     compileSdkVersion 34
     defaultConfig {
         minSdkVersion 26

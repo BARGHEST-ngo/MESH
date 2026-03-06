@@ -13,7 +13,7 @@ ARG NODE_VERSION
 ENV JAVA_HOME=/usr/lib/jvm/msopenjdk-current
 ENV ANDROID_SDK_ROOT=/usr/local/android-sdk
 ENV ANDROID_HOME=/usr/local/android-sdk
-ENV PATH="${JAVA_HOME}/bin:/usr/local/go/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0:${PATH}"
+ENV PATH="${JAVA_HOME}/bin:/usr/local/go/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/36.0.0:${PATH}"
 # Default to UTF-8 file.encoding
 ENV LANG=en_US.UTF-8
 
@@ -82,7 +82,7 @@ RUN ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools
 	&& "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" \
 		"platforms;android-34" \
 		"extras;android;m2repository" \
-		"ndk;23.1.7779620" \
+		"ndk;23.2.8568313" \
 		"platform-tools" \
 		"build-tools;36.0.0" \
 	&& "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --list_installed
