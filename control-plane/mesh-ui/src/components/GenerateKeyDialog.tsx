@@ -11,7 +11,7 @@ interface GenerateKeyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   networkName: string
-}
+}	
 
 function isLocalhost(url: string): boolean {
   if (!url) return false
@@ -31,21 +31,23 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
   const [expirationDays, setExpirationDays] = useState('1')
   const [deviceTag, setDeviceTag] = useState<'analyst' | 'mobile_node'>('analyst')
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
+  const [intent, setIntent] = useState<string | null>(null)
+  const [pin, setPin] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [controlPlaneURL, setControlPlaneURL] = useState('') 
   const [urlError, setUrlError] = useState('')
+  const [intentError, setIntentError] = useState('')
   const createKey = useCreatePreAuthKey()
 
   const handleGenerate = async () => {
     try {
       setUrlError('')
-
       if (deviceTag === 'mobile_node') {
-        const trimmedURL = controlPlaneURL.trim()
-        if (!trimmedURL) {
-          setUrlError('Control Plane URL is required for mobile nodes')
-          console.error('Control Plane URL is required for mobile nodes')
-          return
+	      const trimmedURL = controlPlaneURL.trim()
+	      if (!trimmedURL) {
+		      setUrlError('Control Plane URL is required for mobile nodes')
+		      console.error('Control Plane URL is required for mobile nodes')
+		      return
         }
         try {
           new URL(trimmedURL)
@@ -69,15 +71,25 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
       })
 
       const authKey = result.preAuthKey?.key
-      
-      // TODO: For mobile nodes, encrypt the key + URL
-      // if (deviceTag === 'mobile_node') {
-      //   const { uri, pin } = encrypt(controlPlaneURL.trim(), authKey)
-      //   // Display intent uri and pin instead of raw authKey
-      // }
-      
+
+      setIntentError('')
+
+      if (authKey && deviceTag === 'mobile_node') {
+        try {
+          const { uri, pin } = await encrypt(controlPlaneURL.trim(), authKey)
+          setPin(pin || null)
+          setIntent(uri || null)
+          setGeneratedKey(authKey)
+          return
+        } catch {
+          setIntentError('Unable to generate encrypted intent')
+          console.error('Unable to generate encrypted intent')
+          return
+        }
+      }
+
       setGeneratedKey(authKey || null)
-      
+
     } catch (error) {
       console.error('Failed to generate key:', error)
     }
@@ -190,7 +202,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                   Public URL that field devices will use to connect to you
               </p>
               {isLocalhost(controlPlaneURL) && (
-                <p className="text-xs text-yellow-401 mt-1">
+                <p className="text-xs text-yellow-400 mt-1">
                 Warning: This appears to be a local URL. Field devices won't be able to reach it.
                 </p>
               )} 
@@ -223,13 +235,36 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
         ) : (
           <>
             <div className="my-6">
-              <Label>Generated Key</Label>
-              <div className="mt-2 p-4 bg-secondary border border-border rounded font-mono text-sm break-all">
-                {generatedKey}
-              </div>
-              <p className="text-xs text-yellow-400 mt-2">
-                Copy this key now! You won't be able to see it again.
-              </p>
+              {intent && pin ? (
+                <>
+                  <Label>Intent URI</Label>
+                  <div className="mt-2 p-4 bg-secondary border border-border rounded font-mono text-sm break-all">
+                    {intent}
+                  </div>
+                  <Label className="mt-4 block">PIN</Label>
+                  <div className="mt-2 p-4 bg-secondary border border-border rounded font-mono text-lg tracking-widest">
+                    {pin}
+                  </div>
+                  <p className="text-xs text-yellow-400 mt-2">
+                    Send the URI via secure channel. Read the PIN over voice.
+                  </p>
+                  <Label className="mt-4 block">Auth Key (manual join)</Label>
+                  <p className="text-xs text-muted-foreground mb-1">For devices that cannot receive the Intent URI, use this manual auth key.</p>
+                  <div className="mt-1 p-4 bg-secondary border border-border rounded font-mono text-sm break-all">
+                    {generatedKey}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Label>Generated Key</Label>
+                  <div className="mt-2 p-4 bg-secondary border border-border rounded font-mono text-sm break-all">
+                    {generatedKey}
+                  </div>
+                  <p className="text-xs text-yellow-400 mt-2">
+                    Copy this key now! You won't be able to see it again.
+                  </p>
+                </>
+              )}
             </div>
 
             <DialogFooter>

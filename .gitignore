@@ -23,6 +23,8 @@ vendor/
 # Ignore personal VS Code settings
 .vscode/
 .augment/
+CLAUDE.md
+
 
 # Support personal project-specific GOPATH
 .gopath/
