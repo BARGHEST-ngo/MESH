@@ -84,13 +84,13 @@ Configure the analyst workstation to advertise as an exit node using this sub co
 
 ```bash
 # Advertise as exit node
-sudo ./meshcli up --advertise-exit-node
+meshcli up --advertise-exit-node
 
 # Advertise as exit node when already connected
-sudo ./meshcli set --advertise-exit-node
+meshcli set --advertise-exit-node
 
 # Verify exit node is advertised
-sudo ./meshcli status
+meshcli status
 # Should show: "Exit node: advertising"
 ```
 
@@ -100,12 +100,12 @@ On the control plane, approve the exit node:
 
 ```bash
 # List nodes
-docker exec headscale headscale nodes list
+docker compose exec headscale headscale nodes list
 
 # Find your analyst workstation node ID
 # Enable exit node for that node
-docker exec headscale headscale routes enable --node <NODE_ID> --route 0.0.0.0/0
-docker exec headscale headscale routes enable --node <NODE_ID> --route ::/0
+docker compose exec headscale headscale routes enable --node <NODE_ID> --route 0.0.0.0/0
+docker compose exec headscale headscale routes enable --node <NODE_ID> --route ::/0
 ```
 
 ### Configure endpoint to use exit node
@@ -126,10 +126,10 @@ On the endpoint device (Android), configure it to use the exit node:
 
 ```bash
 # Use specific exit node
-sudo ./meshcli up --exit-node=<ANALYST_MESH_IP>
+meshcli up --exit-node=<ANALYST_MESH_IP>
 
 # Use any available exit node
-sudo ./meshcli up --exit-node-allow-lan-access
+meshcli up --exit-node-allow-lan-access
 ```
 
 ## Packet capture (PCAP)
@@ -498,14 +498,14 @@ find /var/captures -name "*.pcap" -mtime +90 -delete
 3. **Verify exit node is advertised:**
 
    ```bash
-   sudo ./meshcli status
+   meshcli status
    # Should show: "Exit node: advertising"
    ```
 
 4. **Check control plane approved routes:**
 
    ```bash
-   docker exec headscale headscale routes list
+   docker compose exec headscale headscale routes list
    # Should show 0.0.0.0/0 and ::/0 enabled
    ```
 

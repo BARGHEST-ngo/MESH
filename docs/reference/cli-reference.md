@@ -48,30 +48,30 @@ meshcli up [options]
 
 ```bash
 # Basic connection
-sudo meshcli up --login-server=https://mesh.example.com
+meshcli up --login-server=https://mesh.example.com
 
 # Connect with pre-auth key
-sudo meshcli up \
+meshcli up \
   --login-server=https://mesh.example.com \
   --authkey=abc123def456
 
 # Advertise subnet routes
-sudo meshcli up \
+meshcli up \
   --login-server=https://mesh.example.com \
   --advertise-routes=192.168.1.0/24,10.0.0.0/8
 
 # Act as exit node
-sudo meshcli up \
+meshcli up \
   --login-server=https://mesh.example.com \
   --advertise-exit-node
 
 # Use peer as exit node
-sudo meshcli up \
+meshcli up \
   --login-server=https://mesh.example.com \
   --exit-node=100.64.1.5
 
 # Disable DNS
-sudo meshcli up \
+meshcli up \
   --login-server=https://mesh.example.com \
   --accept-dns=false
 ```
@@ -89,7 +89,7 @@ meshcli down
 **Examples:**
 
 ```bash
-sudo meshcli down
+meshcli down
 ```
 
 ### status
@@ -112,20 +112,17 @@ meshcli status [options]
 **Examples:**
 
 ```bash
-# Basic status
-sudo meshcli status
-
-# Show peers
-sudo meshcli status --peers
+# Basic status with peers
+meshcli status
 
 # JSON output
-sudo meshcli status --json
+meshcli status --json
 
 # JSON with jq filtering
-sudo meshcli status --json | jq '.Peer[] | {name: .HostName, ip: .TailscaleIPs[0]}'
+meshcli status --json | jq '.Peer[] | {name: .HostName, ip: .TailscaleIPs[0]}'
 
 # Only active peers
-sudo meshcli status --peers --active
+meshcli status --active
 ```
 
 **Output fields:**
@@ -163,16 +160,16 @@ meshcli ping <hostname-or-ip> [options]
 
 ```bash
 # Ping by hostname
-sudo meshcli ping android-device
+meshcli ping android-device
 
 # Ping by IP
-sudo meshcli ping 100.64.2.1
+meshcli ping 100.64.2.1
 
 # Ping 10 times
-sudo meshcli ping 100.64.2.1 --c 10
+meshcli ping 100.64.2.1 --c 10
 
 # Ping until direct connection
-sudo meshcli ping 100.64.2.1 --until-direct
+meshcli ping 100.64.2.1 --until-direct
 ```
 
 ### netcheck
@@ -188,7 +185,7 @@ meshcli netcheck
 **Examples:**
 
 ```bash
-sudo meshcli netcheck
+meshcli netcheck
 ```
 
 **Output:**
@@ -216,8 +213,8 @@ meshcli bugreport [options]
 **Examples:**
 
 ```bash
-sudo meshcli bugreport > mesh-bugreport.txt
-sudo meshcli bugreport --diagnose > mesh-bugreport-full.txt
+meshcli bugreport > mesh-bugreport.txt
+meshcli bugreport --diagnose > mesh-bugreport-full.txt
 ```
 
 ### logout
@@ -233,7 +230,7 @@ meshcli logout
 **Examples:**
 
 ```bash
-sudo meshcli logout
+meshcli logout
 ```
 
 ### set
@@ -260,19 +257,19 @@ meshcli set [options]
 
 ```bash
 # Disable DNS
-sudo meshcli set --accept-dns=false
+meshcli set --accept-dns=false
 
 # Enable route acceptance
-sudo meshcli set --accept-routes=true
+meshcli set --accept-routes=true
 
 # Change exit node
-sudo meshcli set --exit-node=100.64.1.5
+meshcli set --exit-node=100.64.1.5
 
 # Remove exit node
-sudo meshcli set --exit-node=
+meshcli set --exit-node=
 
 # Enable shields up
-sudo meshcli set --shields-up=true
+meshcli set --shields-up=true
 ```
 
 ### ip
@@ -295,13 +292,13 @@ meshcli ip [options]
 
 ```bash
 # Show all IPs
-sudo meshcli ip
+meshcli ip
 
 # IPv4 only
-sudo meshcli ip -4
+meshcli ip -4
 
 # First IP only
-sudo meshcli ip -1
+meshcli ip -1
 ```
 
 ### routes
@@ -317,7 +314,7 @@ meshcli routes
 **Examples:**
 
 ```bash
-sudo meshcli routes
+meshcli routes
 ```
 
 ### version
@@ -391,7 +388,7 @@ See [AmneziaWG Configuration](../advanced/amneziawg.md) for details.
 
 ```bash
 #!/bin/bash
-if sudo meshcli status | grep -q "Running"; then
+if meshcli status | grep -q "Running"; then
     echo "Connected"
 else
     echo "Disconnected"
@@ -402,7 +399,7 @@ fi
 
 ```bash
 #!/bin/bash
-MESH_IP=$(sudo meshcli ip -4 -1)
+MESH_IP=$(meshcli ip -4 -1)
 echo "Mesh IP: $MESH_IP"
 ```
 
@@ -410,7 +407,7 @@ echo "Mesh IP: $MESH_IP"
 
 ```bash
 #!/bin/bash
-sudo meshcli status --json | jq -r '.Peer[] | select(.Online == true) | .HostName'
+meshcli status --json | jq -r '.Peer[] | select(.Online == true) | .HostName'
 ```
 
 ### Auto-reconnect on disconnect
@@ -418,9 +415,9 @@ sudo meshcli status --json | jq -r '.Peer[] | select(.Online == true) | .HostNam
 ```bash
 #!/bin/bash
 while true; do
-    if ! sudo meshcli status | grep -q "Running"; then
+    if ! meshcli status | grep -q "Running"; then
         echo "Disconnected, reconnecting..."
-        sudo meshcli up --login-server=https://mesh.example.com --authkey=abc123
+        meshcli up --login-server=https://mesh.example.com --authkey=abc123
     fi
     sleep 60
 done
@@ -430,7 +427,7 @@ done
 
 ```bash
 #!/bin/bash
-sudo meshcli status --json | jq -r '.Peer[] | "\(.HostName): \(.CurAddr)"'
+meshcli status --json | jq -r '.Peer[] | "\(.HostName): \(.CurAddr)"'
 ```
 
 ## Next steps

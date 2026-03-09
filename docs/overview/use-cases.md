@@ -53,7 +53,7 @@ An incident response team needs to monitor network traffic from a compromised de
 !!! example "Workflow"
     ```bash
     # Enable exit node on analyst node
-    sudo ./meshcli up --advertise-exit-node
+    meshcli up --advertise-exit-node
 
     # On endpoint, route all traffic through analyst
     # (configured in MESH app)

@@ -2,12 +2,6 @@
 
 The control plane coordinates your MESH network. We use Docker for easy deployment.
 
-## Exposing the control plane
-
-The control plane needs to be accessible from the internet for nodes to connect. You have several options:
-
-TODO
-
 ## Step 1: Install prerequisites
 
 Install Docker and Docker Compose if you haven't already. You can find the instructions for your specific operating system [here](https://docs.docker.com/get-docker/).
@@ -127,3 +121,7 @@ curl https://your-domain.com/health
 ## Next steps
 
 Your control plane is now ready. The next step is to install the analyst client on your acquision node.
+
+---
+
+[Next: Analyst client Setup](analyst-client.md) →

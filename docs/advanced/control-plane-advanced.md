@@ -61,8 +61,7 @@ derp:
 
 Create a custom DERP map file defining your relay servers:
 
-```bash
-cat > config/derp.yaml << 'EOF'
+```yaml
 regions:
   900:
     regionid: 900
@@ -102,7 +101,6 @@ regions:
         stunport: 3478
         stunonly: false
         derpport: 443
-EOF
 ```
 
 ### DERP map parameters
@@ -316,7 +314,7 @@ docker exec derp netstat -an | grep :3478
 
    ```bash
    # Check YAML syntax
-   docker exec headscale cat /etc/headscale/derp.yaml
+   docker compose exec headscale cat /etc/headscale/derp.yaml
    ```
 
 4. **Check Headscale logs:**

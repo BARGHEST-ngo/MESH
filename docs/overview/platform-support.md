@@ -8,9 +8,9 @@ The following platforms are currently supported in the public alpha release:
 
 | Component | Android | iOS | Linux | macOS | Windows |
 |-----------|---------|-----|-------|-------|---------|
-| **Control plane** | ❌ | ❌ | ✅ | ✅ | ✅ |
-| **Analyst client** | ❌ | ❌ | ✅ | ✅ | ✅ |
-| **Endpoint client** | ✅ Android 8.0+ | ❌ Coming Q4 2026 | ❌ | ❌ | ❌ |
+| **Control plane** | N/A | N/A | ✅ | ✅ | ✅ |
+| **Analyst client** | N/A | N/A | ✅ | ✅ | ✅ |
+| **Endpoint client** | ✅ Android 8.0+ | ❌ Coming Q4 2026 | N/A | N/A | N/A |
 
 ### Android (endpoint client)
 
@@ -124,34 +124,6 @@ The following platforms are planned for future releases:
 - Disable battery optimization for MESH app
 - Manually enable ADB-over-WiFi in Developer Options
 - Disconnect other VPN apps before using MESH
-
-### Linux Compatibility
-
-**Known Issues:**
-
-- Some distributions require manual kernel module loading for WireGuard
-- SELinux may block VPN operations on RHEL/CentOS
-- AppArmor profiles may need adjustment on Ubuntu
-
-**Workarounds:**
-
-- Install WireGuard kernel module: `sudo modprobe wireguard`
-- Configure SELinux policies or set to permissive mode
-- Adjust AppArmor profiles as needed
-
-### macOS Compatibility
-
-**Known Issues:**
-
-- macOS Firewall may prompt for network access
-- System Integrity Protection (SIP) may interfere with VPN operations
-- Gatekeeper may block unsigned binaries
-
-**Workarounds:**
-
-- Allow network access when prompted
-- SIP should not need to be disabled for normal operation
-- Build from source or wait for signed binaries
 
 ---
 

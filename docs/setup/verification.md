@@ -7,26 +7,26 @@ Now that you have all components set up, let's verify everything is working corr
 On your analyst workstation, verify all nodes are connected:
 
 ```bash
-sudo ./meshcli status --peers
+# Enter interactive shell in the analyst container
+task analyst
+
+# Check mesh status
+meshcli status
 ```
 
 **Example output:**
 
 ```
-# Peers:
-analyst-laptop    100.64.1.1    online    user:analyst1
-android-device    100.64.2.1    online    user:analyst1
+IP         DNS Name                   OS      Relay Hostname
+100.64.0.1 analyst-client.mesh.local. -       -     analyst-client
+100.64.0.2 android-device.mesh.local. android nyc   android-device
 ```
 
 You should see:
 
-- Your analyst workstation (e.g., `analyst-laptop`)
+- Your analyst workstation (e.g., `analyst-client`)
 - Your Android device (e.g., `android-device`)
-- Both showing as **online**
 - Both assigned mesh IP addresses
-
-!!! success "All Nodes Online"
-    If you see both nodes listed as "online", congratulations! Your mesh network is operational.
 
 ## Step 2: Test Connectivity
 
@@ -56,7 +56,7 @@ PING 100.64.2.1 (100.64.2.1) 56(84) bytes of data.
 See if you have a direct peer-to-peer connection or are using the DERP relay:
 
 ```bash
-sudo ./meshcli status --peers --json | grep -A 5 "android-device"
+meshcli status --json | grep -A 5 "android-device"
 ```
 
 Look for the `relay` field:
@@ -187,8 +187,6 @@ AndroidQF will:
 Confirm all of the following are working:
 
 - [ ] Control plane is running (`docker ps` shows headscale containers)
-- [ ] Analyst client shows as "online" in mesh
-- [ ] Android device shows as "online" in mesh
 - [ ] Can ping Android device over mesh IP
 - [ ] Can connect via ADB over mesh IP
 - [ ] Can run ADB commands successfully
@@ -204,7 +202,7 @@ Confirm all of the following are working:
 **Check both nodes are online:**
 
 ```bash
-sudo ./meshcli status --peers
+meshcli status
 ```
 
 **Check firewall rules:**
@@ -216,7 +214,7 @@ Some networks block ICMP (ping). Try ADB connection instead - it uses TCP which 
 If direct P2P fails, MESH should fall back to DERP relay. Check control plane logs:
 
 ```bash
-docker logs headscale | grep DERP
+docker compose logs headscale | grep DERP
 ```
 
 ### ADB Connection Fails
@@ -247,24 +245,24 @@ adb connect 100.64.2.1:5555
 
 ```bash
 # Check daemon is running
-ps aux | grep tailscaled-amnezia
+ps aux | grep mesh
 
 # Check connection status
-sudo ./meshcli status
+meshcli status
 
 # Try reconnecting
-sudo ./meshcli down
-sudo ./meshcli up --login-server=https://your-domain.com --authkey=YOUR_KEY
+meshcli down
+meshcli up --login-server=https://your-domain.com --authkey=YOUR_KEY
 ```
 
 **On control plane:**
 
 ```bash
 # Check registered nodes
-docker exec headscale headscale nodes list
+docker compose exec headscale headscale nodes list
 
 # Check logs
-docker logs headscale
+docker compose logs headscale
 ```
 
 ## Next steps
@@ -278,4 +276,4 @@ Congratulations! You now have a fully functional MESH network for mobile forensi
 
 ---
 
-← [Previous: Endpoint client Setup](endpoint-client.md) | [Next: Next steps](next-steps.md) →
+← [Previous: Endpoint client Setup](endpoint-client.md)

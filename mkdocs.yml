@@ -88,7 +88,6 @@ nav:
       - Analyst client: setup/analyst-client.md
       - Endpoint client: setup/endpoint-client.md
       - Verification: setup/verification.md
-      - Next steps: setup/next-steps.md
   - User Guide:
       - user-guide/index.md
       - User guide: user-guide/user-guide.md

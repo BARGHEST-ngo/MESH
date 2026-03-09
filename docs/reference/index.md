@@ -41,14 +41,11 @@ This section provides reference documentation for:
 
 ```bash
 # Check status
-sudo ./meshcli status
-
-# List peers
-sudo ./meshcli status --peers
+meshcli status
 
 # Enable/disable routes
-sudo ./meshcli up --advertise-routes=10.0.0.0/24
-sudo ./meshcli down
+meshcli up --advertise-routes=10.0.0.0/24
+meshcli down
 
 # Check version
 ./meshcli version
@@ -58,16 +55,16 @@ sudo ./meshcli down
 
 ```bash
 # List nodes
-docker exec headscale headscale nodes list
+docker compose exec headscale headscale nodes list
 
 # Create pre-auth key
-docker exec headscale headscale preauthkeys create --user default --expiration 24h
+docker compose exec headscale headscale preauthkeys create --user default --expiration 24h
 
 # List users
-docker exec headscale headscale users list
+docker compose exec headscale headscale users list
 
 # Check ACL policy
-docker exec headscale headscale policy check
+docker compose exec headscale headscale policy check
 ```
 
 #### Android Forensics

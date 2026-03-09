@@ -39,22 +39,19 @@ This section covers:
 
 ```bash
 #Connect and pair to an Android device over ADB-over-Wifi
-sudo ./meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234
+meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234
 
 #Connect and pair BUT initate AndroidQF instantly on connection
-sudo ./meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234 --qf
+meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234 --qf
 
 #Initate ADB acquision using AndroidQF and WARD libraries
-sudo ./meshcli abdcollect 
+meshcli abdcollect 
 
 # Check mesh status
-sudo ./meshcli status
-
-# List connected nodes
-sudo ./meshcli status --peers
+meshcli status
 
 # Test connection and establish UDP hole punching
-sudo ./meshcli ping 100.67.x.x
+meshcli ping 100.67.x.x
 
 # Connect to Android device
 adb connect 100.64.x.x:5555

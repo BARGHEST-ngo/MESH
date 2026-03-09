@@ -201,15 +201,7 @@ EOF
 #### 2. Restart MESH Daemon
 
 ```bash
-# If running manually
-sudo pkill tailscaled-amnezia
-sudo tailscaled-amnezia \
-  --socket=/var/run/mesh/tailscaled.sock \
-  --state=/var/lib/mesh/tailscaled.state \
-  --statedir=/var/lib/mesh
-
-# If running as systemd service
-sudo systemctl restart mesh
+docker compose restart analyst
 ```
 
 #### 3. Verify Obfuscation
@@ -281,7 +273,7 @@ Test if obfuscation helps bypass restrictions:
 # Disable obfuscation
 sudo rm /etc/mesh/amneziawg.conf
 sudo systemctl restart mesh
-sudo meshcli up --login-server=https://mesh.yourdomain.com
+meshcli up --login-server=https://mesh.yourdomain.com
 
 # Test connection
 ping 100.64.X.X
@@ -301,7 +293,7 @@ H4 = 400
 EOF
 
 sudo systemctl restart mesh
-sudo meshcli up --login-server=https://mesh.yourdomain.com
+meshcli up --login-server=https://mesh.yourdomain.com
 
 # Test connection again
 ping 100.64.X.X

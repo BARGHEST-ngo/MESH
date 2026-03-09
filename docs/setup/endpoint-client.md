@@ -244,7 +244,7 @@ From your analyst workstation, verify you can see the Android device:
 
 ```bash
 # List all peers
-meshcli status --peers
+meshcli status
 ```
 
 You should see your Android device listed with its mesh IP address.
@@ -304,7 +304,7 @@ If the analyst workstation can't see the Android device:
 
 ```bash
 # Check if both nodes are online
-meshcli status --peers
+meshcli status
 
 # Try pinging the device
 ping 100.64.2.1  # Replace with actual mesh IP

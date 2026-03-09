@@ -38,17 +38,7 @@ meshcli status
 
 # Check your MESH IP
 meshcli ip
-
-# List all peers in the mesh
-meshcli status --peers
 ```
-
-**Example output:**
-
-TODO
-
-!!! success "Connected!"
-    If you see "in map poll: true" and a mesh IP address, you're successfully connected to the mesh!
 
 ## Troubleshooting
 

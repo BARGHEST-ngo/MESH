@@ -27,6 +27,7 @@ services:
     build:
       context: .
       dockerfile: analyst/Dockerfile
+    hostname: analyst-client
     volumes:
       - analyst-data:/home/mesh/.tailscale
     environment:

@@ -31,7 +31,7 @@ This guide covers common forensic workflows and best practices for using MESH in
 
    ```bash
    adb disconnect
-   sudo meshcli down
+   meshcli down
    ```
 
 ### Censored Network Workflow
@@ -66,7 +66,7 @@ For operations in censored environments:
 2. **Verify DERP fallback**
 
    ```bash
-   sudo meshcli status --json | jq '.Peer[] | {name: .HostName, relay: .CurAddr}'
+   meshcli status --json | jq '.Peer[] | {name: .HostName, relay: .CurAddr}'
    ```
 
 3. **Proceed with investigation**
@@ -121,7 +121,7 @@ Access devices on the endpoint's local network:
 **On analyst:**
 
 ```bash
-sudo meshcli up --accept-routes
+meshcli up --accept-routes
 ```
 
 **Access LAN devices:**
@@ -157,13 +157,13 @@ Route internet traffic through an endpoint:
 
 ```bash
 # Use endpoint as exit node
-sudo meshcli up --exit-node=100.64.X.X
+meshcli up --exit-node=100.64.X.X
 
 # Verify
 curl ifconfig.me  # Should show endpoint's public IP
 
 # Stop using exit node
-sudo meshcli up --exit-node=
+meshcli up --exit-node=
 ```
 
 **On endpoint:**
@@ -204,16 +204,16 @@ sudo meshcli up --exit-node=
 
 ```bash
 # Basic status
-sudo meshcli status
+meshcli status
 
 # Detailed peer information
-sudo meshcli status --peers
+meshcli status --peers
 
 # JSON output for scripting
-sudo meshcli status --json | jq
+meshcli status --json | jq
 
 # Check if using DERP relay
-sudo meshcli status --json | jq '.Peer[] | select(.CurAddr | contains("derp"))'
+meshcli status --json | jq '.Peer[] | select(.CurAddr | contains("derp"))'
 ```
 
 ### Collecting comprehensive artifacts
@@ -263,10 +263,10 @@ echo "Collection complete: $OUTPUT_DIR"
 
 ```bash
 # List all connected devices
-sudo meshcli status --peers | grep -E "100\.64\."
+meshcli status --peers | grep -E "100\.64\."
 
 # Connect to all devices
-for ip in $(sudo meshcli status --peers | grep -oE "100\.64\.[0-9]+\.[0-9]+"); do
+for ip in $(meshcli status --peers | grep -oE "100\.64\.[0-9]+\.[0-9]+"); do
     adb connect $ip:5555
 done
 
@@ -290,16 +290,16 @@ PREAUTH_KEY="your-key-here"
 sudo systemctl start mesh
 
 # Connect to control plane
-sudo meshcli up --login-server=$CONTROL_PLANE --authkey=$PREAUTH_KEY --accept-dns=false
+meshcli up --login-server=$CONTROL_PLANE --authkey=$PREAUTH_KEY --accept-dns=false
 
 # Wait for peers
 echo "Waiting for devices..."
-while [ $(sudo meshcli status --peers | grep -c "100.64") -eq 0 ]; do
+while [ $(meshcli status --peers | grep -c "100.64") -eq 0 ]; do
     sleep 5
 done
 
 # Get device IPs
-DEVICES=$(sudo meshcli status --peers | grep -oE "100\.64\.[0-9]+\.[0-9]+")
+DEVICES=$(meshcli status --peers | grep -oE "100\.64\.[0-9]+\.[0-9]+")
 
 # Investigate each device
 for device in $DEVICES; do
@@ -308,7 +308,7 @@ for device in $DEVICES; do
 done
 
 # Disconnect
-sudo meshcli down
+meshcli down
 
 echo "Investigation complete"
 ```

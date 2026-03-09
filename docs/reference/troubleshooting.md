@@ -60,55 +60,6 @@ Common issues and solutions for MESH deployments.
    - Switch from WiFi to mobile data (or vice versa)
    - Some networks block VPN traffic
 
-### Daemon Won't Start
-
-**Symptoms:**
-
-- `tailscaled-amnezia` fails to start
-- Socket errors
-- Permission denied errors
-
-**Solutions:**
-
-1. **Check if already running**
-
-   ```bash
-   ps aux | grep tailscaled
-   sudo pkill tailscaled-amnezia
-   ```
-
-2. **Check socket permissions**
-
-   ```bash
-   sudo rm -rf /var/run/mesh/tailscaled.sock
-   sudo mkdir -p /var/run/mesh
-   sudo chmod 755 /var/run/mesh
-   ```
-
-3. **Check state directory**
-
-   ```bash
-   sudo mkdir -p /var/lib/mesh
-   sudo chmod 755 /var/lib/mesh
-   ```
-
-4. **Run with verbose logging**
-
-   ```bash
-   sudo tailscaled-amnezia \
-     --socket=/var/run/mesh/tailscaled.sock \
-     --state=/var/lib/mesh/tailscaled.state \
-     --statedir=/var/lib/mesh \
-     --verbose=2
-   ```
-
-5. **Check systemd service (if using)**
-
-   ```bash
-   sudo systemctl status mesh
-   sudo journalctl -u mesh -f
-   ```
-
 ### Authentication Fails
 
 **Symptoms:**
@@ -123,13 +74,13 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # On control plane
-   docker exec headscale headscale preauthkeys list
+   docker compose exec headscale headscale preauthkeys list
    ```
 
 2. **Generate new key**
 
    ```bash
-   docker exec headscale headscale preauthkeys create --expiration 24h --reusable
+   docker compose exec headscale headscale preauthkeys create --expiration 24h --reusable
    ```
 
 3. **Check key expiration**
@@ -140,7 +91,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # Without --authkey
-   sudo meshcli up --login-server=https://mesh.yourdomain.com
+   meshcli up --login-server=https://mesh.yourdomain.com
    # Follow the URL to authenticate
    ```
 
@@ -158,7 +109,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # On control plane, check if key is valid and not expired
-   docker exec headscale headscale preauthkeys list
+   docker compose exec headscale headscale preauthkeys list
    ```
 
 2. **Check control plane logs**
@@ -172,24 +123,24 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # List users
-   docker exec headscale headscale users list
+   docker compose exec headscale headscale users list
 
    # Create user if missing
-   docker exec headscale headscale users create default
+   docker compose exec headscale headscale users create default
    ```
 
 4. **Try reconnecting**
 
    ```bash
-   sudo ./meshcli down
-   sudo ./meshcli up --login-server=https://mesh.yourdomain.com --authkey=YOUR_KEY
+   meshcli down
+   meshcli up --login-server=https://mesh.yourdomain.com --authkey=YOUR_KEY
    ```
 
 5. **Check node registration**
 
    ```bash
    # On control plane
-   docker exec headscale headscale nodes list
+   docker compose exec headscale headscale nodes list
    # Verify your node appears in the list
    ```
 
@@ -208,7 +159,7 @@ Common issues and solutions for MESH deployments.
 1. **Check NAT type**
 
    ```bash
-   sudo meshcli netcheck
+   meshcli netcheck
    ```
 
 2. **Check UDP connectivity**
@@ -257,7 +208,7 @@ Common issues and solutions for MESH deployments.
 1. **Verify both devices are connected**
 
    ```bash
-   sudo meshcli status
+   meshcli status
    # Should show "Running"
    ```
 
@@ -265,7 +216,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # On control plane
-   docker exec headscale headscale nodes list
+   docker compose exec headscale headscale nodes list
    cat config/acl.yaml
    ```
 
@@ -275,17 +226,14 @@ Common issues and solutions for MESH deployments.
 4. **Check user assignment**
 
    ```bash
-   docker exec headscale headscale nodes list
+   docker compose exec headscale headscale nodes list
    # Verify nodes are in correct user/group
    ```
 
 5. **Restart daemon**
 
    ```bash
-   sudo systemctl restart mesh
-   # or
-   sudo pkill tailscaled-amnezia
-   sudo tailscaled-amnezia ...
+   docker compose restart analyst
    ```
 
 ### Connection Drops Frequently
@@ -319,7 +267,7 @@ Common issues and solutions for MESH deployments.
 4. **Check DERP relay stability**
 
    ```bash
-   sudo meshcli netcheck
+   meshcli netcheck
    # Check DERP latencies
    ```
 
@@ -345,7 +293,7 @@ Common issues and solutions for MESH deployments.
 1. **Verify device is online**
 
    ```bash
-   sudo meshcli status --peers
+   meshcli status --peers
    ping 100.64.X.X
    ```
 
@@ -424,7 +372,7 @@ Common issues and solutions for MESH deployments.
 1. **Check connection type**
 
    ```bash
-   sudo meshcli status --json | jq '.Peer[] | {name: .HostName, addr: .CurAddr}'
+   meshcli status --json | jq '.Peer[] | {name: .HostName, addr: .CurAddr}'
    # Direct connection is faster than DERP relay
    ```
 
@@ -460,7 +408,7 @@ Common issues and solutions for MESH deployments.
 
 **Symptoms:**
 
-- High CPU usage by tailscaled-amnezia
+- High CPU usage by mesh
 - Device heating up
 - Battery drain (mobile)
 
@@ -474,7 +422,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # Increase check interval
-   sudo meshcli set --netcheck-interval=10m
+   meshcli set --netcheck-interval=10m
    ```
 
 3. **Limit peer count**
@@ -485,7 +433,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # Look for routing loops
-   sudo meshcli routes
+   meshcli routes
    ```
 
 ## Control plane Issues
@@ -549,19 +497,19 @@ Common issues and solutions for MESH deployments.
 1. **Check node list**
 
    ```bash
-   docker exec headscale headscale nodes list
+   docker compose exec headscale headscale nodes list
    ```
 
 2. **Check user exists**
 
    ```bash
-   docker exec headscale headscale users list
+   docker compose exec headscale headscale users list
    ```
 
 3. **Create user if missing**
 
    ```bash
-   docker exec headscale headscale users create analyst1
+   docker compose exec headscale headscale users create analyst1
    ```
 
 4. **Check ACLs**
@@ -575,7 +523,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # Get node key from client logs
-   docker exec headscale headscale nodes register --user analyst1 --key nodekey:abc123
+   docker compose exec headscale headscale nodes register --user analyst1 --key nodekey:abc123
    ```
 
 ### DERP Relay Not Working
@@ -697,7 +645,7 @@ adb logcat -d > android-logs.txt
 
 ```bash
 # Analyst client
-sudo meshcli bugreport --diagnose > mesh-bugreport.txt
+meshcli bugreport --diagnose > mesh-bugreport.txt
 
 # Android
 adb bugreport bugreport.zip
@@ -707,10 +655,10 @@ adb bugreport bugreport.zip
 
 ```bash
 # Check NAT type and DERP latencies
-sudo meshcli netcheck
+meshcli netcheck
 
 # Trace route to peer
-sudo meshcli ping 100.64.X.X --verbose
+meshcli ping 100.64.X.X --verbose
 
 # Check WireGuard interface
 ip addr show tun0
@@ -721,16 +669,16 @@ sudo wg show
 
 ```bash
 # Detailed status
-sudo meshcli status --json | jq
+meshcli status --json | jq
 
 # Check peer connectivity
-for peer in $(sudo meshcli status --json | jq -r '.Peer[].TailscaleIPs[0]'); do
+for peer in $(meshcli status --json | jq -r '.Peer[].TailscaleIPs[0]'); do
     echo "Pinging $peer..."
-    sudo meshcli ping $peer --c 3
+    meshcli ping $peer --c 3
 done
 
 # Monitor connection changes
-watch -n 1 'sudo meshcli status --peers'
+watch -n 1 'meshcli status --peers'
 ```
 
 ## Getting Help
