@@ -6,8 +6,6 @@ version: '3'
 
 vars:
   API_KEY_EXPIRATION: 3h
-  # EPHEMERAL_DESCRIPTION: 'Ephemeral (runs on your workstation and accessed via tunneling service like ngrok)'
-  # PERSISTENT_DESCRIPTION: 'Persistent (runs on a dedicated internet-facing server)'
 
 dotenv:
   - .env
@@ -26,7 +24,6 @@ tasks:
 
   controlPlane:
     desc: Start MESH control plane
-    prompt: Does the above configuration look correct?
     cmd: docker compose up headscale ui
     deps:
       - configureControlPlane
@@ -35,7 +32,9 @@ tasks:
     cmds:
       - task: controlPlaneType
       - task: controlPlaneDomain
-      - task: printDotEnv
+      - task: headscaleConfig
+        if: '[ ! -f control-plane/headscale/config.yaml ]'
+      - task: confirmDotEnv
 
   down:
     desc: Stop MESH Docker containers
@@ -50,9 +49,8 @@ tasks:
 
   analyst:
     desc: Enter an interactive shell in the MESH analyst client container
-    prompt: Does the above configuration look correct?
     cmds:
-      - docker compose up -d --no-recreate analyst
+      - docker compose up -d analyst
       - docker compose exec analyst /bin/bash
     deps:
       - configureAnalyst
@@ -61,11 +59,12 @@ tasks:
     cmds:
       - task: loginUrl
       - task: analystAuthKey
-      - task: printDotEnv
+      - task: confirmDotEnv
 
   setAuthKey:
     desc: Set a new auth key for the analyst client
     cmds:
+      - docker compose down analyst && docker volume rm $(docker compose volumes -q | grep analyst-data) || true
       - |
         printf "\033[1;36m╔═════════════════════════════════════════════════════════╗\033[0m\n"
         printf "\033[1;36m║\033[0m\033[1;37m What is the new auth key to use for the analyst client? \033[0m\033[1;36m║\033[0m\n"
@@ -75,6 +74,11 @@ tasks:
 #################################
 # Internal tasks
 #################################
+
+  confirmDotEnv:
+    cmds:
+      - defer: '{{if .EXIT_CODE}}echo Please manually edit .env or delete it and re-run the task.{{end}}'
+      - task -t Taskfile.dev.yml promptConfirmDotEnv 2>/dev/null
 
   controlPlaneType:
     internal: true
@@ -119,27 +123,32 @@ tasks:
       vars:
         - CONTROL_PLANE_DOMAIN
     vars:
-      DEFAULT_CORS_ORIGIN: https://{{.CONTROL_PLANE_DOMAIN | default "localhost"}}
+      CONTROL_PLANE_DOMAIN_VALUE: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
+      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" ""}}'
+      DEFAULT_CORS_ORIGIN: https://{{.CONTROL_PLANE_DOMAIN_ONLY}}
     cmds:
-      - printf "\033[1;32mDomain name set to {{.CONTROL_PLANE_DOMAIN | default "localhost"}}.\033[0m\n\n"
-      - echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN | default "localhost"}}" >> .env
+      - printf "\033[1;32mDomain name set to {{.CONTROL_PLANE_DOMAIN_ONLY}}.\033[0m\n\n"
+      - echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN_ONLY}}" >> .env
       - echo "CORS_ORIGIN={{.CORS_ORIGIN | default .DEFAULT_CORS_ORIGIN }}" >> .env
-      - task: headscaleConfig
-        vars:
-          CONTROL_PLANE_DOMAIN: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
     deps:
       - createDotEnv
 
   headscaleConfig:
     internal: true
+    requires:
+      vars:
+        - CONTROL_PLANE_DOMAIN
+    vars:
+      CONTROL_PLANE_DOMAIN_VALUE: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
+      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" ""}}'
     cmds:
       - cmd: >
-          sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN}}/g"
+          sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN_ONLY}}/g"
           control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
         platforms: [linux, darwin]
       - cmd: >
           powershell -Command
-          "(Get-Content 'control-plane/headscale/config.example.yaml') -replace 'CONTROL_PLANE_DOMAIN', '{{.CONTROL_PLANE_DOMAIN}}' |
+          "(Get-Content 'control-plane/headscale/config.example.yaml') -replace 'CONTROL_PLANE_DOMAIN', '{{.CONTROL_PLANE_DOMAIN_ONLY}}' |
           Set-Content 'control-plane/headscale/config.yaml'"
         platforms: [windows]
     sources:
@@ -205,58 +214,6 @@ tasks:
     deps:
       - createDotEnv
 
-  printDotEnv:
-    internal: true
-    cmd: echo ""; cat .env; echo ""
-
   createDotEnv:
     internal: true
     cmd: '[ -f .env ] || (touch .env && chmod 600 .env)'
-
-#################################
-# Development tasks
-#################################
-
-  tidy:
-    desc: Run go mod tidy
-    cmds:
-      - go mod tidy
-
-  generate:
-    desc: Generate code
-    cmds:
-      - go generate ./...
-
-  docs:
-    desc: Build documentation
-    cmd: mkdocs build
-
-  serveDocs:
-    desc: Serve documentation
-    cmd: mkdocs serve
-
-  buildAnalyst:
-    desc: Build MESH analyst client for local development
-    cmds:
-      - ./analyst/src/build.sh
-
-  buildAndroid:
-    desc: Build MESH Android client
-    cmds:
-      - make -C android-client apk
-
-  buildAndroidRelease:
-    desc: Build MESH Android client for release
-    cmds:
-      - make -C android-client release-apk
-
-  buildAndroidSigned:
-    desc: Build signed MESH Android client for release
-    cmds:
-      - make -C android-client release-apk-signed
-
-  clean:
-    desc: Clean up build artifacts
-    cmds:
-      - rm -f analyst/mesh
-      - make -C android-client clean

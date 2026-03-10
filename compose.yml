@@ -31,7 +31,7 @@ services:
     volumes:
       - analyst-data:/home/mesh/.tailscale
     environment:
-      - LOGIN_URL=${LOGIN_URL:-http://ui}
+      - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
       - AUTH_KEY=${AUTH_KEY}
 
 volumes:
