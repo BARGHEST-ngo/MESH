@@ -24,7 +24,7 @@ tasks:
 
   controlPlane:
     desc: Start MESH control plane
-    cmd: docker compose up headscale ui
+    cmd: docker compose up -d headscale ui
     deps:
       - configureControlPlane
 
