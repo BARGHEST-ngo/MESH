@@ -1,0 +1,39 @@
+services:
+  headscale:
+    image: docker.io/headscale/headscale:0.28.0
+    restart: unless-stopped
+    volumes:
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale:/etc/headscale
+      - headscale-data:/var/lib/headscale
+    tmpfs:
+      - /var/run/headscale
+    command: serve
+
+  ui:
+    build: ./control-plane/mesh-ui
+    restart: unless-stopped
+    volumes:
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/nginx.conf:/etc/nginx/nginx.conf.template
+    environment:
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - NGINX_MODE=${NGINX_MODE:-prod}
+    depends_on:
+      - headscale
+    ports:
+      - "127.0.0.1:80:80"
+    entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+
+  analyst:
+    build:
+      context: .
+      dockerfile: analyst/Dockerfile
+    hostname: analyst-client
+    volumes:
+      - analyst-data:/home/mesh/.tailscale
+    environment:
+      - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
+      - AUTH_KEY=${AUTH_KEY}
+
+volumes:
+  headscale-data:
+  analyst-data:

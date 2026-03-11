@@ -7,10 +7,6 @@
 *.dylib
 *.spk
 
-cmd/tailscale/tailscale
-cmd/tailscaled/tailscaled
-ssh/tailssh/testcontainers/tailscaled
-
 # Test binary, built with `go test -c`
 *.test
 
@@ -42,9 +38,6 @@ vendor/
 client/web/node_modules
 client/web/build/assets
 
-/gocross
-/dist
-
 # Ignore xcode userstate and workspace data
 *.xcuserstate
 *.xcworkspacedata
@@ -54,18 +47,18 @@ client/web/build/assets
 # Ignore personal IntelliJ settings
 .idea/
 
-# meshcli custom binaries
-/meshcli
-/mesh
-cmd/meshcli/meshcli
-
-# tailscaled custom binaries
-/tailscaled-amnezia
-/tailscaled-test
-cmd/tailscaled/tailscaled-amnezia
-
-# Test scripts
-test-build.sh
-
 # Forensics acquisition output (UUID directories)
 /[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]/
+
+/analyst/mesh
+
+# pnpm
+.pnpm-store
+
+# Task
+.task
+.env
+.authkey
+
+# MkDocs build output
+site/

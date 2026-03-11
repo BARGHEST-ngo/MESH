@@ -109,7 +109,7 @@ https://docs.meshforensics.org/
 
 ```
 git clone https://github.com/BARGHEST-ngo/mesh.git
-cd mesh/mesh-control-plane
+cd mesh/control-plane
 ```
 
 ### 2. Start control plane
@@ -146,9 +146,9 @@ See the documentation for node enrollment and forensic workflows.
 
 ### Repository structure
 
-- `mesh-android-client` — Android endpoint APK  
-- `mesh-control-plane` — Coordination server  
-- `mesh-linux-macos-analyst` — Analyst CLI client
+- `android-client` — Android endpoint APK  
+- `control-plane` — Coordination server  
+- `analyst` — Analyst CLI client
 
 ### Developer notes
 

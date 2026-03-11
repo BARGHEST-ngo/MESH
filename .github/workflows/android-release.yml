@@ -13,7 +13,7 @@ on:
 
 defaults:
   run:
-    working-directory: mesh-android-client
+    working-directory: android-client
 
 jobs:
   build-release:
@@ -28,7 +28,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
-          go-version-file: "mesh-android-client/go.mod"
+          go-version-file: "go.mod"
 
       - name: Set up Java 17
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -41,8 +41,8 @@ jobs:
 
       - name: Install Android NDK and Build Tools
         run: |
-          sdkmanager --install "ndk;23.1.7779620" "build-tools;34.0.0"
-          echo "$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_PATH
+          sdkmanager --install "ndk;23.2.8568313" "build-tools;36.0.0"
+          echo "$ANDROID_HOME/build-tools/36.0.0" >> $GITHUB_PATH
 
       - name: Decode Keystore
         env:
@@ -52,7 +52,7 @@ jobs:
 
       - name: Build and Sign Release APK
         env:
-          JKS_PATH: ${{ github.workspace }}/mesh-android-client/mesh-release.jks
+          JKS_PATH: ${{ github.workspace }}/android-client/mesh-release.jks
           JKS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           JKS_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
         run: |
@@ -75,13 +75,13 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: mesh-${{ steps.version.outputs.version }}
-          path: mesh-android-client/mesh-${{ steps.version.outputs.version }}.apk
+          path: android-client/mesh-${{ steps.version.outputs.version }}.apk
 
       - name: Create GitHub Release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: mesh-android-client/mesh-${{ steps.version.outputs.version }}.apk
+          files: android-client/mesh-${{ steps.version.outputs.version }}.apk
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

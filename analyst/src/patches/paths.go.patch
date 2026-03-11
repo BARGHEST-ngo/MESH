@@ -1,0 +1,16 @@
+diff --git a/paths/paths.go b/paths/paths.go
+index 6c9c3fa6c..c77260c38 100644
+--- a/paths/paths.go
++++ b/paths/paths.go
+@@ -43,10 +43,7 @@ func DefaultTailscaledSocket() string {
+ 	case distro.QNAP:
+ 		return "/tmp/tailscale/tailscaled.sock"
+ 	}
+-	if fi, err := os.Stat("/var/run"); err == nil && fi.IsDir() {
+-		return "/var/run/tailscale/tailscaled.sock"
+-	}
+-	return "tailscaled.sock"
++	return "/tmp/tailscaled.sock"
+ }
+ 
+ // Overridden in init by OS-specific files.

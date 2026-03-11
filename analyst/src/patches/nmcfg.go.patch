@@ -1,0 +1,14 @@
+diff --git a/wgengine/wgcfg/nmcfg/nmcfg.go b/wgengine/wgcfg/nmcfg/nmcfg.go
+index a42827337..9e5bdb1f3 100644
+--- a/wgengine/wgcfg/nmcfg/nmcfg.go
++++ b/wgengine/wgcfg/nmcfg/nmcfg.go
+@@ -53,6 +53,9 @@ func WGCfg(pk key.NodePrivate, nm *netmap.NetworkMap, logf logger.Logf, flags ne
+ 		Peers:      make([]wgcfg.Peer, 0, len(nm.Peers)),
+ 	}
+ 
++	amneziaCfg := wgcfg.LoadAmneziaConfig(logf)
++	amneziaCfg.ApplyTo(cfg)
++
+ 	// Setup log IDs for data plane audit logging.
+ 	if nm.SelfNode.Valid() {
+ 		canNetworkLog := nm.SelfNode.HasCap(tailcfg.CapabilityDataPlaneAuditLogs)

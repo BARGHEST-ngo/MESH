@@ -1,0 +1,1 @@
+MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics. It's a fork of the Tailscale protocol, but is self-hostable and heavily modified for civil society and forensic operations.

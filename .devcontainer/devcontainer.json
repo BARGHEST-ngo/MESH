@@ -1,0 +1,52 @@
+{
+	"name": "MESH Development",
+	"build": { "dockerfile": "Dockerfile" },
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"fwcd.kotlin",
+				"mathiasfrohlich.Kotlin",
+				"vscjava.vscode-java-pack",
+				"vscjava.vscode-gradle",
+				"golang.go",
+				"ahmadalli.vscode-nginx-conf",
+				"Augment.vscode-augment",
+				"task.vscode-task",
+				"redhat.vscode-yaml",
+				"github.vscode-github-actions",
+				"eamodio.gitlens"
+			],
+			"settings": {
+				"java.configuration.runtimes": [
+					{
+						"name": "JavaSE-17",
+						"path": "/usr/lib/jvm/msopenjdk-current",
+						"default": true
+					}
+				]
+			}
+		}
+	},
+	"mounts": [
+		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/root/.android,type=bind,consistency=cached"
+	],
+	"forwardPorts": [80],
+	"features": {
+		"ghcr.io/devcontainers/features/git-lfs:1": {
+			"autoPull": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"moby": false,
+			"installDockerBuildx": true,
+			"installDockerComposeSwitch": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "v2"
+		},
+		"ghcr.io/devcontainers-extra/features/mkdocs:2": {
+			"version": "latest",
+			"plugins": "mkdocs-material"
+		}
+	},
+	"remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" }
+}

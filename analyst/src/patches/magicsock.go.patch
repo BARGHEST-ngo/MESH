@@ -1,0 +1,29 @@
+diff --git a/wgengine/magicsock/magicsock.go b/wgengine/magicsock/magicsock.go
+index 8fbd07013..fa9b5af82 100644
+--- a/wgengine/magicsock/magicsock.go
++++ b/wgengine/magicsock/magicsock.go
+@@ -1483,7 +1483,11 @@ func (c *Conn) networkDown() bool { return !c.networkUp.Load() }
+ // Send implements conn.Bind.
+ //
+ // See https://pkg.go.dev/github.com/tailscale/wireguard-go/conn#Bind.Send
+-func (c *Conn) Send(buffs [][]byte, ep conn.Endpoint, offset int) (err error) {
++func (c *Conn) Send(buffs [][]byte, ep conn.Endpoint) (err error) {
++	// amneziawg-go doesn't allocate buffers with offset for Geneve headers,
++	// so we use offset=0. The WriteWireGuardBatchTo function handles this
++	// by skipping the offset when Geneve VNI is not set.
++	const offset = 0
+ 	n := int64(len(buffs))
+ 	defer func() {
+ 		if err != nil {
+@@ -4168,8 +4172,9 @@ type lazyEndpoint struct {
+ 	src     epAddr
+ }
+ 
+-var _ conn.InitiationAwareEndpoint = (*lazyEndpoint)(nil)
+-var _ conn.PeerAwareEndpoint = (*lazyEndpoint)(nil)
++// Note: amneziawg-go has different interface signatures than Tailscale's wireguard-go fork
++// var _ conn.InitiationAwareEndpoint = (*lazyEndpoint)(nil)
++// var _ conn.PeerAwareEndpoint = (*lazyEndpoint)(nil)
+ var _ conn.Endpoint = (*lazyEndpoint)(nil)
+ 
+ // InitiationMessagePublicKey implements [conn.InitiationAwareEndpoint].

@@ -1,0 +1,219 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+# Copyright (c) BARGHEST
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+version: '3'
+
+vars:
+  API_KEY_EXPIRATION: 3h
+
+dotenv:
+  - .env
+
+silent: true
+
+tasks:
+
+#################################
+# User-facing tasks
+#################################
+
+  build:
+    desc: Build MESH Docker containers
+    cmd: docker compose build
+
+  controlPlane:
+    desc: Start MESH control plane
+    cmd: docker compose up -d headscale ui
+    deps:
+      - configureControlPlane
+
+  configureControlPlane:
+    cmds:
+      - task: controlPlaneType
+      - task: controlPlaneDomain
+      - task: headscaleConfig
+        if: '[ ! -f control-plane/headscale/config.yaml ]'
+      - task: confirmDotEnv
+
+  down:
+    desc: Stop MESH Docker containers
+    cmd: docker compose down
+
+  apikey:
+    desc: Generate a Headscale API key
+    cmd: >
+      docker compose exec headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}} ||
+      echo "Control plane is not running locally. Either start it with 'task controlPlane' first or
+        run 'task apikey' on the control plane server."
+
+  analyst:
+    desc: Enter an interactive shell in the MESH analyst client container
+    cmds:
+      - docker compose up -d analyst
+      - docker compose exec analyst /bin/bash
+    deps:
+      - configureAnalyst
+
+  configureAnalyst:
+    cmds:
+      - task: loginUrl
+      - task: analystAuthKey
+      - task: confirmDotEnv
+
+  setAuthKey:
+    desc: Set a new auth key for the analyst client
+    cmds:
+      - docker compose down analyst && docker volume rm $(docker compose volumes -q | grep analyst-data) || true
+      - |
+        printf "\033[1;36m╔═════════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m What is the new auth key to use for the analyst client? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚═════════════════════════════════════════════════════════╝\033[0m\n"
+      - task: promptAnalystAuthKey
+
+#################################
+# Internal tasks
+#################################
+
+  confirmDotEnv:
+    cmds:
+      - defer: '{{if .EXIT_CODE}}echo Please manually edit .env or delete it and re-run the task.{{end}}'
+      - task -t Taskfile.dev.yml promptConfirmDotEnv 2>/dev/null
+
+  controlPlaneType:
+    internal: true
+    if: '[ -z $CONTROL_PLANE_TYPE ]'
+    cmds:
+      - |
+        printf "\033[1;36m╔══════════════════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m Will you be setting up an ephemeral or persistent control plane? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚══════════════════════════════════════════════════════════════════╝\033[0m\n"
+      - task: promptControlPlaneType
+
+  promptControlPlaneType:
+    internal: true
+    requires:
+      vars:
+        - name: CONTROL_PLANE_TYPE
+          enum:
+            - Ephemeral (runs on your workstation and accessed via tunneling service like ngrok)
+            - Persistent (runs on a dedicated internet-facing server)
+    vars:
+      CONTROL_PLANE_TYPE_VALUE: "{{.CONTROL_PLANE_TYPE}}"
+      FINAL_CONTROL_PLANE_TYPE: '{{if .CONTROL_PLANE_TYPE_VALUE | contains "Ephemeral"}}Ephemeral{{else}}Persistent{{end}}'
+    cmd: echo CONTROL_PLANE_TYPE={{.FINAL_CONTROL_PLANE_TYPE}} >> .env && printf "\033[1;32m{{.FINAL_CONTROL_PLANE_TYPE}} control plane selected.\033[0m\n\n"
+    deps:
+      - createDotEnv
+
+  controlPlaneDomain:
+    internal: true
+    if: '[ -z $CONTROL_PLANE_DOMAIN ]'
+    cmds:
+      - |
+        printf "\033[1;36m╔═════════════════════════════════════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m What domain name will be used to access your control plane (e.g. mesh.example.com)? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚═════════════════════════════════════════════════════════════════════════════════════╝\033[0m\n"
+        printf "\033[1;35mThis can be a domain name you own or one provided by your tunneling service.\033[0m\n"
+        printf "\033[1;35mLeave blank to use "localhost" (only for testing).\033[0m\n"
+      - task: promptControlPlaneDomain
+
+  promptControlPlaneDomain:
+    internal: true
+    requires:
+      vars:
+        - CONTROL_PLANE_DOMAIN
+    vars:
+      CONTROL_PLANE_DOMAIN_VALUE: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
+      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" ""}}'
+      DEFAULT_CORS_ORIGIN: https://{{.CONTROL_PLANE_DOMAIN_ONLY}}
+    cmds:
+      - printf "\033[1;32mDomain name set to {{.CONTROL_PLANE_DOMAIN_ONLY}}.\033[0m\n\n"
+      - echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN_ONLY}}" >> .env
+      - echo "CORS_ORIGIN={{.CORS_ORIGIN | default .DEFAULT_CORS_ORIGIN }}" >> .env
+    deps:
+      - createDotEnv
+
+  headscaleConfig:
+    internal: true
+    requires:
+      vars:
+        - CONTROL_PLANE_DOMAIN
+    vars:
+      CONTROL_PLANE_DOMAIN_VALUE: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
+      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" ""}}'
+    cmds:
+      - cmd: >
+          sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN_ONLY}}/g"
+          control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
+        platforms: [linux, darwin]
+      - cmd: >
+          powershell -Command
+          "(Get-Content 'control-plane/headscale/config.example.yaml') -replace 'CONTROL_PLANE_DOMAIN', '{{.CONTROL_PLANE_DOMAIN_ONLY}}' |
+          Set-Content 'control-plane/headscale/config.yaml'"
+        platforms: [windows]
+    sources:
+      - control-plane/headscale/config.example.yaml
+    generates:
+      - control-plane/headscale/config.yaml
+
+  loginUrl:
+    internal: true
+    if: '[ "$CONTROL_PLANE_TYPE" != "Ephemeral" -a -z $LOGIN_URL ]'
+    cmds:
+      - |
+        printf "\033[1;36m╔═════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m What is the URL of the control plane to connect to? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚═════════════════════════════════════════════════════╝\033[0m\n"
+      - task: promptLoginUrl
+
+  promptLoginUrl:
+    internal: true
+    requires:
+      vars:
+        - LOGIN_URL
+    vars:
+      LOGIN_URL_VALUE: '{{.LOGIN_URL}}'
+      FINAL_LOGIN_URL: '{{if not (.LOGIN_URL_VALUE | hasPrefix "http")}}https://{{end}}{{.LOGIN_URL_VALUE}}'
+    cmds:
+      - printf "\033[1;32mLogin URL set to {{.FINAL_LOGIN_URL}}.\033[0m\n\n"
+      - echo "LOGIN_URL={{.FINAL_LOGIN_URL}}" >> .env
+    deps:
+      - createDotEnv
+
+  analystAuthKey:
+    internal: true
+    if: '[ -z $AUTH_KEY ]'
+    cmds:
+      - |
+        printf "\033[1;36m╔══════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m What is the auth key for the analyst client? \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚══════════════════════════════════════════════╝\033[0m\n"
+      - task: promptAnalystAuthKey
+
+  promptAnalystAuthKey:
+    internal: true
+    requires:
+      vars:
+        - NEW_AUTH_KEY
+    cmds:
+      - printf "\033[1;32mAnalyst auth key set to {{.NEW_AUTH_KEY}}.\033[0m\n\n"
+      - cmd: >
+          grep -s AUTH_KEY .env &&
+          sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.NEW_AUTH_KEY}}/" .env ||
+          echo "AUTH_KEY={{.NEW_AUTH_KEY}}" >> .env
+        platforms: [linux]
+      - cmd: >
+          grep -s AUTH_KEY .env &&
+          sed -i '' "s/^AUTH_KEY=.*$/AUTH_KEY={{.NEW_AUTH_KEY}}/" .env ||
+          echo "AUTH_KEY={{.NEW_AUTH_KEY}}" >> .env
+        platforms: [darwin]
+      - cmd: >
+          powershell -Command
+          "if (Select-String -Path '.env' -Pattern '^AUTH_KEY=' -Quiet) { (Get-Content '.env') -replace '^AUTH_KEY=.*$', 'AUTH_KEY={{.NEW_AUTH_KEY}}' | Set-Content '.env' } else { Add-Content '.env' 'AUTH_KEY={{.NEW_AUTH_KEY}}' }"
+        platforms: [windows]
+    deps:
+      - createDotEnv
+
+  createDotEnv:
+    internal: true
+    cmd: '[ -f .env ] || (touch .env && chmod 600 .env)'

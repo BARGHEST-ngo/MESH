@@ -1,0 +1,34 @@
+diff --git a/wgengine/magicsock/magicsock_test.go b/wgengine/magicsock/magicsock_test.go
+index 68ab4dfa0..5d140be04 100644
+--- a/wgengine/magicsock/magicsock_test.go
++++ b/wgengine/magicsock/magicsock_test.go
+@@ -3185,18 +3185,17 @@ func TestNetworkSendErrors(t *testing.T) {
+ 		ep := &lazyEndpoint{
+ 			src: epAddr{ap: netip.MustParseAddrPort("127.0.0.1:9999")},
+ 		}
+-		offset := 8
+ 
+ 		// Check this is a valid payload to send when the network is up
+ 		conn.SetNetworkUp(true)
+-		if err := conn.Send(buffs, ep, offset); err != nil {
++		if err := conn.Send(buffs, ep); err != nil {
+ 			t.Errorf("expected successful Send, got err: %q", err)
+ 		}
+ 
+ 		// Now we know the payload would be sent if the network is up,
+ 		// send it again when the network is down
+ 		conn.SetNetworkUp(false)
+-		err := conn.Send(buffs, ep, offset)
++		err := conn.Send(buffs, ep)
+ 		if err == nil {
+ 			t.Error("expected error, got nil")
+ 		}
+@@ -3212,7 +3211,7 @@ func TestNetworkSendErrors(t *testing.T) {
+ 		defer close()
+ 
+ 		conn.SetNetworkUp(false)
+-		err := conn.Send([][]byte{{00}}, &lazyEndpoint{}, 0)
++		err := conn.Send([][]byte{{00}}, &lazyEndpoint{})
+ 		if err == nil {
+ 			t.Error("expected error, got nil")
+ 		}

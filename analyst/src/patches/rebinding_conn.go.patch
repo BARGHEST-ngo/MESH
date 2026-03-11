@@ -1,0 +1,24 @@
+diff --git a/wgengine/magicsock/rebinding_conn.go b/wgengine/magicsock/rebinding_conn.go
+index c98e64570..7512c587a 100644
+--- a/wgengine/magicsock/rebinding_conn.go
++++ b/wgengine/magicsock/rebinding_conn.go
+@@ -81,13 +81,16 @@ func (c *RebindingUDPConn) ReadFromUDPAddrPort(b []byte) (int, netip.AddrPort, e
+ // for Geneve encapsulation: Geneve protocol is set to [packet.GeneveProtocolWireGuard],
+ // and the control bit is left unset.
+ func (c *RebindingUDPConn) WriteWireGuardBatchTo(buffs [][]byte, addr epAddr, offset int) error {
+-	if offset != packet.GeneveFixedHeaderLength {
+-		return fmt.Errorf("RebindingUDPConn.WriteWireGuardBatchTo: [unexpected] offset (%d) != Geneve header length (%d)", offset, packet.GeneveFixedHeaderLength)
+-	}
+ 	gh := packet.GeneveHeader{
+ 		Protocol: packet.GeneveProtocolWireGuard,
+ 		VNI:      addr.vni,
+ 	}
++	// Only enforce offset requirement when Geneve encapsulation is actually used.
++	// amneziawg-go doesn't allocate buffers with offset, so we accept offset=0
++	// when VNI is not set.
++	if gh.VNI.IsSet() && offset != packet.GeneveFixedHeaderLength {
++		return fmt.Errorf("RebindingUDPConn.WriteWireGuardBatchTo: [unexpected] offset (%d) != Geneve header length (%d) with VNI set", offset, packet.GeneveFixedHeaderLength)
++	}
+ 	for {
+ 		pconn := *c.pconnAtomic.Load()
+ 		b, ok := pconn.(batching.Conn)

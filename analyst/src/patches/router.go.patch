@@ -1,0 +1,32 @@
+diff --git a/wgengine/router/router.go b/wgengine/router/router.go
+index 04cc89887..c421aeec6 100644
+--- a/wgengine/router/router.go
++++ b/wgengine/router/router.go
+@@ -9,7 +9,6 @@
+ 	"errors"
+ 	"fmt"
+ 	"net/netip"
+-	"reflect"
+ 	"runtime"
+ 	"slices"
+ 
+@@ -145,7 +144,18 @@ func (a *Config) Equal(b *Config) bool {
+ 	if (a == nil) != (b == nil) {
+ 		return false
+ 	}
+-	return reflect.DeepEqual(a, b)
++	// Avoid reflect.DeepEqual on pointer-bearing types (slices) as it can trigger
++	// bulkBarrierPreWrite errors on arm64 due to alignment issues.
++	// Instead, manually compare all fields.
++	return slices.Equal(a.LocalAddrs, b.LocalAddrs) &&
++		slices.Equal(a.Routes, b.Routes) &&
++		slices.Equal(a.LocalRoutes, b.LocalRoutes) &&
++		a.NewMTU == b.NewMTU &&
++		slices.Equal(a.SubnetRoutes, b.SubnetRoutes) &&
++		a.SNATSubnetRoutes == b.SNATSubnetRoutes &&
++		a.StatefulFiltering == b.StatefulFiltering &&
++		a.NetfilterMode == b.NetfilterMode &&
++		a.NetfilterKind == b.NetfilterKind
+ }
+ 
+ func (c *Config) Clone() *Config {
