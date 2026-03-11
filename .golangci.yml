@@ -1,0 +1,37 @@
+version: "2"
+
+run:
+  # Abort after this duration. The generator step (go generate ./...) can be
+  # slow, so give the linter plenty of headroom for analysis as well.
+  timeout: 10m
+
+linters:
+  # Start from an empty set and opt-in explicitly so new upstream linters
+  # don't silently affect CI.
+  default: none
+  enable:
+    # Standard Go vet checks – catches shadowed variables, printf mismatches, etc.
+    - govet
+    # Checks that errors are always handled.
+    - errcheck
+    # Comprehensive static analysis (supersedes gosimple, stylecheck, unused).
+    - staticcheck
+    # Detects assignments whose result is never used.
+    - ineffassign
+    # Detects unused code.
+    - unused
+    # Detects potential security issues.
+    - gosec
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      rewrite-rules:
+        - pattern: interface{}
+          replacement: any
+
+issues:
+  new: true

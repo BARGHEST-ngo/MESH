@@ -1,0 +1,97 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# Minimal permissions: read source + annotate the PR diff / check run.
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+
+jobs:
+  golangci:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Use the exact Go toolchain declared in go.mod (currently go 1.26).
+      # Disable the built-in module cache used by setup-go because
+      # golangci-lint-action manages its own cache.
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+          cache: false
+
+      # The generator (analyst/src/cmd/generator/main.go) downloads the
+      # tailscale.com module from the Go module cache and copies it –
+      # together with our custom CLI and wgcfg files – into tailscale/.
+      # It also applies patches and runs `go mod tidy` inside that directory.
+      # golangci-lint needs this directory to exist so that import paths
+      # rooted at tailscale/ resolve correctly during analysis.
+      - name: Generate code (populate tailscale/ build directory)
+        run: go generate ./...
+
+      # Run golangci-lint using the configuration in .golangci.yml.
+      # The action installs golangci-lint, caches it between runs, and
+      # annotates the PR diff with any findings.
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          working-directory: tailscale/
+          only-new-issues: true
+
+  # A dedicated job lints android-client/libtailscale using the Android NDK
+  # cross-compiler so that CGO typecheck can resolve <android/log.h> and
+  # link -llog without requiring source-level build constraints.
+  golangci-android:
+    name: golangci-lint (android/arm64)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      # Use the same Go toolchain as the main lint job.
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: "go.mod"
+          cache: false
+
+      # Install only the NDK — the full Android SDK is not needed for lint.
+      # nttld/setup-ndk is lighter than setup-android + sdkmanager: it
+      # downloads and caches the NDK zip directly and exposes the install
+      # path as a step output, which avoids any dynamic-env-var ambiguity.
+      # r23c is the release tag for package version 23.2.8568313 (the
+      # version pinned in android-client/Makefile and android-release.yml).
+      - name: Install Android NDK r23c
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r23c
+          add-to-path: false
+
+      # Run golangci-lint against android-client/libtailscale with CGO
+      # cross-compilation enabled for android/arm64.  The NDK clang wrapper
+      # (aarch64-linux-android26-clang) bakes in the correct sysroot, so
+      # <android/log.h> and liblog resolve automatically without extra
+      # CGO_CFLAGS or CGO_LDFLAGS.
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        env:
+          GOOS: android
+          GOARCH: arm64
+          CGO_ENABLED: "1"
+          CC: ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android26-clang
+        with:
+          version: latest
+          args: android-client/libtailscale
