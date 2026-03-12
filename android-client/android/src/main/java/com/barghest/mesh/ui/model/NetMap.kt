@@ -18,10 +18,10 @@ class Netmap {
       var SelfNode: Tailcfg.Node,
       var NodeKey: KeyNodePublic,
       var Peers: List<Tailcfg.Node>? = null,
-      var Expiry: Time,
-      var Domain: String,
-      var UserProfiles: Map<String, Tailcfg.UserProfile>,
-      var TKAEnabled: Boolean,
+      var Expiry: Time = "",
+      var Domain: String = "",
+      var UserProfiles: Map<String, Tailcfg.UserProfile> = emptyMap(),
+      var TKAEnabled: Boolean = false,
       var DNS: Tailcfg.DNSConfig? = null,
       var AllCaps: List<String> = emptyList()
   ) {
