@@ -81,19 +81,19 @@ class Tailcfg {
       var User: UserID,
       var Sharer: UserID? = null,
       var Key: KeyNodePublic,
-      var KeyExpiry: String,
-      var Machine: MachineKey,
+      var KeyExpiry: String = GoZeroTimeString,
+      var Machine: MachineKey = "",
       var Addresses: List<Prefix>? = null,
       var AllowedIPs: List<Prefix>? = null,
       var Endpoints: List<String>? = null,
-      var Hostinfo: Hostinfo,
-      var Created: Time,
+      var Hostinfo: Hostinfo = Hostinfo(),
+      var Created: Time = "",
       var LastSeen: Time? = null,
       var Online: Boolean? = null,
       var Capabilities: List<String>? = null,
       var CapMap: Map<String, JsonElement?>? = null,
-      var ComputedName: String?,
-      var ComputedNameWithHost: String?
+      var ComputedName: String? = null,
+      var ComputedNameWithHost: String? = null
   ) {
     val isAdmin: Boolean
       get() =

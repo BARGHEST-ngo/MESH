@@ -144,7 +144,7 @@ fun MainView(
   val currentPingDevice by viewModel.pingViewModel.peer.collectAsState()
   val healthIcon by viewModel.healthIcon.collectAsState()
   val state by viewModel.ipnState.collectAsState(initial = Ipn.State.NoState)
-  var showMeshHomeSheet by remember { mutableStateOf(true) }
+  var showMeshHomeSheet by remember { mutableStateOf(false) }
 
   // Show MeshHomeView when NeedsLogin state is detected
   LaunchedEffect(state) {
