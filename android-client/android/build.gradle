@@ -90,6 +90,9 @@ android {
             proguardFiles getDefaultProguardFile(
                     'proguard-android-optimize.txt'),
                     'proguard-rules.pro'
+
+            // Disable VCS info to avoid embedding build paths
+            vcsInfo.include false
         }
         release_tv {
             initWith release
@@ -100,6 +103,15 @@ android {
     testBuildType = "applicationTest"
     lint {
         warningsAsErrors = true
+    }
+}
+
+// Disable baseline profile / art profile tasks to ensure reproducibility.
+// These tasks produce non-deterministic output that depends on CPU core count
+// and dex checksums.  See https://f-droid.org/docs/Reproducible_Builds/
+tasks.whenTaskAdded { task ->
+    if (task.name.contains("ArtProfile")) {
+        task.enabled = false
     }
 }
 
