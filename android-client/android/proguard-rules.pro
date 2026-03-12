@@ -26,3 +26,9 @@
 # Keep Joda-Time classes
 -keep class org.joda.time.** { *; }
 -dontwarn org.joda.time.**
+
+# Reproducibility: prevent R8 from non-deterministically rewriting
+# ServiceLoader usages (the static list order can vary between builds).
+# See https://f-droid.org/docs/Reproducible_Builds/
+-keep class kotlinx.coroutines.CoroutineExceptionHandler
+-keep class kotlinx.coroutines.internal.MainDispatcherFactory
