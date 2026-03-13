@@ -2,8 +2,6 @@ module github.com/BARGHEST-ngo/MESH
 
 go 1.26
 
-toolchain go1.26.0
-
 require (
 	github.com/botherder/go-savetime v1.5.0
 	github.com/google/uuid v1.6.0
