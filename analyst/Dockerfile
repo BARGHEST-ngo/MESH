@@ -38,10 +38,12 @@ ENV JAVA_HOME=/opt/java/openjdk
 ENV ANDROID_SDK_ROOT=/usr/local/android-sdk
 ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
 
-RUN groupadd --gid 10001 mesh \
-    && useradd  --uid 10001 --gid mesh --shell /sbin/nologin --create-home mesh \
-    && mkdir -p /home/mesh/.tailscale \
-    && chown -R mesh:mesh /home/mesh/.tailscale
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        iptables \
+        iproute2 \
+        iputils-ping \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /root/.tailscale
 
 COPY --from=android-sdk /opt/java/openjdk              $JAVA_HOME
 COPY --from=android-sdk /usr/local/android-sdk         $ANDROID_SDK_ROOT
@@ -49,7 +51,7 @@ COPY --from=build       /usr/src/app/analyst/mesh      /usr/bin/mesh
 COPY --chmod=755        analyst/entrypoint.sh          /usr/bin/entrypoint.sh
 COPY                    analyst/amneziawg.conf.example /etc/mesh/amneziawg.conf.example
 
-USER mesh
+USER root
 
 # Configure .bashrc: meshcli alias and interactive welcome message
 RUN printf '%s\n' \
@@ -74,6 +76,6 @@ RUN printf '%s\n' \
     '  printf "    ~/.tailscale/mesh.log     MESH daemon log\n"' \
     '  printf "    ~/.tailscale/meshcli.log  MESH CLI log\n\n"' \
     'fi' \
-    >> /home/mesh/.bashrc
+    >> /root/.bashrc
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]

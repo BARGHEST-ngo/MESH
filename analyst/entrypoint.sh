@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-MESH_STATE_DIR="/home/mesh/.tailscale"
+MESH_STATE_DIR="/root/.tailscale"
 
 if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
     echo "Set the LOGIN_URL and AUTH_KEY environment variables in .env to run the MESH analyst client." >&2
@@ -10,7 +10,6 @@ if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
 fi
 
 /usr/bin/mesh \
-    --tun=userspace-networking \
     --statedir="${MESH_STATE_DIR}" \
     2>&1 | tee "${MESH_STATE_DIR}/mesh.log" &
 
