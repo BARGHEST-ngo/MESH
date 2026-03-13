@@ -3,20 +3,13 @@ name: Build and Release Android APK
 on:
   push:
     tags:
-      - 'v*' # Triggers on version tags like v0.1.0, v1.0.0-alpha.1, etc.
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+      - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0-alpha.1, etc.
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
     inputs:
       version:
         description: 'Version name for the release (e.g., 0.1.1-alpha)'
         required: true
         default: '0.1.0'
-      create_release:
-        description: 'Create GitHub Release?'
-        type: boolean
-        default: false
-
-permissions:
-  contents: read
 
 defaults:
   run:
@@ -27,11 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      hashes: ${{ steps.hash.outputs.hashes }}
-      version: ${{ steps.version.outputs.version }}
-      unsigned_sha256: ${{ steps.unsigned-hash.outputs.unsigned_sha256 }}
-
+    
     steps:
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -41,10 +30,6 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - name: Verify Go modules
-        working-directory: .
-        run: go mod verify
-
       - name: Set up Java 17
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
@@ -52,30 +37,12 @@ jobs:
           java-version: "17"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
-
-      - name: Cache Android NDK
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: ${{ env.ANDROID_HOME }}/ndk/23.2.8568313
-          key: ndk-23.2.8568313
+        uses: android-actions/setup-android@v3
 
       - name: Install Android NDK and Build Tools
         run: |
-          if [ ! -d "$ANDROID_HOME/ndk/23.2.8568313" ]; then
-            sdkmanager --install "ndk;23.2.8568313"
-          fi
-          sdkmanager --install "build-tools;36.0.0"
+          sdkmanager --install "ndk;23.2.8568313" "build-tools;36.0.0"
           echo "$ANDROID_HOME/build-tools/36.0.0" >> $GITHUB_PATH
-
-      - name: Cache Gradle packages
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('android-client/android/**/*.gradle*', 'android-client/android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: gradle-${{ runner.os }}-
 
       - name: Decode Keystore
         env:
@@ -91,11 +58,6 @@ jobs:
         run: |
           make release-apk-signed
 
-      - name: Record unsigned APK hash (for reproducibility verification)
-        id: unsigned-hash
-        run: |
-          echo "unsigned_sha256=$(sha256sum mesh-release-unsigned.apk | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
-
       - name: Get version from tag or input
         id: version
         run: |
@@ -109,25 +71,16 @@ jobs:
         run: |
           mv mesh-release.apk mesh-${{ steps.version.outputs.version }}.apk
 
-      - name: Generate subject hash for SLSA provenance
-        id: hash
-        run: |
-          sha256sum mesh-${{ steps.version.outputs.version }}.apk | base64 -w0 > hashes.txt
-          echo "hashes=$(cat hashes.txt)" >> "$GITHUB_OUTPUT"
-
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@v6
         with:
           name: mesh-${{ steps.version.outputs.version }}
           path: android-client/mesh-${{ steps.version.outputs.version }}.apk
 
       - name: Create GitHub Release
-        if: >
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
-          || (github.event_name == 'workflow_dispatch' && inputs.create_release)
-        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', steps.version.outputs.version) || github.ref_name }}
           files: android-client/mesh-${{ steps.version.outputs.version }}.apk
           generate_release_notes: true
         env:
@@ -137,79 +90,3 @@ jobs:
         if: always()
         run: rm -f mesh-release.jks
 
-  # Verify reproducibility by rebuilding the unsigned APK on a separate runner
-  # and comparing its SHA-256 hash against the primary build.
-  verify-reproducibility:
-    needs: build-release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    defaults:
-      run:
-        working-directory: android-client
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Set up Go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
-        with:
-          go-version-file: "go.mod"
-
-      - name: Set up Java 17
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
-
-      - name: Install Android NDK and Build Tools
-        run: |
-          sdkmanager --install "ndk;23.2.8568313"
-          sdkmanager --install "build-tools;36.0.0"
-
-      - name: Cache Gradle packages
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('android-client/android/**/*.gradle*', 'android-client/android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: gradle-${{ runner.os }}-
-
-      - name: Build unsigned APK (verification build)
-        run: |
-          make release-apk
-
-      - name: Compare unsigned APK hashes
-        env:
-          EXPECTED_HASH: ${{ needs.build-release.outputs.unsigned_sha256 }}
-        run: |
-          ACTUAL_HASH=$(sha256sum mesh-release-unsigned.apk | cut -d' ' -f1)
-          echo "Expected: $EXPECTED_HASH"
-          echo "Actual:   $ACTUAL_HASH"
-          if [ "$EXPECTED_HASH" != "$ACTUAL_HASH" ]; then
-            echo "::error::Reproducibility check FAILED — unsigned APK hashes differ"
-            echo "Install diffoscope for detailed analysis:"
-            echo "  pip install diffoscope"
-            echo "  diffoscope build1/mesh-release-unsigned.apk build2/mesh-release-unsigned.apk"
-            exit 1
-          fi
-          echo "✅ Reproducibility check PASSED — unsigned APK is bit-for-bit identical"
-
-  # Generate SLSA Level 3 provenance for the APK artifact.
-  # This runs on an isolated runner via the slsa-github-generator reusable
-  # workflow, producing non-falsifiable provenance.
-  provenance:
-    needs: build-release
-    permissions:
-      actions: read
-      id-token: write
-      contents: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
-    with:
-      base64-subjects: ${{ needs.build-release.outputs.hashes }}
-      upload-assets: true

@@ -11,22 +11,13 @@
 ## For signed release build JKS_PASSWORD must be set to the password for the jks keystore
 ## and JKS_PATH must be set to the path to the jks keystore.
 
-# Reproducibility: default SOURCE_DATE_EPOCH to the last git commit timestamp.
-# CI or F-Droid may override this via the environment.
-export SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
-
-# Reproducibility: always pass -trimpath to Go to strip filesystem paths.
-export GOFLAGS := $(strip $(GOFLAGS) -trimpath)
-
 DEBUG_APK := mesh-debug.apk
 RELEASE_AAB := mesh-release.aab
 
 # Define output filenames.
 LIBTAILSCALE_AAR := android/libs/libtailscale.aar
 UNSTRIPPED_AAR := android/libs/libtailscale_unstripped.aar
-
-# All architecture variants of libgojni.so inside the AAR.
-AAR_ARCHS := arm64-v8a armeabi-v7a x86 x86_64
+ARM64_SO_PATH := jni/arm64-v8a/libgojni.so
 
 # Compute an absolute path for the unstripped AAR.
 ABS_UNSTRIPPED_AAR := $(shell pwd)/$(UNSTRIPPED_AAR)
@@ -181,16 +172,10 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	@echo "Output file: $(ABS_UNSTRIPPED_AAR)"
 	mkdir -p $(dir $(ABS_UNSTRIPPED_AAR))
 	rm -f $(ABS_UNSTRIPPED_AAR)
-	# Reproducibility flags:
-	#   -buildid=          zeroes the Go build ID
-	#   -trimpath          removes host filesystem paths from the binary
-	#   CGO_CFLAGS         strips absolute paths from C debug info
-	#   -linkmode=external uses the NDK linker (required for 16kb page alignment)
-	CGO_CFLAGS="-ffile-prefix-map=$$(pwd)=. -ffile-prefix-map=$${HOME}=." \
-	CGO_CXXFLAGS="-ffile-prefix-map=$$(pwd)=. -ffile-prefix-map=$${HOME}=." \
-	GOFLAGS="$(GOFLAGS) -buildvcs=false" \
+	# The -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 is specific to NDK 23
+	# to support 16kb page sizes.  Your mileage may vary with other NDK versions.
 	gomobile bind -target android -androidapi 26 \
-		-ldflags "-buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
+		-ldflags "-linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
 		-o $(ABS_UNSTRIPPED_AAR) ./libtailscale || { echo "gomobile bind failed"; exit 1; }
 	@if [ ! -f $(ABS_UNSTRIPPED_AAR) ]; then \
 	    echo "Error: $(ABS_UNSTRIPPED_AAR) was not created"; exit 1; \
@@ -199,7 +184,6 @@ build-unstripped-aar: $(GOBIN)/gomobile
 
 $(UNSTRIPPED_AAR): build-unstripped-aar
 
-# Extract a single arch for standalone debug-symbol extraction (best-effort).
 libgojni.so.unstripped: $(UNSTRIPPED_AAR)
 	@echo "Extracting libgojni.so from unstripped AAR..."
 	@if unzip -p $(ABS_UNSTRIPPED_AAR) jni/arm64-v8a/libgojni.so > libgojni.so.unstripped; then \
@@ -220,40 +204,13 @@ libgojni.so.stripped: libgojni.so.unstripped
 	@echo "Stripping debug symbols from libgojni.so..."
 	$(STRIP_TOOL) --strip-debug libgojni.so.unstripped libgojni.so.stripped
 
-# Repackage the AAR with ALL architecture variants stripped.
-# This is critical for reproducibility: unstripped .so files contain
-# absolute build paths in debug info, which differ between environments.
-$(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
-	@echo "Repackaging AAR with stripped libgojni.so for all architectures..."
+$(LIBTAILSCALE_AAR): libgojni.so.stripped $(UNSTRIPPED_AAR)
+	@echo "Repackaging AAR with stripped libgojni.so..."
 	rm -rf temp_aar
 	mkdir temp_aar
 	unzip $(ABS_UNSTRIPPED_AAR) -d temp_aar
-	# Strip debug info and Go build metadata from every architecture's
-	# libgojni.so.  Three steps per arch:
-	#   1. Zero Go build info in .rodata (contains local filesystem paths
-	#      from gomobile's replace directive).
-	#   2. Remove the .go.buildinfo section header.
-	#   3. Strip all symbols and debug sections.
-	@for arch in $(AAR_ARCHS); do \
-		so_path="temp_aar/jni/$${arch}/libgojni.so"; \
-		if [ -f "$${so_path}" ]; then \
-			echo "Stripping $${so_path}"; \
-			go run ./cmd/zero-go-buildinfo "$${so_path}"; \
-			$(STRIP_TOOL) --strip-all --remove-section=.go.buildinfo "$${so_path}"; \
-		fi; \
-	done
-	# Normalize timestamps inside classes.jar (nested zip) for reproducibility.
-	@if [ -f temp_aar/classes.jar ]; then \
-		mkdir -p temp_aar/classes_tmp && \
-		(cd temp_aar/classes_tmp && unzip -q ../classes.jar) && \
-		find temp_aar/classes_tmp -exec touch -d @$${SOURCE_DATE_EPOCH:-0} {} + && \
-		rm temp_aar/classes.jar && \
-		(cd temp_aar/classes_tmp && find . -type f | LC_ALL=C sort | zip -X -@ ../classes.jar) && \
-		rm -rf temp_aar/classes_tmp; \
-	fi
-	# Normalize all file timestamps and produce a deterministic zip.
-	find temp_aar -exec touch -d @$${SOURCE_DATE_EPOCH:-0} {} +
-	(cd temp_aar && find . -type f | LC_ALL=C sort | zip -X -@ ../$(LIBTAILSCALE_AAR))
+	cp libgojni.so.stripped temp_aar/$(ARM64_SO_PATH)
+	(cd temp_aar && zip -r ../$(LIBTAILSCALE_AAR) .)
 	rm -rf temp_aar
 
 .PHONY: libtailscale
