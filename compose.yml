@@ -28,8 +28,16 @@ services:
       context: .
       dockerfile: analyst/Dockerfile
     hostname: analyst-client
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      net.ipv4.ip_forward: "1"
+      net.ipv6.conf.all.forwarding: "1"
     volumes:
-      - analyst-data:/home/mesh/.tailscale
+      - analyst-data:/root/.tailscale
     environment:
       - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
       - AUTH_KEY=${AUTH_KEY}
