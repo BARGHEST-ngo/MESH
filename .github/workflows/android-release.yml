@@ -37,12 +37,32 @@ jobs:
           java-version: "17"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: >
+            platforms;android-34
+            extras;android;m2repository
+            ndk;23.2.8568313
+            platform-tools
+            build-tools;36.0.0
 
-      - name: Install Android NDK and Build Tools
-        run: |
-          sdkmanager --install "ndk;23.2.8568313" "build-tools;36.0.0"
-          echo "$ANDROID_HOME/build-tools/36.0.0" >> $GITHUB_PATH
+      - name: Add Android Build Tools to PATH
+        run: echo "$ANDROID_HOME/build-tools/36.0.0" >> "$GITHUB_PATH"
+
+      - name: Cache Android NDK
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ env.ANDROID_HOME }}/ndk/23.2.8568313
+          key: ndk-23.2.8568313
+
+      - name: Cache Gradle packages
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android-client/android/**/*.gradle*', 'android-client/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
 
       - name: Decode Keystore
         env:
@@ -61,18 +81,27 @@ jobs:
       - name: Get version from tag or input
         id: version
         run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
-            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [[ "${{ github.actor }}" == "nektos/act" || "${{ github.event.act }}" == "true" ]]; then
+            VERSION="0.0.0-local"
           else
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "::error::Unable to determine release version for event '${{ github.event_name }}' and ref '$GITHUB_REF'"
+            exit 1
           fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Rename APK with version
         run: |
           mv mesh-release.apk mesh-${{ steps.version.outputs.version }}.apk
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v6
+        # ACT does not support artifact upload versions 4+
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5 # v3
+        if: ${{ github.actor != 'nektos/act' && !github.event.act }}
         with:
           name: mesh-${{ steps.version.outputs.version }}
           path: android-client/mesh-${{ steps.version.outputs.version }}.apk
@@ -90,3 +119,83 @@ jobs:
         if: always()
         run: rm -f mesh-release.jks
 
+  # Verify reproducibility by rebuilding the unsigned APK on a separate runner
+  # and comparing its SHA-256 hash against the primary build.
+  verify-reproducibility:
+    needs: build-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: android-client
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: "go.mod"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: >
+            platforms;android-34
+            extras;android;m2repository
+            ndk;23.2.8568313
+            platform-tools
+            build-tools;36.0.0
+
+      - name: Cache Gradle packages
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android-client/android/**/*.gradle*', 'android-client/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Build unsigned APK (verification build)
+        run: |
+          make release-apk
+
+      - name: Compare unsigned APK hashes
+        env:
+          EXPECTED_HASH: ${{ needs.build-release.outputs.unsigned_sha256 }}
+        run: |
+          ACTUAL_HASH=$(sha256sum mesh-release-unsigned.apk | cut -d' ' -f1)
+          echo "Expected: $EXPECTED_HASH"
+          echo "Actual:   $ACTUAL_HASH"
+          if [ "$EXPECTED_HASH" != "$ACTUAL_HASH" ]; then
+            echo "::error::Reproducibility check FAILED — unsigned APK hashes differ"
+            echo "Install diffoscope for detailed analysis:"
+            echo "  pip install diffoscope"
+            echo "  diffoscope build1/mesh-release-unsigned.apk build2/mesh-release-unsigned.apk"
+            exit 1
+          fi
+          echo "✅ Reproducibility check PASSED — unsigned APK is bit-for-bit identical"
+
+  # Generate SLSA Level 3 provenance for the APK artifact.
+  # This runs on an isolated runner via the slsa-github-generator reusable
+  # workflow, producing non-falsifiable provenance. Skip local act runs,
+  # which do not provide the OIDC/workflow APIs required by the generator.
+  provenance:
+    if: ${{ github.actor != 'nektos/act' && !github.event.act }}
+    needs: build-release
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: ${{ needs.build-release.outputs.hashes }}
+      upload-assets: true
