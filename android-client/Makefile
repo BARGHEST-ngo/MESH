@@ -188,6 +188,10 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	mkdir -p $(dir $(ABS_UNSTRIPPED_AAR))
 	rm -f $(ABS_UNSTRIPPED_AAR)
 	# Reproducibility flags:
+	#   CANONICAL_SRC      symlink with a fixed path so gomobile's generated
+	#                      replace directives always embed the same module
+	#                      path in the Go build info, regardless of the
+	#                      actual workspace location on different machines.
 	#   GOCACHE=<fresh-dir> ensures gobind's packages.Load always starts from
 	#                       a clean cache, avoiding non-deterministic type
 	#                       resolution (golang/go#33687).  Without this, the
@@ -200,7 +204,10 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	#   CGO_CFLAGS         strips absolute paths from C debug info
 	#   -linkmode=external uses the NDK linker (required for 16kb page alignment)
 	GOBIND_CACHE=$$(mktemp -d) && \
-	trap "rm -rf $$GOBIND_CACHE" EXIT && \
+	CANONICAL_SRC="/tmp/_mesh_build_src" && \
+	ln -sfn "$$(cd .. && pwd)" "$$CANONICAL_SRC" && \
+	trap "rm -rf $$GOBIND_CACHE $$CANONICAL_SRC" EXIT && \
+	cd "$$CANONICAL_SRC/android-client" && \
 	CGO_CFLAGS="-ffile-prefix-map=$$(pwd)=. -ffile-prefix-map=$${HOME}=." \
 	CGO_CXXFLAGS="-ffile-prefix-map=$$(pwd)=. -ffile-prefix-map=$${HOME}=." \
 	GOCACHE="$$GOBIND_CACHE" \
