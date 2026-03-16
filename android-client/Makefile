@@ -18,6 +18,12 @@ export SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 
 # Reproducibility: always pass -trimpath to Go to strip filesystem paths.
 export GOFLAGS := $(strip $(GOFLAGS) -trimpath)
 
+# Reproducibility: pin the exact Go toolchain version from go.mod so that
+# machines with a newer patch release (e.g. go1.26.1 vs go1.26.0) still
+# produce identical binaries.  GOTOOLCHAIN=<ver> forces the Go command to
+# download and use exactly that version instead of the locally installed one.
+export GOTOOLCHAIN := $(shell grep '^toolchain ' ../go.mod | awk '{print $$2}')
+
 DEBUG_APK := mesh-debug.apk
 RELEASE_AAB := mesh-release.aab
 
