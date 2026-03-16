@@ -276,16 +276,23 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 				"$${so_path}"; \
 		fi; \
 	done
-	# Normalize timestamps inside classes.jar (nested zip) for reproducibility.
+	# Normalize timestamps and permissions inside classes.jar (nested zip)
+	# for reproducibility.  The umask differs between build environments,
+	# causing different Unix permission bits in the ZIP external attributes.
 	@if [ -f temp_aar/classes.jar ]; then \
 		mkdir -p temp_aar/classes_tmp && \
 		(cd temp_aar/classes_tmp && unzip -q ../classes.jar) && \
+		find temp_aar/classes_tmp -type d -exec chmod 0755 {} + && \
+		find temp_aar/classes_tmp -type f -exec chmod 0644 {} + && \
 		find temp_aar/classes_tmp -exec touch -d @$${SOURCE_DATE_EPOCH:-0} {} + && \
 		rm temp_aar/classes.jar && \
 		(cd temp_aar/classes_tmp && find . -type f | LC_ALL=C sort | zip -X -@ ../classes.jar) && \
 		rm -rf temp_aar/classes_tmp; \
 	fi
-	# Normalize all file timestamps and produce a deterministic zip.
+	# Normalize all file timestamps and permissions, then produce a
+	# deterministic zip.
+	find temp_aar -type d -exec chmod 0755 {} +
+	find temp_aar -type f -exec chmod 0644 {} +
 	find temp_aar -exec touch -d @$${SOURCE_DATE_EPOCH:-0} {} +
 	(cd temp_aar && find . -type f | LC_ALL=C sort | zip -X -@ ../$(LIBTAILSCALE_AAR))
 	rm -rf temp_aar
