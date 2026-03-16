@@ -30,33 +30,51 @@ func main() {
 		os.Exit(1)
 	}
 
-	marker := []byte("path\tgobind")
-	idx := bytes.Index(data, marker)
-	if idx == -1 {
+	modified := false
+
+	// Zero all occurrences of the Go build info block.
+	// The block starts with "path\tgobind" and contains replace directives
+	// with absolute filesystem paths that differ between build environments.
+	markers := [][]byte{
+		[]byte("path\tgobind"),
+		[]byte("mod\tgobind"),
+	}
+
+	for _, marker := range markers {
+		for {
+			idx := bytes.Index(data, marker)
+			if idx == -1 {
+				break
+			}
+
+			// Find the end of the build info block (terminated by \n\x00 or \x00).
+			end := bytes.Index(data[idx:], []byte("\n\x00"))
+			if end == -1 {
+				end = bytes.IndexByte(data[idx:], 0x00)
+				if end == -1 {
+					fmt.Fprintf(os.Stderr, "Could not find end of build info block at 0x%x.\n", idx)
+					os.Exit(1)
+				}
+				end += idx
+			} else {
+				end += idx
+			}
+			end++ // include the newline
+
+			length := end - idx
+			fmt.Fprintf(os.Stderr, "Zeroing Go build info at offset 0x%x, length %d bytes (marker: %q)\n", idx, length, marker)
+
+			// Zero out the build info block in place.
+			for i := idx; i < end; i++ {
+				data[i] = 0
+			}
+			modified = true
+		}
+	}
+
+	if !modified {
 		fmt.Fprintln(os.Stderr, "No Go build info found — nothing to do.")
 		return
-	}
-
-	// Find the end of the build info block (terminated by \n\x00 or \x00).
-	end := bytes.Index(data[idx:], []byte("\n\x00"))
-	if end == -1 {
-		end = bytes.IndexByte(data[idx:], 0x00)
-		if end == -1 {
-			fmt.Fprintln(os.Stderr, "Could not find end of build info block.")
-			os.Exit(1)
-		}
-		end += idx
-	} else {
-		end += idx
-	}
-	end++ // include the newline
-
-	length := end - idx
-	fmt.Fprintf(os.Stderr, "Zeroing Go build info at offset 0x%x, length %d bytes\n", idx, length)
-
-	// Zero out the build info block in place.
-	for i := idx; i < end; i++ {
-		data[i] = 0
 	}
 
 	if err := os.WriteFile(path, data, 0); err != nil {

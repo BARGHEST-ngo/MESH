@@ -65,8 +65,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
 	&& pnpm --version
 
 # Install Android SDK
-RUN ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-14742923_latest.zip" \
-	&& ANDROID_TOOLS_SUM="04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7" \
+RUN ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip" \
+	&& ANDROID_TOOLS_SUM="3fab261d5219d582321db0c5670b3bbafd563096bce3f6277eb358807fc15f6e" \
 	&& echo "Installing Android SDK..." \
 	&& mkdir -p "${ANDROID_SDK_ROOT}/tmp" \
 	&& cd "${ANDROID_SDK_ROOT}/tmp" \

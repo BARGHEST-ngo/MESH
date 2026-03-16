@@ -33,11 +33,11 @@ ABS_UNSTRIPPED_AAR := $(shell pwd)/$(UNSTRIPPED_AAR)
 
 # Android SDK & Tools settings.
 ifeq ($(shell uname),Linux)
-    ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-linux-14742923_latest.zip"
-    ANDROID_TOOLS_SUM := "04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7  commandlinetools-linux-14742923_latest.zip"
+    ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip"
+    ANDROID_TOOLS_SUM := "3fab261d5219d582321db0c5670b3bbafd563096bce3f6277eb358807fc15f6e  commandlinetools-linux-12266719_latest.zip"
 else
-    ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-mac-14742923_latest.zip"
-    ANDROID_TOOLS_SUM := "04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7  commandlinetools-mac-14742923_latest.zip"
+    ANDROID_TOOLS_URL := "https://dl.google.com/android/repository/commandlinetools-mac-12266719_latest.zip"
+    ANDROID_TOOLS_SUM := "3fab261d5219d582321db0c5670b3bbafd563096bce3f6277eb358807fc15f6e  commandlinetools-mac-12266719_latest.zip"
 endif
 ANDROID_SDK_PACKAGES := 'platforms;android-34' 'extras;android;m2repository' 'ndk;23.2.8568313' 'platform-tools' 'build-tools;36.0.0'
 
@@ -182,12 +182,24 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	mkdir -p $(dir $(ABS_UNSTRIPPED_AAR))
 	rm -f $(ABS_UNSTRIPPED_AAR)
 	# Reproducibility flags:
+	#   GOCACHE=<fresh-dir> ensures gobind's packages.Load always starts from
+	#                       a clean cache, avoiding non-deterministic type
+	#                       resolution (golang/go#33687).  Without this, the
+	#                       build cache state leaks into gobind's output,
+	#                       causing invokevirtual ↔ invokeinterface bytecode
+	#                       differences in classes.jar across machines.
 	#   -buildid=          zeroes the Go build ID
 	#   -trimpath          removes host filesystem paths from the binary
+	#   -buildvcs=false    prevents embedding VCS info (commit hash, dirty flag)
 	#   CGO_CFLAGS         strips absolute paths from C debug info
 	#   -linkmode=external uses the NDK linker (required for 16kb page alignment)
+	GOBIND_CACHE=$$(mktemp -d) && \
+	trap "rm -rf $$GOBIND_CACHE" EXIT && \
 	CGO_CFLAGS="-ffile-prefix-map=$$(pwd)=. -ffile-prefix-map=$${HOME}=." \
 	CGO_CXXFLAGS="-ffile-prefix-map=$$(pwd)=. -ffile-prefix-map=$${HOME}=." \
+	GOCACHE="$$GOBIND_CACHE" \
+	GONOSUMCHECK=* \
+	GONOSUMDB=* \
 	GOFLAGS="$(GOFLAGS) -buildvcs=false" \
 	gomobile bind -target android -androidapi 26 \
 		-ldflags "-buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
@@ -229,17 +241,26 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 	mkdir temp_aar
 	unzip $(ABS_UNSTRIPPED_AAR) -d temp_aar
 	# Strip debug info and Go build metadata from every architecture's
-	# libgojni.so.  Three steps per arch:
+	# libgojni.so.  Steps per arch:
 	#   1. Zero Go build info in .rodata (contains local filesystem paths
 	#      from gomobile's replace directive).
-	#   2. Remove the .go.buildinfo section header.
+	#   2. Remove metadata sections that contain non-deterministic data:
+	#      - .go.buildinfo   (Go build info header)
+	#      - .go.module      (module metadata with pointers that shift)
+	#      - .go.fipsinfo    (FIPS integrity data, layout-dependent)
+	#      - .note.go.buildid (Go build ID note)
 	#   3. Strip all symbols and debug sections.
 	@for arch in $(AAR_ARCHS); do \
 		so_path="temp_aar/jni/$${arch}/libgojni.so"; \
 		if [ -f "$${so_path}" ]; then \
 			echo "Stripping $${so_path}"; \
 			go run ./cmd/zero-go-buildinfo "$${so_path}"; \
-			$(STRIP_TOOL) --strip-all --remove-section=.go.buildinfo "$${so_path}"; \
+			$(STRIP_TOOL) --strip-all \
+				--remove-section=.go.buildinfo \
+				--remove-section=.go.module \
+				--remove-section=.go.fipsinfo \
+				--remove-section=.note.go.buildid \
+				"$${so_path}"; \
 		fi; \
 	done
 	# Normalize timestamps inside classes.jar (nested zip) for reproducibility.
