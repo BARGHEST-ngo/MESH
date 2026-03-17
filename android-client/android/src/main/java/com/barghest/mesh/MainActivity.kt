@@ -572,6 +572,7 @@ class MainActivity : ComponentActivity() {
 			filters = arrayOf(InputFilter.LengthFilter(6))
 			hint = "Enter 6-digit PIN"
 		}
+
 		val dialog = AlertDialog.Builder(this)
 		.setTitle("PIN required")
 		.setMessage("The analyst will read you a pin, input that here")
@@ -595,28 +596,12 @@ class MainActivity : ComponentActivity() {
 		dialog.show()
 	}
 
-    private fun derive(pin: String, salt: ByteArray): SecretKeySpec {
-	    val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-	    if (pin.length == 6 && pin.all { it.isDigit() }) {
-		    val pinChars = pin.toCharArray()
-		    val spec = PBEKeySpec(pinChars, salt, 600000, 256)
-		    val keyBytes = factory.generateSecret(spec).encoded
-		    val aesKey = SecretKeySpec(keyBytes, "AES")
-		    return aesKey
-	    } else {
-		    throw IllegalArgumentException("PIN must be 6 digits")
-		    Log.e(
-			    "MainActivity",
-			    "derive: unable to derive AES key"
-		    )
-	    }
-    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.action == Intent.ACTION_VIEW) {
 		if (intent.data?.scheme == "mesh") {
-			val blob = intent.data?.getQueryParameter("d")
+			val blob = intent.data?.getQueryParameter("d")?: return
 			val decodedBlob = Base64.decode(blob, Base64.URL_SAFE or Base64.NO_WRAP)
 			require(decodedBlob.size >= 28) {"IntentURI blob incorrect size"}
 			val salt = decodedBlob.copyOfRange(0, 16)
@@ -624,7 +609,17 @@ class MainActivity : ComponentActivity() {
 			val cipherText = decodedBlob.copyOfRange(28, decodedBlob.size)
 			pinInput { pin ->
 				lifecycleScope.launch(Dispatchers.IO) {
-				//TODO here do decyrption
+					try {
+						val json = IntentCrypto.decrypt(pin, salt, iv, cipherText)
+						//TODO parse + provision
+					} catch (e: IllegalArgumentException) {
+						Log.e("MainActivity", "Invalid PIN format: $e")
+					} catch (e: Exception) {
+						Log.e("MainActivity", "Decryption failed, wrong pin?: $e")
+						withContext(Dispatchers.Main) {
+							//TODO show user error and re-prompt for PIN?
+						}
+					}
 				}
 			}
 		} else {
@@ -701,6 +696,7 @@ class VpnPermissionContract : ActivityResultContract<Intent, Boolean>() {
     }
 }
 
+///TODO utilise this, this should also move to outside of main
 object RootUtil {
     val isDeviceRooted: Boolean
         get() = checkTags() || checkCommonBinaries() || runtimeCheck() || isSELinuxEnforcing()
