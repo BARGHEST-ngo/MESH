@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0-alpha.1, etc.
   pull_request:  # Build-only: verify reproducibility without publishing
+    paths:
+      - 'android-client/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/android-release.yml'
   workflow_dispatch:  # Allows manual trigger from GitHub UI
     inputs:
       version:
