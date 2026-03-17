@@ -59,12 +59,16 @@ ifeq ($(ANDROID_SDK_ROOT),)
         export ANDROID_SDK_ROOT := $(HOME)/AppData/Local/Android/sdk
     else
         export ANDROID_SDK_ROOT := $(PWD)/android-sdk
-    endif
+endif
 endif
 export ANDROID_HOME ?= $(ANDROID_SDK_ROOT)
 
-# Auto-select an NDK from ANDROID_HOME (choose highest version available)
-NDK_ROOT ?= $(shell ls -1d $(ANDROID_HOME)/ndk/* 2>/dev/null | sort -V | tail -n 1)
+# Use the exact NDK version specified in android/build.gradle.
+NDK_VERSION := $(shell grep 'ndkVersion' android/build.gradle | awk -F'"' '{print $$2}')
+NDK_ROOT := $(ANDROID_HOME)/ndk/$(NDK_VERSION)
+ifeq ($(wildcard $(NDK_ROOT)),)
+$(error NDK version $(NDK_VERSION) is not installed at $(NDK_ROOT). Run 'make androidsdk' to install it)
+endif
 
 HOST_OS := $(shell uname | tr A-Z a-z)
 ifeq ($(HOST_OS),linux)
@@ -111,7 +115,6 @@ export GOROOT := # Unset
 # ------------------------------------------------------------------------------
 # Android Build Targets
 # ------------------------------------------------------------------------------
-
 
 .PHONY: debug-unstripped
 debug-unstripped: build-unstripped-aar
