@@ -110,6 +110,7 @@ import com.barghest.mesh.ui.viewModel.MainViewModel
 import com.barghest.mesh.ui.viewModel.MainViewModelFactory
 import com.barghest.mesh.ui.viewModel.PermissionsViewModel
 import com.barghest.mesh.ui.viewModel.PingViewModel
+import com.barghest.mesh.ui.viewModel.LoginWithAuthKeyViewModel
 import com.barghest.mesh.ui.viewModel.SettingsNav
 import com.barghest.mesh.util.ShareFileHelper
 import com.barghest.mesh.util.TSLog
@@ -118,6 +119,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.text.InputFilter
+import android.text.InputType
+import android.util.Base64
+import android.util.Log
+import android.widget.EditText
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -610,8 +618,27 @@ class MainActivity : ComponentActivity() {
 			pinInput { pin ->
 				lifecycleScope.launch(Dispatchers.IO) {
 					try {
-						val json = IntentCrypto.decrypt(pin, salt, iv, cipherText)
-						//TODO parse + provision
+						val jsonString = IntentCrypto.decrypt(pin, salt, iv, cipherText)
+						val json = JSONObject(jsonString)
+						val key = json.getString("key")
+						val url = json.getString("url")
+						//TODO: instantiate via ViewModelProvider(this) to tie viewModelScoepe to lifecycle after testing
+						val vm = LoginWithAuthKeyViewModel() 
+						vm.loginWithCustomControlURL(url) { result ->
+							result.onSuccess {
+								vm.loginWithAuthKey(key) { result -> 
+									result.onSuccess {
+										App.get().startVPN()
+									}
+									result.onFailure {
+										//TODO: handle failure
+									}
+								}
+								result.onFailure {
+									//TODO: handle failure
+								}
+							}
+						}
 					} catch (e: IllegalArgumentException) {
 						Log.e("MainActivity", "Invalid PIN format: $e")
 					} catch (e: Exception) {
