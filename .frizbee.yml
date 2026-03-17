@@ -1,0 +1,5 @@
+ghactions:
+  exclude:
+    # Exclude the SLSA GitHub Generator workflow.
+    # See https://github.com/slsa-framework/slsa-github-generator/issues/2993
+    - slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml
