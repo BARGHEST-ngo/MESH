@@ -13,8 +13,8 @@ RUN ./analyst/src/build.sh
 
 FROM eclipse-temurin:25-jre AS android-sdk
 
-ARG ANDROID_TOOLS_VERSION=12266719
-ARG ANDROID_TOOLS_SUM=3fab261d5219d582321db0c5670b3bbafd563096bce3f6277eb358807fc15f6e
+ARG ANDROID_TOOLS_VERSION=14742923
+ARG ANDROID_TOOLS_SUM=04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7
 ENV ANDROID_SDK_ROOT=/usr/local/android-sdk
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -44,7 +44,6 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
         with:
-          cmdline-tools-version: 12266719
           packages: >
             platforms;android-34
             extras;android;m2repository
@@ -103,8 +102,6 @@ jobs:
             VERSION="${GITHUB_REF#refs/tags/v}"
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.version }}" ]]; then
             VERSION="${{ github.event.inputs.version }}"
-          elif [[ "${{ github.actor }}" == "nektos/act" || "${{ github.event.act }}" == "true" ]]; then
-            VERSION="0.0.0-local"
           elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
             VERSION="0.0.0-pr${{ github.event.pull_request.number }}"
           else
@@ -126,8 +123,8 @@ jobs:
           echo "hashes=$(sha256sum mesh-${{ steps.version.outputs.version }}.apk | base64 -w0)" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: ${{ github.event_name != 'pull_request' && github.actor != 'nektos/act' && !github.event.act }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        if: github.event_name != 'pull_request'
         with:
           name: mesh-${{ steps.version.outputs.version }}
           path: android-client/mesh-${{ steps.version.outputs.version }}.apk
@@ -165,7 +162,6 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
         with:
-          cmdline-tools-version: 12266719
           packages: >
             platforms;android-34
             extras;android;m2repository
@@ -212,7 +208,7 @@ jobs:
 
     steps:
       - name: Download APK artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: mesh-${{ needs.build-release.outputs.version }}
 
@@ -225,11 +221,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Generate SLSA Level 3 provenance for the APK artifact.
-  # This runs on an isolated runner via the slsa-github-generator reusable
-  # workflow, producing non-falsifiable provenance. Skip local act runs,
-  # which do not provide the OIDC/workflow APIs required by the generator.
+  # This runs on an isolated runner via the slsa-github-generator reusable workflow,
+  # producing non-falsifiable provenance.
   provenance:
-    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && github.actor != 'nektos/act' && !github.event.act }}
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     needs: [build-release, verify-reproducibility]
     permissions:
       actions: read
