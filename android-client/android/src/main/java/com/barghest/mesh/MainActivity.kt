@@ -497,7 +497,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable("loginWithCustomControl") {
-                                LoginWithCustomControlURLView(
+                                LoginWithCustomControlURLView(
                                     onNavigateHome = backTo("main"),
                                     backToSettings = backTo("main"),
                                     onNavigateToAuthKey = { navController.navigate("loginWithAuthKey") }
@@ -559,10 +559,82 @@ class MainActivity : ComponentActivity() {
     private fun useQRCodeLogin(): Boolean {
         return AndroidTVUtil.isAndroidTV()
     }
+	
+    data class ParsedBlob(
+	    val salt: ByteArray,
+	    val iv: ByteArray,
+	    val cipherText: ByteArray
+    )
+
+    private fun pinInput(onPinEntered: (String) -> Unit) {
+	        val editText = EditText(this).apply {
+			inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+			filters = arrayOf(InputFilter.LengthFilter(6))
+			hint = "Enter 6-digit PIN"
+		}
+		val dialog = AlertDialog.Builder(this)
+		.setTitle("PIN required")
+		.setMessage("The analyst will read you a pin, input that here")
+		.setView(editText)
+		.setPositiveButton("Ok", null)
+		.setNegativeButton(R.string.cancel, null)
+		.create()
+		
+		dialog.setOnShowListener {
+			val button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+			button.setOnClickListener {
+				val pin = editText.text.toString()
+				if (pin.length == 6 && pin.all { it.isDigit() }) {
+					onPinEntered(pin)
+					dialog.dismiss()
+				} else {
+					editText.error = "Must be 6 digits"
+				}
+			}
+		}
+		dialog.show()
+	}
+
+    private fun derive(pin: String, salt: ByteArray): SecretKeySpec {
+	    val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+	    if (pin.length == 6 && pin.all { it.isDigit() }) {
+		    val pinChars = pin.toCharArray()
+		    val spec = PBEKeySpec(pinChars, salt, 600000, 256)
+		    val keyBytes = factory.generateSecret(spec).encoded
+		    val aesKey = SecretKeySpec(keyBytes, "AES")
+		    return aesKey
+	    } else {
+		    throw IllegalArgumentException("PIN must be 6 digits")
+		    Log.e(
+			    "MainActivity",
+			    "derive: unable to derive AES key"
+		    )
+	    }
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.getBooleanExtra(START_AT_ROOT, false)) {
+        if (intent.action == Intent.ACTION_VIEW) {
+		if (intent.data?.scheme == "mesh") {
+			val blob = intent.data?.getQueryParameter("d")
+			val decodedBlob = Base64.decode(blob, Base64.URL_SAFE or Base64.NO_WRAP)
+			require(decodedBlob.size >= 28) {"IntentURI blob incorrect size"}
+			val salt = decodedBlob.copyOfRange(0, 16)
+			val iv = decodedBlob.copyOfRange(16, 28)
+			val cipherText = decodedBlob.copyOfRange(28, decodedBlob.size)
+			pinInput { pin ->
+				lifecycleScope.launch(Dispatchers.IO) {
+				//TODO here do decyrption
+				}
+			}
+		} else {
+		Log.e(
+			"MainActivity",
+			"mesh intent: unable to decrypt onboarding mesh intent"
+		)
+	}
+	}
+	if (intent.getBooleanExtra(START_AT_ROOT, false)) {
             if (this::navController.isInitialized) {
                 val previousEntry = navController.previousBackStackEntry
                 TSLog.d("MainActivity", "onNewIntent: previousBackStackEntry = $previousEntry")
