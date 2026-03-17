@@ -104,6 +104,11 @@ android {
     lint {
         warningsAsErrors = true
     }
+
+    // Reproducibility: see https://f-droid.org/docs/Reproducible_Builds/#native-library-stripping
+    packagingOptions {
+        doNotStrip '**/*.so'
+    }
 }
 
 // Disable baseline profile / art profile tasks to ensure reproducibility.

@@ -203,6 +203,11 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	#                       differences in classes.jar across machines.
 	#   -buildid=          zeroes the Go build ID
 	#   -trimpath          removes host filesystem paths from the binary
+	#                      NOTE: passed directly to gomobile bind because
+	#                      gomobile strips the parent process environment
+	#                      (GOFLAGS, CGO_CFLAGS, GOCACHE, GOTOOLCHAIN, etc.)
+	#                      when spawning `go build` subprocesses.  Only
+	#                      gomobile's own CLI flags survive to the subprocess.
 	#   -buildvcs=false    prevents embedding VCS info (commit hash, dirty flag)
 	#   CGO_CFLAGS         strips absolute paths from C debug info
 	#   -linkmode=external uses the NDK linker (required for 16kb page alignment)
@@ -217,7 +222,7 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	GONOSUMCHECK=* \
 	GONOSUMDB=* \
 	GOFLAGS="$(GOFLAGS) -buildvcs=false" \
-	gomobile bind -target android -androidapi 26 \
+	gomobile bind -trimpath -target android -androidapi 26 \
 		-ldflags "-buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
 		-o $(ABS_UNSTRIPPED_AAR) ./libtailscale || { echo "gomobile bind failed"; exit 1; }
 	@if [ ! -f $(ABS_UNSTRIPPED_AAR) ]; then \
@@ -266,6 +271,11 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 	#      - .go.fipsinfo    (FIPS integrity data, layout-dependent)
 	#      - .note.go.buildid (Go build ID note)
 	#   3. Strip all symbols and debug sections.
+	#   4. Remove linker/compiler-generated sections that differ across
+	#      environments but are not needed at runtime:
+	#      - .relro_padding    (RELRO alignment padding, size varies by linker)
+	#      - .eh_frame         (C exception-handling frames, differs by compiler)
+	#      - .eh_frame_hdr     (index into .eh_frame)
 	@for arch in $(AAR_ARCHS); do \
 		so_path="temp_aar/jni/$${arch}/libgojni.so"; \
 		if [ -f "$${so_path}" ]; then \
@@ -276,6 +286,9 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 				--remove-section=.go.module \
 				--remove-section=.go.fipsinfo \
 				--remove-section=.note.go.buildid \
+				--remove-section=.relro_padding \
+				--remove-section=.eh_frame \
+				--remove-section=.eh_frame_hdr \
 				"$${so_path}"; \
 		fi; \
 	done
