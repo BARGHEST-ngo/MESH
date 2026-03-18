@@ -37,6 +37,8 @@ jobs:
 
       - name: Lint Markdown files
         uses: DavidAnson/markdownlint-cli2-action@main
+        with:
+          globs: "docs/**/*.{md,markdown}"
 
       - name: Build and deploy documentation
         run: mkdocs gh-deploy --force --clean
