@@ -223,6 +223,9 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
               </div>
             </div>
 
+            {intentError && (
+              <p className="text-xs text-red-500 mt-1">{intentError}</p>
+            )}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose}>
                 [ CANCEL ]
