@@ -46,7 +46,15 @@
 		"ghcr.io/devcontainers-extra/features/mkdocs:2": {
 			"version": "latest",
 			"plugins": "mkdocs-material"
+		},
+		"ghcr.io/ebaskoro/devcontainer-features/sdkman:1": {
+			"candidate": "gradle"
+		},
+		"ghcr.io/devcontainers/features/python:1": {
+			"version": "latest",
+			"toolsToInstall": "git+https://gitlab.com/fdroid/fdroidserver.git"
 		}
 	},
-	"remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" }
+	"remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" },
+	"onCreateCommand": "pipx inject fdroidserver 'setuptools<82'"
 }

@@ -66,6 +66,23 @@ tasks:
       - rm -f analyst/mesh
       - make -C android-client clean
 
+  fdroidInit:
+    desc: Initialize F-Droid repository for building Android client
+    vars:
+      GRADLE_PATH:
+        sh: which gradle
+    cmds:
+      - mkdir -p fdroid/metadata fdroid/build
+      - cp android-client/fdroid/com.barghest.mesh.yml fdroid/metadata/
+      - ls fdroid/config.yml &>/dev/null || (cd fdroid && fdroid init)
+      - 'grep -q gradle fdroid/config.yml || echo "gradle: {{.GRADLE_PATH}}" >> fdroid/config.yml'
+      - ls fdroid/build/com.barghest.mesh &>/dev/null || git clone https://github.com/BARGHEST-ngo/MESH fdroid/build/com.barghest.mesh
+
+  fdroidBuild:
+    desc: Build MESH Android client for F-Droid
+    cmds:
+      - cd fdroid && fdroid build -v -l com.barghest.mesh
+
 #################################
 # Internal tasks
 #################################
