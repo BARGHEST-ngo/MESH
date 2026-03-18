@@ -151,7 +151,7 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+	
         // grab app to make sure it initializes
         App.get()
         appViewModel = (application as App).getAppScopedViewModel()
@@ -540,6 +540,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        handleMeshIntent(intent)
     }
 
     init {
@@ -680,21 +681,24 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun handleMeshIntent(intent: Intent) {
+        if (intent.action != Intent.ACTION_VIEW || intent.data?.scheme != "mesh") return
+        val blob =
+            intent.data?.getQueryParameter("d") ?: run {
+                Log.e("MainActivity", "mesh intent: missing payload")
+                return
+            }
+        val decodedBlob = Base64.decode(blob, Base64.URL_SAFE or Base64.NO_WRAP)
+        require(decodedBlob.size >= 28) { "IntentURI blob incorrect size" }
+        val salt = decodedBlob.copyOfRange(0, 16)
+        val iv = decodedBlob.copyOfRange(16, 28)
+        val cipherText = decodedBlob.copyOfRange(28, decodedBlob.size)
+        pinInput { pin -> attemptProvision(pin, salt, iv, cipherText) }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.action == Intent.ACTION_VIEW) {
-            if (intent.data?.scheme == "mesh") {
-                val blob = intent.data?.getQueryParameter("d") ?: return
-                val decodedBlob = Base64.decode(blob, Base64.URL_SAFE or Base64.NO_WRAP)
-                require(decodedBlob.size >= 28) { "IntentURI blob incorrect size" }
-                val salt = decodedBlob.copyOfRange(0, 16)
-                val iv = decodedBlob.copyOfRange(16, 28)
-                val cipherText = decodedBlob.copyOfRange(28, decodedBlob.size)
-                pinInput { pin -> attemptProvision(pin, salt, iv, cipherText) }
-            } else {
-                Log.e("MainActivity", "mesh intent: unable to handle onboarding mesh intent")
-            }
-        }
+        handleMeshIntent(intent)
         if (intent.getBooleanExtra(START_AT_ROOT, false)) {
             if (this::navController.isInitialized) {
                 val previousEntry = navController.previousBackStackEntry
