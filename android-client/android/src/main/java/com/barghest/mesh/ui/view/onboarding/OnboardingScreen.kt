@@ -66,11 +66,15 @@ private enum class QuizDialogPhase {
 }
 
 @Composable
-fun OnboardingScreen(onComplete: () -> Unit) {
+fun OnboardingScreen(hasPendingIntent: Boolean = false, onComplete: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    var showPendingIntentNotice by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(hasPendingIntent) {
+        if (hasPendingIntent) showPendingIntentNotice = true
+    }
     var showQuiz by rememberSaveable { mutableStateOf(false) }
     var showWarning by rememberSaveable { mutableStateOf(false) }
     var warningMessage by rememberSaveable { mutableStateOf("") }
@@ -82,6 +86,14 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         } else {
             scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
         }
+    }
+
+    if (showPendingIntentNotice) {
+        WarningDialog(
+            message = "Your analyst has sent you a secure setup link. " +
+                "Complete onboarding and you will be prompted to enter a PIN to automatically join the network.",
+            onDismiss = { showPendingIntentNotice = false }
+        )
     }
 
     if (showQuiz) {

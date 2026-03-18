@@ -12,7 +12,9 @@ object IntentCrypto {
     private fun derive(pin: String, salt: ByteArray): SecretKeySpec {
         if (pin.length == 6 && pin.all { it.isDigit() }) {
             val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-            val pinChars = pin.toCharArray()
+            // Convert to UTF-8 bytes first, then to chars, to match Web Crypto's TextEncoder behaviour
+            val pinUtf8 = pin.toByteArray(Charsets.UTF_8)
+            val pinChars = CharArray(pinUtf8.size) { (pinUtf8[it].toInt() and 0xFF).toChar() }
             val spec = PBEKeySpec(pinChars, salt, 600000, 256)
             val keyBytes = factory.generateSecret(spec).encoded
             return SecretKeySpec(keyBytes, "AES")

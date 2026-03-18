@@ -27,11 +27,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
-import android.text.InputFilter
-import android.text.InputType
 import android.util.Base64
 import android.util.Log
-import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -55,8 +52,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -137,6 +156,11 @@ class MainActivity : ComponentActivity() {
         private const val TAG = "Main Activity"
         private const val START_AT_ROOT = "startAtRoot"
     }
+
+    private var pendingMeshAction: (() -> Unit)? = null
+    private var hasPendingMeshIntent by mutableStateOf(false)
+    private var showPinDialog by mutableStateOf(false)
+    private var pinDialogCallback: ((String) -> Unit)? = null
 
     private fun Context.isLandscapeCapable(): Boolean =
         (resources.configuration.screenLayout and SCREENLAYOUT_SIZE_MASK) >=
@@ -503,12 +527,18 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable("onboarding") {
-                                OnboardingScreen(onComplete = {
-                                    setIntroScreenViewed(true)
-                                    navController.navigate("main") {
-                                        popUpTo("onboarding") { inclusive = true }
-                                    }
-                                })
+                                OnboardingScreen(
+                                    hasPendingIntent = hasPendingMeshIntent,
+                                    onComplete = {
+                                        setIntroScreenViewed(true)
+                                        navController.navigate("main") {
+                                            popUpTo("onboarding") { inclusive = true }
+                                        }
+                                        pendingMeshAction?.invoke()
+                                        pendingMeshAction = null
+                                        hasPendingMeshIntent = false
+                                    },
+                                )
                             }
                             composable("ADBSetup") {
                                 ADBSetup(
@@ -537,6 +567,19 @@ class MainActivity : ComponentActivity() {
                 // over whatever screen we happen to be on.
                 loginQRCode.collectAsState().value?.let {
                     LoginQRView(onDismiss = { loginQRCode.set(null) })
+                }
+                if (showPinDialog) {
+                    PinEntryDialog(
+                        onConfirm = { pin ->
+                            showPinDialog = false
+                            pinDialogCallback?.invoke(pin)
+                            pinDialogCallback = null
+                        },
+                        onDismiss = {
+                            showPinDialog = false
+                            pinDialogCallback = null
+                        },
+                    )
                 }
             }
         }
@@ -579,43 +622,9 @@ class MainActivity : ComponentActivity() {
     // for login requests
     private fun useQRCodeLogin(): Boolean = AndroidTVUtil.isAndroidTV()
 
-    data class ParsedBlob(
-        val salt: ByteArray,
-        val iv: ByteArray,
-        val cipherText: ByteArray,
-    )
-
     private fun pinInput(onPinEntered: (String) -> Unit) {
-        val editText =
-            EditText(this).apply {
-                inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
-                filters = arrayOf(InputFilter.LengthFilter(6))
-                hint = "Enter 6-digit PIN"
-            }
-
-        val dialog =
-            AlertDialog
-                .Builder(this)
-                .setTitle("PIN required")
-                .setMessage("The analyst will read you a pin, input that here")
-                .setView(editText)
-                .setPositiveButton("Ok", null)
-                .setNegativeButton(R.string.cancel, null)
-                .create()
-
-        dialog.setOnShowListener {
-            val button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            button.setOnClickListener {
-                val pin = editText.text.toString()
-                if (pin.length == 6 && pin.all { it.isDigit() }) {
-                    onPinEntered(pin)
-                    dialog.dismiss()
-                } else {
-                    editText.error = "Must be 6 digits"
-                }
-            }
-        }
-        dialog.show()
+        pinDialogCallback = onPinEntered
+        showPinDialog = true
     }
 
     private fun attemptProvision(
@@ -636,7 +645,9 @@ class MainActivity : ComponentActivity() {
                     result.onSuccess {
                         vm.loginWithAuthKey(key) { authResult ->
                             authResult.onSuccess {
-                                App.get().startVPN()
+                                lifecycleScope.launch(Dispatchers.Main) {
+                                    viewModel.showVPNPermissionLauncherIfUnauthorized()
+                                }
                             }
                             authResult.onFailure {
                                 Log.e("MainActivity", "loginWithAuthKey failed: $it")
@@ -693,7 +704,13 @@ class MainActivity : ComponentActivity() {
         val salt = decodedBlob.copyOfRange(0, 16)
         val iv = decodedBlob.copyOfRange(16, 28)
         val cipherText = decodedBlob.copyOfRange(28, decodedBlob.size)
-        pinInput { pin -> attemptProvision(pin, salt, iv, cipherText) }
+        val action = { pinInput { pin -> attemptProvision(pin, salt, iv, cipherText) } }
+        if (!isIntroScreenViewedSet()) {
+            pendingMeshAction = action
+            hasPendingMeshIntent = true
+            return
+        }
+        action()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -755,6 +772,115 @@ class MainActivity : ComponentActivity() {
             .edit()
             .putBoolean("seen", seen)
             .apply()
+    }
+}
+
+@Composable
+private fun PinEntryDialog(
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var pin by remember { mutableStateOf("") }
+    var isError by remember { mutableStateOf(false) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false),
+    ) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.Black),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "PIN Required",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                    ),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = "Enter the 6-digit PIN your analyst read to you",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Monospace,
+                    ),
+                    color = Color.White.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                )
+                OutlinedTextField(
+                    value = pin,
+                    onValueChange = { input ->
+                        if (input.length <= 6 && input.all { it.isDigit() }) {
+                            pin = input
+                            isError = false
+                        }
+                    },
+                    singleLine = true,
+                    isError = isError,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            "000000",
+                            fontFamily = FontFamily.Monospace,
+                            color = Color.White.copy(alpha = 0.3f),
+                        )
+                    },
+                )
+                if (isError) {
+                    Text(
+                        text = "Must be exactly 6 digits",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = FontFamily.Monospace,
+                        ),
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text("Cancel", fontFamily = FontFamily.Monospace)
+                    }
+                    Button(
+                        onClick = {
+                            if (pin.length == 6) {
+                                onConfirm(pin)
+                            } else {
+                                isError = true
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text(
+                            "Confirm",
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = FontFamily.Monospace,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
