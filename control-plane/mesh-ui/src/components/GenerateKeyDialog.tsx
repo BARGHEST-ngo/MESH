@@ -6,6 +6,7 @@ import { Label } from './ui/label'
 import { useCreatePreAuthKey } from '../api/usePreAuthKeys'
 import { Copy, Check } from 'lucide-react'
 import { encrypt } from '../lib/onboardingCrypto'
+import { QRCodeCanvas } from 'qrcode.react'
 
 interface GenerateKeyDialogProps {
   open: boolean
@@ -101,6 +102,15 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
+  }
+
+  const handleDownloadQR = () => {
+    const canvas = document.querySelector('.qr-download canvas') as HTMLCanvasElement | null
+    if (!canvas) return
+    const a = document.createElement('a')
+    a.href = canvas.toDataURL('image/png')
+    a.download = 'mesh-join-qr.png'
+    a.click()
   }
 
   const handleClose = () => {
@@ -240,19 +250,22 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
             <div className="my-6">
               {intent && pin ? (
                 <>
-                  <Label>Intent URI</Label>
-                  <div className="mt-2 p-4 bg-secondary border border-border rounded font-mono text-sm break-all">
-                    {intent}
+                  <Label>Scan QR Code</Label>
+                  <div className="qr-download mt-2 flex justify-center p-4 bg-white rounded">
+                    <QRCodeCanvas value={intent} size={220} />
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Send this QR code image to the field operator via Signal. They scan it with Google Lens to open MESH.
+                  </p>
                   <Label className="mt-4 block">PIN</Label>
                   <div className="mt-2 p-4 bg-secondary border border-border rounded font-mono text-lg tracking-widest">
                     {pin}
                   </div>
                   <p className="text-xs text-yellow-400 mt-2">
-                    Send the URI via secure channel. Read the PIN over voice.
+                    Read the PIN to the field operator over voice — do not send it digitally.
                   </p>
                   <Label className="mt-4 block">Auth Key (manual join)</Label>
-                  <p className="text-xs text-muted-foreground mb-1">For devices that cannot receive the Intent URI, use this manual auth key.</p>
+                  <p className="text-xs text-muted-foreground mb-1">Fallback if QR is not usable.</p>
                   <div className="mt-1 p-4 bg-secondary border border-border rounded font-mono text-sm break-all">
                     {generatedKey}
                   </div>
@@ -271,19 +284,25 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
             </div>
 
             <DialogFooter>
-              <Button onClick={handleCopy} className="flex items-center gap-2">
-                {copied ? (
-                  <>
-                    <Check size={16} />
-                    [ COPIED ]
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} />
-                    [ COPY KEY ]
-                  </>
-                )}
-              </Button>
+              {intent && pin ? (
+                <Button onClick={handleDownloadQR} className="flex items-center gap-2">
+                  [ DOWNLOAD QR ]
+                </Button>
+              ) : (
+                <Button onClick={handleCopy} className="flex items-center gap-2">
+                  {copied ? (
+                    <>
+                      <Check size={16} />
+                      [ COPIED ]
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} />
+                      [ COPY KEY ]
+                    </>
+                  )}
+                </Button>
+              )}
               <Button onClick={handleClose} variant="outline">
                 [ CLOSE ]
               </Button>

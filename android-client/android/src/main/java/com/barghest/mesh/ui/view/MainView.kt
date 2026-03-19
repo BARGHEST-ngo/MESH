@@ -130,7 +130,8 @@ data class MainViewNavigation(
     val onNavigateToAuthKey: () -> Unit,
     val onNavigateToCustomControl: () -> Unit,
     val onNavigateToADBSetup: () -> Unit,
-    val onNavigateToDeviceInfo: () -> Unit
+    val onNavigateToDeviceInfo: () -> Unit,
+    val onUploadQR: () -> Unit = {},
 )
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
@@ -289,7 +290,8 @@ fun MainView(
                 onNavigateToAuthKey = { navigation.onNavigateToAuthKey() },
                 onNavigateToCustomControl = { navigation.onNavigateToCustomControl() },
                 onNavigateToMainView = { showMeshHomeSheet = false },
-                onNavigateToADBSetup = { navigation.onNavigateToADBSetup() }
+                onNavigateToADBSetup = { navigation.onNavigateToADBSetup() },
+                onUploadQR = { navigation.onUploadQR() }
             ),
             viewModel = viewModel,
             appViewModel = appViewModel,

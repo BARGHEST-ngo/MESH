@@ -32,6 +32,6 @@ export async function encrypt(controlPlaneURL: string, authKey: string): Promise
 function buildURI(blob: Uint8Array): string {
 	return `mesh://onboard?d=${btoa(String.fromCharCode(...blob))
 		.replace(/\+/g, "-")
-    		.replace(/\//g, "_")
-    		.replace(/=+$/, "")}`
+		.replace(/\//g, "_")
+		.replace(/=+$/, "")}`
 }
