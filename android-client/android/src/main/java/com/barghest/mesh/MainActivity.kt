@@ -123,6 +123,7 @@ import com.barghest.mesh.ui.view.TailnetLockSetupView
 import com.barghest.mesh.ui.view.UserSwitcherNav
 import com.barghest.mesh.ui.view.UserSwitcherView
 import com.barghest.mesh.ui.view.onboarding.OnboardingScreen
+import com.barghest.mesh.ui.view.onboarding.QRScanStep
 import com.barghest.mesh.ui.viewModel.AppViewModel
 import com.barghest.mesh.ui.viewModel.ExitNodePickerNav
 import com.barghest.mesh.ui.viewModel.LoginWithAuthKeyViewModel
@@ -135,6 +136,7 @@ import com.barghest.mesh.util.ShareFileHelper
 import com.barghest.mesh.util.TSLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -161,6 +163,7 @@ class MainActivity : ComponentActivity() {
     private var hasPendingMeshIntent by mutableStateOf(false)
     private var showPinDialog by mutableStateOf(false)
     private var pinDialogCallback: ((String) -> Unit)? = null
+    private var showQRScanFromHome by mutableStateOf(false)
 
     private fun Context.isLandscapeCapable(): Boolean =
         (resources.configuration.screenLayout and SCREENLAYOUT_SIZE_MASK) >=
@@ -405,6 +408,7 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToCustomControl = { navController.navigate("loginWithCustomControl") },
                                     onNavigateToADBSetup = { navController.navigate("ADBSetup") },
                                     onNavigateToDeviceInfo = { navController.navigate("deviceInfo") },
+                                    onUploadQR = { showQRScanFromHome = true },
                                 )
                             val settingsNav =
                                 SettingsNav(
@@ -529,14 +533,21 @@ class MainActivity : ComponentActivity() {
                             composable("onboarding") {
                                 OnboardingScreen(
                                     hasPendingIntent = hasPendingMeshIntent,
+                                    onQRScanned = { uri ->
+                                        handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+                                    },
                                     onComplete = {
                                         setIntroScreenViewed(true)
                                         navController.navigate("main") {
                                             popUpTo("onboarding") { inclusive = true }
                                         }
-                                        pendingMeshAction?.invoke()
+                                        val action = pendingMeshAction
                                         pendingMeshAction = null
                                         hasPendingMeshIntent = false
+                                        lifecycleScope.launch {
+                                            delay(400)
+                                            action?.invoke()
+                                        }
                                     },
                                 )
                             }
@@ -579,6 +590,15 @@ class MainActivity : ComponentActivity() {
                             showPinDialog = false
                             pinDialogCallback = null
                         },
+                    )
+                }
+                if (showQRScanFromHome) {
+                    QRScanStep(
+                        onScanned = { uri ->
+                            showQRScanFromHome = false
+                            handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+                        },
+                        onSkip = { showQRScanFromHome = false },
                     )
                 }
             }
