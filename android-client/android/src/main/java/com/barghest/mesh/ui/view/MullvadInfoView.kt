@@ -32,6 +32,7 @@ import com.barghest.mesh.ui.viewModel.ExitNodePickerNav
 @Composable
 fun MullvadInfoView(nav: ExitNodePickerNav) {
   Scaffold(
+      containerColor = MaterialTheme.colorScheme.surface,
       topBar = {
         Header(R.string.choose_mullvad_exit_node, onBack = nav.onNavigateBackToExitNodes)
       }) { innerPadding ->

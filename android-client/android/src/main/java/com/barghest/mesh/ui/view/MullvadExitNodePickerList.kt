@@ -45,6 +45,7 @@ fun MullvadExitNodePickerList(
 ) {
   LoadingIndicator.Wrap {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
           Header(R.string.choose_mullvad_exit_node, onBack = nav.onNavigateBackToExitNodes)
         }) { innerPadding ->

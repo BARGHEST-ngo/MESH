@@ -46,6 +46,7 @@ fun RunExitNodeView(nav: ExitNodePickerNav, model: IpnViewModel = viewModel()) {
   val isRunningExitNode by model.isRunningExitNode.collectAsState()
 
   Scaffold(
+      containerColor = MaterialTheme.colorScheme.surface,
       topBar = { Header(R.string.run_as_exit_node, onBack = nav.onNavigateBackToExitNodes) }) {
           innerPadding ->
         LoadingIndicator.Wrap {

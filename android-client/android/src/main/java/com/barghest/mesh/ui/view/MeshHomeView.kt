@@ -20,6 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.barghest.mesh.ui.theme.MeshFontFamily
+import com.barghest.mesh.ui.theme.MeshStatusGreen
+import com.barghest.mesh.ui.theme.MeshStatusOrange
+import com.barghest.mesh.ui.theme.MeshStatusRed
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -72,7 +76,9 @@ fun MeshHomeView(
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = sheetState,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+            containerColor = Color.Black,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = 0.6f),
         ) {
             val lazyListState = rememberLazyListState()
             val isScrolled by remember {
@@ -137,19 +143,15 @@ fun MeshHomeView(
                             Icon(
                                 Icons.Default.Settings,
                                 contentDescription = stringResource(R.string.settings_description),
-                                tint = MaterialTheme.colorScheme.onBackground
+                                tint = Color.White.copy(alpha = 0.7f)
                             )
                         }
-                        TextButton(
-                            onClick = {
-                                onDismiss()
-                            }
-                        ) {
+                        TextButton(onClick = onDismiss) {
                             Text(
                                 text = stringResource(R.string.close_plain),
-                                fontFamily = FontFamily.Monospace,
+                                fontFamily = MeshFontFamily,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
+                                color = Color.White.copy(alpha = 0.7f)
                             )
                         }
                     }
@@ -174,16 +176,16 @@ private fun MeshHeaderSection() {
                     append(" v${AppVersion.Short()}")
                 }
             },
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MeshFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 28.sp,
-            color = MaterialTheme.colorScheme.onBackground
+            color = Color.White
         )
         Text(
             text = stringResource(R.string.tagline_mesh),
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MeshFontFamily,
             fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            color = Color.White.copy(alpha = 0.5f)
         )
     }
 }
@@ -196,15 +198,15 @@ private fun ConnectionStatusSection(
     user: String?
 ) {
     val color = when {
-        state == Ipn.State.Running -> if (isOn) Color(0xFF248A3D) else Color(0xFFFF9500)
-        else -> MaterialTheme.colorScheme.error
+        state == Ipn.State.Running -> if (isOn) MeshStatusGreen else MeshStatusOrange
+        else -> MeshStatusRed
     }
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+        color = Color(0xFF111111),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -216,24 +218,24 @@ private fun ConnectionStatusSection(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = if (state == Ipn.State.Running) "[ CONNECTED ]" else "[ DISCONNECTED ]",
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MeshFontFamily,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = Color.White
                 )
             }
             if (!user.isNullOrEmpty()) {
                 Text(
                     text = user,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MeshFontFamily,
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = Color.White.copy(alpha = 0.6f)
                 )
             }
             Text(
                 text = stateStr,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MeshFontFamily,
                 fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                color = Color.White.copy(alpha = 0.4f)
             )
         }
     }
@@ -249,7 +251,7 @@ private fun ControlServerSection(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+        color = Color(0xFF111111),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -258,25 +260,23 @@ private fun ControlServerSection(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    color = if (hasCustomControl) Color(0xFF248A3D) else MaterialTheme.colorScheme.error,
+                    color = if (hasCustomControl) MeshStatusGreen else MeshStatusRed,
                     shape = CircleShape
                 ) { Box(Modifier.size(8.dp)) }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = if (hasCustomControl) stringResource(R.string.control_configured) else stringResource(
-                        R.string.control_not_set
-                    ),
-                    fontFamily = FontFamily.Monospace,
+                    text = if (hasCustomControl) stringResource(R.string.control_configured) else stringResource(R.string.control_not_set),
+                    fontFamily = MeshFontFamily,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = Color.White
                 )
             }
             if (hasCustomControl) {
                 Text(
                     text = controlURL,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MeshFontFamily,
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = Color.White.copy(alpha = 0.5f)
                 )
             }
         }
@@ -299,16 +299,16 @@ private fun ConnectionStepsSection(
         Text(
             text = if (isConnected) stringResource(R.string.connection_options)
             else stringResource(R.string.connect_steps_title),
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MeshFontFamily,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onBackground
+            color = Color.White
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(modifier = Modifier.weight(1f)) {
                     ConnectionStepButton(
-                        text = "[ SCAN QR CODE ]",
+                        text = "SCAN QR CODE",
                         onClick = navigation.onUploadQR
                     )
                 }
@@ -330,9 +330,9 @@ private fun ConnectionStepsSection(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = if (showManual) "▲  manual setup" else "▼  manual setup",
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MeshFontFamily,
                         fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                        color = Color.White.copy(alpha = 0.35f)
                     )
                 }
             }
@@ -356,22 +356,22 @@ private fun ConnectionStepButton(text: String, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(56.dp)
             .border(
                 width = 1.dp,
-                color = Color(0xFF494A4D),
+                color = Color(0xFF2A2A2A),
                 shape = RoundedCornerShape(10.dp)
             ),
-        color = Color(0xFF2E2E2E),
+        color = Color(0xFF111111),
         shape = RoundedCornerShape(10.dp),
         onClick = onClick
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = text,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MeshFontFamily,
                 fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onBackground
+                color = Color.White
             )
         }
     }
@@ -390,14 +390,14 @@ private fun FooterSectionModern() {
         Text(
             text = stringResource(R.string.footer_brand),
             fontSize = 11.sp,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            fontFamily = MeshFontFamily,
+            color = Color.White.copy(alpha = 0.3f)
         )
         Text(
             text = "Debug Settings",
             fontSize = 11.sp,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            fontFamily = MeshFontFamily,
+            color = Color.White.copy(alpha = 0.3f)
         )
     }
 }

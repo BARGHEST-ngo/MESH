@@ -47,7 +47,9 @@ fun SplitTunnelAppPickerView(
   val mdmIncludedPackages by model.mdmIncludedPackages.collectAsState()
   val mdmExcludedPackages by model.mdmExcludedPackages.collectAsState()
 
-  Scaffold(topBar = { Header(titleRes = R.string.split_tunneling, onBack = backToSettings) }) {
+  Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    topBar = { Header(titleRes = R.string.split_tunneling, onBack = backToSettings) }) {
       innerPadding ->
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
       item(key = "header") {

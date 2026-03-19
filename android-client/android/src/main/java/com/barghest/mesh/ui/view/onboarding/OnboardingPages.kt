@@ -27,17 +27,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.barghest.mesh.R
+import com.barghest.mesh.ui.theme.MeshFontFamily
 
-internal val JetBrainsMonoFamily = FontFamily(
-    Font(R.font.jetbrains_mono_regular, FontWeight.Normal),
-    Font(R.font.jetbrains_mono_bold, FontWeight.Bold)
-)
+internal val JetBrainsMonoFamily = MeshFontFamily
 
 @Composable
 internal fun WelcomePage() {

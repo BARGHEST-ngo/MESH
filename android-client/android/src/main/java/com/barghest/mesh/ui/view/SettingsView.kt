@@ -65,6 +65,7 @@ fun SettingsView(
   val showTailnetLock by MDMSettings.manageTailnetLock.flow.collectAsState()
 
   Scaffold(
+      containerColor = MaterialTheme.colorScheme.surface,
       topBar = {
         Header(titleRes = R.string.settings_title, onBack = settingsNav.onNavigateBackHome)
       }) { innerPadding ->

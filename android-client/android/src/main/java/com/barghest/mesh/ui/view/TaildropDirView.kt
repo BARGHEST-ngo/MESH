@@ -41,6 +41,7 @@ fun TaildropDirView(
     permissionsViewModel: PermissionsViewModel
 ) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Header(titleRes = R.string.taildrop_dir_access, onBack = backToPermissionsView)
         }) { innerPadding ->

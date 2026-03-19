@@ -60,7 +60,9 @@ fun TailnetLockSetupView(
   val tailnetLockKey by model.tailnetLockKey.collectAsState()
   val tailnetLockTlPubKey = tailnetLockKey.replace("nlpub", "tlpub")
 
-  Scaffold(topBar = { Header(R.string.MESH_lock, onBack = backToSettings) }) { innerPadding ->
+  Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    topBar = { Header(R.string.MESH_lock, onBack = backToSettings) }) { innerPadding ->
     LoadingIndicator.Wrap {
       LazyColumn(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
         item { ExplainerView() }

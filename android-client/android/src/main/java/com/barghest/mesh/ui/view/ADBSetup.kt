@@ -38,6 +38,7 @@ fun ADBSetup(
     var showTroubleshooting by remember { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Header(
                 title = (@androidx.compose.runtime.Composable { Text("Enable ADB") } as @Composable () -> Unit),

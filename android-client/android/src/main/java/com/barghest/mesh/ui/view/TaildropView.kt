@@ -71,7 +71,9 @@ fun TaildropView(
     }
   }
 
-  Scaffold(contentWindowInsets = WindowInsets.statusBars, topBar = { Header(R.string.share) }) {
+  Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    contentWindowInsets = WindowInsets.statusBars, topBar = { Header(R.string.share) }) {
       paddingInsets ->
     Column(modifier = Modifier.focusRequester(focusRequester).focusable().padding(paddingInsets)) {
       val showDialog = viewModel.showDialog.collectAsState().value

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
@@ -50,6 +51,7 @@ fun SubnetRoutingView(backToSettings: BackNavigation, model: SubnetRoutingViewMo
   val currentError by model.currentError.collectAsState()
 
   Scaffold(
+      containerColor = MaterialTheme.colorScheme.surface,
       topBar = {
         Header(
             R.string.subnet_routes,

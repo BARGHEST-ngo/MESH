@@ -62,6 +62,7 @@ fun UserSwitcherView(nav: UserSwitcherNav, viewModel: UserSwitcherViewModel = vi
   val isOwner = netmapState?.hasCap(capabilityIsOwner) == true
 
   Scaffold(
+      containerColor = MaterialTheme.colorScheme.surface,
       topBar = {
         Header(
             R.string.accounts,

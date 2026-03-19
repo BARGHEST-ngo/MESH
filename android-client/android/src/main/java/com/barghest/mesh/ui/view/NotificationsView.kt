@@ -42,6 +42,7 @@ fun NotificationsView(backToPermissionsView: BackNavigation, openApplicationSett
   val permission = notificationPermission?.first
 
   Scaffold(
+      containerColor = MaterialTheme.colorScheme.surface,
       topBar = {
         Header(titleRes = R.string.permission_post_notifications, onBack = backToPermissionsView)
       }) { innerPadding ->

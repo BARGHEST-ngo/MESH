@@ -62,6 +62,7 @@ fun LoginWithCustomControlURLView(
     viewModel: LoginWithCustomControlURLViewModel = LoginWithCustomControlURLViewModel()
 ) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Header(
                 R.string.add_account,
@@ -133,6 +134,7 @@ fun LoginWithAuthKeyView(
 ) {
 
   Scaffold(
+      containerColor = MaterialTheme.colorScheme.surface,
       topBar = {
         Header(
             R.string.add_account,

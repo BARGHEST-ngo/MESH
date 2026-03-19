@@ -36,7 +36,9 @@ fun MDMSettingsDebugView(
     backToSettings: BackNavigation,
     @Suppress("UNUSED_PARAMETER") model: IpnViewModel = viewModel()
 ) {
-  Scaffold(topBar = { Header(R.string.current_mdm_settings, onBack = backToSettings) }) {
+  Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    topBar = { Header(R.string.current_mdm_settings, onBack = backToSettings) }) {
       innerPadding ->
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
       itemsWithDividers(MDMSettings.allSettings.sortedBy { "${it::class.java.name}|${it.key}" }) {

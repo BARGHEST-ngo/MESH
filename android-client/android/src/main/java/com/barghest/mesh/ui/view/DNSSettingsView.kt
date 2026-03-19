@@ -59,7 +59,9 @@ fun DNSSettingsView(
   val useCorpDNS = Notifier.prefs.collectAsState().value?.CorpDNS == true
   val dnsSettingsMDMDisposition by MDMSettings.useTailscaleDNSSettings.flow.collectAsState()
 
-  Scaffold(topBar = { Header(R.string.dns_settings, onBack = backToSettings) }) { innerPadding ->
+  Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    topBar = { Header(R.string.dns_settings, onBack = backToSettings) }) { innerPadding ->
     LoadingIndicator.Wrap {
       LazyColumn(Modifier.padding(innerPadding)) {
         item("state") {

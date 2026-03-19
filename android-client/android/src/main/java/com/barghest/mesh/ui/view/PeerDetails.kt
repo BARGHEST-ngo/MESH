@@ -67,6 +67,7 @@ fun PeerDetails(
   model.netmap.collectAsState().value?.let { netmap ->
     model.node.collectAsState().value?.let { node ->
       Scaffold(
+          containerColor = MaterialTheme.colorScheme.surface,
           topBar = {
             Header(
                 title = {

@@ -39,7 +39,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -49,25 +48,25 @@ private const val BASE = 16 // sp
 
 private val AppTypography =
     Typography(
-        displayLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = (BASE + 20).sp, lineHeight = (BASE + 28).sp),
-        displayMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = (BASE + 14).sp, lineHeight = (BASE + 22).sp),
-        displaySmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 10).sp, lineHeight = (BASE + 18).sp),
+        displayLarge = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Bold, fontSize = (BASE + 20).sp, lineHeight = (BASE + 28).sp),
+        displayMedium = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Bold, fontSize = (BASE + 14).sp, lineHeight = (BASE + 22).sp),
+        displaySmall = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 10).sp, lineHeight = (BASE + 18).sp),
 
-        headlineLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 8).sp, lineHeight = (BASE + 16).sp),
-        headlineMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE + 6).sp, lineHeight = (BASE + 14).sp),
-        headlineSmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE + 4).sp, lineHeight = (BASE + 12).sp),
+        headlineLarge = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 8).sp, lineHeight = (BASE + 16).sp),
+        headlineMedium = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Medium, fontSize = (BASE + 6).sp, lineHeight = (BASE + 14).sp),
+        headlineSmall = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Medium, fontSize = (BASE + 4).sp, lineHeight = (BASE + 12).sp),
 
-        titleLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE + 4).sp, lineHeight = (BASE + 10).sp),
-        titleMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = 18.sp, lineHeight = 26.sp),
-        titleSmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE + 1).sp, lineHeight = (BASE + 8).sp),
+        titleLarge = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Medium, fontSize = (BASE + 4).sp, lineHeight = (BASE + 10).sp),
+        titleMedium = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Medium, fontSize = 18.sp, lineHeight = 26.sp),
+        titleSmall = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Medium, fontSize = (BASE + 1).sp, lineHeight = (BASE + 8).sp),
 
-        bodyLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Normal, fontSize = (BASE + 2).sp, lineHeight = (BASE + 8).sp),
-        bodyMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 26.sp),
-        bodySmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Normal, fontSize = (BASE - 2).sp, lineHeight = (BASE + 4).sp),
+        bodyLarge = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Normal, fontSize = (BASE + 2).sp, lineHeight = (BASE + 8).sp),
+        bodyMedium = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 26.sp),
+        bodySmall = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Normal, fontSize = (BASE - 2).sp, lineHeight = (BASE + 4).sp),
 
-        labelLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE - 1).sp, lineHeight = (BASE + 4).sp),
-        labelMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE - 2).sp, lineHeight = (BASE + 3).sp),
-        labelSmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Normal, fontSize = (BASE - 4).sp, lineHeight = (BASE + 1).sp),
+        labelLarge = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Medium, fontSize = (BASE - 1).sp, lineHeight = (BASE + 4).sp),
+        labelMedium = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Medium, fontSize = (BASE - 2).sp, lineHeight = (BASE + 3).sp),
+        labelSmall = TextStyle(fontFamily = MeshFontFamily, fontWeight = FontWeight.Normal, fontSize = (BASE - 4).sp, lineHeight = (BASE + 1).sp),
     )
 
 @Composable
@@ -78,7 +77,7 @@ fun AppTheme(useDarkTheme: Boolean = true, content: @Composable () -> Unit) {
     val systemUiController = rememberSystemUiController()
     DisposableEffect(systemUiController, useDarkTheme) {
         systemUiController.setStatusBarColor(color = colorScheme.surfaceContainer)
-        systemUiController.setNavigationBarColor(color = if (useDarkTheme) DarkColors.Background else LightColors.Background)
+        systemUiController.setNavigationBarColor(color = if (useDarkTheme) Color.Black else LightColors.Background)
         onDispose {}
     }
 
@@ -141,6 +140,9 @@ private fun createDarkColorScheme(): ColorScheme {
         onSurface = DarkColors.CardForeground,
         surfaceVariant = DarkColors.Popover,
         onSurfaceVariant = DarkColors.PopoverForeground,
+        surfaceContainer = DarkColors.Secondary,
+        surfaceContainerHigh = DarkColors.Accent,
+        surfaceContainerLow = DarkColors.Card,
         outline = DarkColors.Border,
         outlineVariant = DarkColors.Border,
         scrim = Color(0x00000000)

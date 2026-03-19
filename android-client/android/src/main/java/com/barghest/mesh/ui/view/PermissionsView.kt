@@ -41,7 +41,9 @@ fun PermissionsView(
 ) {
   val permissions = Permissions.withGrantedStatus
 
-  Scaffold(topBar = { Header(titleRes = R.string.permissions, onBack = backToSettings) }) {
+  Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    topBar = { Header(titleRes = R.string.permissions, onBack = backToSettings) }) {
       innerPadding ->
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
       // Existing Android runtime permissions

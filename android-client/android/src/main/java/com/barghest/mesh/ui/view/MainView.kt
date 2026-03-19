@@ -12,6 +12,7 @@ package com.barghest.mesh.ui.view
 import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
@@ -50,6 +51,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,6 +81,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Surface
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -93,6 +97,9 @@ import com.barghest.mesh.ui.model.IpnLocal
 import com.barghest.mesh.ui.model.Netmap
 import com.barghest.mesh.ui.model.Permissions
 import com.barghest.mesh.ui.model.Tailcfg
+import com.barghest.mesh.ui.theme.MeshFontFamily
+import com.barghest.mesh.ui.theme.MeshStatusGreen
+import com.barghest.mesh.ui.theme.MeshStatusRed
 import com.barghest.mesh.ui.theme.customErrorContainer
 import com.barghest.mesh.ui.theme.disabled
 import com.barghest.mesh.ui.theme.errorButton
@@ -640,48 +647,52 @@ fun PeerList(
       Search(onSearchBarClick)
     } else {
       if (!isAndroidTV()) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .background(color = MaterialTheme.colorScheme.surface)) {
-              OutlinedTextField(
-                  modifier =
-                      Modifier
-                          .fillMaxWidth()
-                          .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 0.dp)
-                          .onFocusChanged { isSearchFocussed = it.isFocused },
-                  singleLine = true,
-                  shape = MaterialTheme.shapes.extraLarge,
-                  colors = MaterialTheme.colorScheme.searchBarColors,
-                  leadingIcon = {
-                    Icon(imageVector = Icons.Outlined.Search, contentDescription = "search")
-                  },
-                  trailingIcon = {
-                    if (isSearchFocussed) {
-                      IconButton(
-                          onClick = {
-                            focusManager.clearFocus()
-                            onSearch("")
-                          }) {
-                            Icon(
-                                imageVector =
-                                    if (searchTermStr.isEmpty()) Icons.Outlined.Close
-                                    else Icons.Outlined.Clear,
-                                contentDescription = "clear search",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                          }
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .onFocusChanged { isSearchFocussed = it.isFocused },
+            singleLine = true,
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFF0D0D0D),
+                unfocusedContainerColor = Color(0xFF0D0D0D),
+                focusedBorderColor = Color(0xFF2A2A2A),
+                unfocusedBorderColor = Color(0xFF2A2A2A),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White,
+                focusedLeadingIconColor = Color.White.copy(alpha = 0.4f),
+                unfocusedLeadingIconColor = Color.White.copy(alpha = 0.4f),
+                focusedTrailingIconColor = Color.White.copy(alpha = 0.4f),
+                unfocusedTrailingIconColor = Color.White.copy(alpha = 0.4f),
+                focusedPlaceholderColor = Color.White.copy(alpha = 0.3f),
+                unfocusedPlaceholderColor = Color.White.copy(alpha = 0.3f),
+            ),
+            leadingIcon = {
+                Icon(imageVector = Icons.Outlined.Search, contentDescription = "search")
+            },
+            trailingIcon = {
+                if (isSearchFocussed) {
+                    IconButton(onClick = { focusManager.clearFocus(); onSearch("") }) {
+                        Icon(
+                            imageVector = if (searchTermStr.isEmpty()) Icons.Outlined.Close else Icons.Outlined.Clear,
+                            contentDescription = "clear search",
+                        )
                     }
-                  },
-                  placeholder = {
-                    Text(
-                        text = stringResource(id = R.string.search),
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1)
-                  },
-                  value = searchTermStr,
-                  onValueChange = { onSearch(it) })
-            }
+                }
+            },
+            placeholder = {
+                Text(
+                    text = stringResource(id = R.string.search),
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    fontFamily = MeshFontFamily,
+                )
+            },
+            value = searchTermStr,
+            onValueChange = { onSearch(it) },
+        )
       }
     }
     // Peers display
@@ -691,7 +702,7 @@ fun PeerList(
                 .fillMaxWidth()
                 .weight(1f) // LazyColumn gets the remaining vertical space
                 .onFocusChanged { isListFocussed = it.isFocused }
-                .background(color = MaterialTheme.colorScheme.surface)) {
+                .background(color = MaterialTheme.colorScheme.background)) {
           // Handle case when no results are found
           if (showNoResults) {
             item {
@@ -721,64 +732,17 @@ fun PeerList(
               stickyHeader { NodesSectionHeader(peerSet = peerSet) }
             }
             itemsWithDividers(peerSet.peers, key = { it.StableID }) { peer ->
-              ListItem(
-                  modifier =
-                      Modifier.combinedClickable(
-                          onClick = { onNavigateToPeerDetails(peer) },
-                          onLongClick = { viewModel.expandedMenuPeer.set(peer) }),
-                  colors = MaterialTheme.colorScheme.listItem,
-                  headlineContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                      Box(
-                          modifier =
-                              Modifier
-                                  .padding(top = 2.dp)
-                                  .size(10.dp)
-                                  .background(
-                                      color = peer.connectedColor(netmap.value),
-                                      shape = RoundedCornerShape(percent = 50)
-                                  )) {}
-                      Spacer(modifier = Modifier.size(8.dp))
-                      Text(text = peer.displayName, style = MaterialTheme.typography.titleMedium)
-                      DropdownMenu(
-                          expanded = expandedPeer.value?.StableID == peer.StableID,
-                          onDismissRequest = { viewModel.hidePeerDropdownMenu() }) {
-                            DropdownMenuItem(
-                                leadingIcon = {
-                                  Icon(
-                                      painter = painterResource(R.drawable.clipboard),
-                                      contentDescription = null)
-                                },
-                                text = { Text(text = stringResource(R.string.copy_ip_address)) },
-                                onClick = {
-                                  viewModel.copyIpAddress(peer, localClipboardManager)
-                                  viewModel.hidePeerDropdownMenu()
-                                })
-                            netmap.value?.let { netMap ->
-                              if (!peer.isSelfNode(netMap)) {
-                                DropdownMenuItem(
-                                    leadingIcon = {
-                                      Icon(
-                                          painter = painterResource(R.drawable.timer),
-                                          contentDescription = null)
-                                    },
-                                    text = { Text(text = stringResource(R.string.ping)) },
-                                    onClick = {
-                                      viewModel.hidePeerDropdownMenu()
-                                      viewModel.startPing(peer)
-                                    })
-                              }
-                            }
-                          }
-                    }
-                  },
-                  supportingContent = {
-                    Text(
-                        text = peer.Addresses?.first()?.split("/")?.first() ?: "",
-                        style =
-                            MaterialTheme.typography.bodyMedium.copy(
-                                lineHeight = MaterialTheme.typography.titleMedium.lineHeight))
-                  })
+              PeerRow(
+                  peer = peer,
+                  netmap = netmap.value,
+                  isMenuExpanded = expandedPeer.value?.StableID == peer.StableID,
+                  onClick = { onNavigateToPeerDetails(peer) },
+                  onLongClick = { viewModel.expandedMenuPeer.set(peer) },
+                  onDismissMenu = { viewModel.hidePeerDropdownMenu() },
+                  onCopyIp = { viewModel.copyIpAddress(peer, localClipboardManager); viewModel.hidePeerDropdownMenu() },
+                  onPing = { viewModel.hidePeerDropdownMenu(); viewModel.startPing(peer) },
+                  canPing = netmap.value?.let { !peer.isSelfNode(it) } ?: false,
+              )
             }
           }
         }
@@ -787,17 +751,82 @@ fun PeerList(
 
 @Composable
 fun NodesSectionHeader(peerSet: PeerSet) {
-  Spacer(Modifier
-      .height(16.dp)
-      .fillMaxSize()
-      .background(color = MaterialTheme.colorScheme.surface))
-  Lists.LargeTitle(
-      ("MESH network | " + peerSet.user?.DisplayName),
-      bottomPadding = 8.dp,
-      focusable = isAndroidTV(),
-      style = MaterialTheme.typography.titleLarge,
-      fontWeight = FontWeight.SemiBold)
+    Text(
+        text = "MESH network | ${peerSet.user?.DisplayName ?: ""}",
+        fontFamily = MeshFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 11.sp,
+        color = Color.White.copy(alpha = 0.4f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+    )
+}
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun PeerRow(
+    peer: Tailcfg.Node,
+    netmap: Netmap.NetworkMap?,
+    isMenuExpanded: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onDismissMenu: () -> Unit,
+    onCopyIp: () -> Unit,
+    onPing: () -> Unit,
+    canPing: Boolean,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 3.dp)
+            .border(1.dp, Color(0xFF1E1E1E), RoundedCornerShape(10.dp))
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        color = Color(0xFF0D0D0D),
+        shape = RoundedCornerShape(10.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(peer.connectedColor(netmap), shape = RoundedCornerShape(percent = 50))
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = peer.displayName,
+                    fontFamily = MeshFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 13.sp,
+                    color = Color.White,
+                )
+                Text(
+                    text = peer.Addresses?.first()?.split("/")?.first() ?: "",
+                    fontFamily = MeshFontFamily,
+                    fontSize = 11.sp,
+                    color = Color.White.copy(alpha = 0.4f),
+                )
+            }
+            DropdownMenu(expanded = isMenuExpanded, onDismissRequest = onDismissMenu) {
+                DropdownMenuItem(
+                    leadingIcon = { Icon(painter = painterResource(R.drawable.clipboard), contentDescription = null) },
+                    text = { Text(stringResource(R.string.copy_ip_address)) },
+                    onClick = onCopyIp,
+                )
+                if (canPing) {
+                    DropdownMenuItem(
+                        leadingIcon = { Icon(painter = painterResource(R.drawable.timer), contentDescription = null) },
+                        text = { Text(stringResource(R.string.ping)) },
+                        onClick = onPing,
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -847,55 +876,47 @@ fun PromptForMissingPermissions(viewModel: MainViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Search(
-    onSearchBarClick: () -> Unit, // Callback for navigating to SearchView
-    backgroundColor: Color = MaterialTheme.colorScheme.background, // Default background color
+    onSearchBarClick: () -> Unit,
 ) {
-  // Prevent multiple taps
-  var isNavigating by remember { mutableStateOf(false) }
-  Box(
-      modifier =
-          Modifier
-              .fillMaxWidth()
-              .background(MaterialTheme.colorScheme.surface)
-              .padding(top = 8.dp)) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                    .height(56.dp)
-                    .clip(MaterialTheme.shapes.extraLarge) // Rounded corners for search bar
-                    .background(backgroundColor) // Search bar background
-                    .clickable(enabled = !isNavigating) { // Intercept taps
-                        isNavigating = true
-                        onSearchBarClick()
-                    }
-                    .padding(horizontal = 16.dp) // Internal padding
-            ) {
-              Row(
-                  verticalAlignment = Alignment.CenterVertically, // Ensure icon aligns with text
-                  modifier = Modifier.fillMaxSize()) {
-                    // Leading Icon
-                    Icon(
-                        imageVector = Icons.Outlined.Search,
-                        contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier =
-                            Modifier.padding(start = 0.dp) // Optional start padding for alignment
-                        )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    // Placeholder Text
-                    Text(
-                        text = stringResource(R.string.search_ellipsis),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f) // Ensure text takes up remaining space
-                        )
-                  }
-            }
-      }
+    var isNavigating by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black)
+            .padding(horizontal = 12.dp, vertical = 18.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF0D0D0D))
+                .border(1.dp, Color(0xFF2A2A2A), RoundedCornerShape(10.dp))
+                .clickable(enabled = !isNavigating) {
+                    isNavigating = true
+                    onSearchBarClick()
+                }
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = "Search",
+                tint = Color.White.copy(alpha = 0.4f),
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.search_ellipsis),
+                fontFamily = MeshFontFamily,
+                fontSize = 13.sp,
+                color = Color.White.copy(alpha = 0.3f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
 }
 
 @Preview (showBackground = true, name = "ADB Setup – Dark", widthDp = 360)

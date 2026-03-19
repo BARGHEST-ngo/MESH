@@ -65,7 +65,9 @@ fun AWGSettingsView(
         }
     }
 
-    Scaffold(topBar = { Header(R.string.awg_settings, onBack = backToSettings) }) { innerPadding ->
+    Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    topBar = { Header(R.string.awg_settings, onBack = backToSettings) }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)

@@ -44,7 +44,9 @@ import com.barghest.mesh.ui.viewModel.HealthViewModel
 fun HealthView(backToSettings: BackNavigation, model: HealthViewModel = viewModel()) {
   val warnings by model.warnings.collectAsState()
 
-  Scaffold(topBar = { Header(titleRes = R.string.health_warnings, onBack = backToSettings) }) {
+  Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    topBar = { Header(titleRes = R.string.health_warnings, onBack = backToSettings) }) {
       innerPadding ->
     LazyColumn(modifier = Modifier.padding(innerPadding)) {
       if (warnings.isEmpty()) {

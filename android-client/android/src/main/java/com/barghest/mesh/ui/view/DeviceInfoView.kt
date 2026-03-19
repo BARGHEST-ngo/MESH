@@ -55,6 +55,7 @@ fun DeviceInfoView(onNavigateBack: () -> Unit) {
     }
     
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Header(
                 titleRes = R.string.device_information,

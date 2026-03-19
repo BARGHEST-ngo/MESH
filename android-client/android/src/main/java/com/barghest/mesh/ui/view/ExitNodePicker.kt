@@ -51,7 +51,9 @@ fun ExitNodePicker(
     model: ExitNodePickerViewModel = viewModel(factory = ExitNodePickerViewModelFactory(nav))
 ) {
   LoadingIndicator.Wrap {
-    Scaffold(topBar = { Header(R.string.choose_exit_node, onBack = nav.onNavigateBackHome) }) {
+    Scaffold(
+    containerColor = MaterialTheme.colorScheme.surface,
+    topBar = { Header(R.string.choose_exit_node, onBack = nav.onNavigateBackHome) }) {
         innerPadding ->
       val tailnetExitNodes by model.tailnetExitNodes.collectAsState()
       val mullvadExitNodesByCountryCode by model.mullvadExitNodesByCountryCode.collectAsState()
