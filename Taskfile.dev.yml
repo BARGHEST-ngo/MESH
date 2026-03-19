@@ -74,6 +74,7 @@ tasks:
     cmds:
       - mkdir -p fdroid/metadata fdroid/build
       - cp android-client/fdroid/com.barghest.mesh.yml fdroid/metadata/
+      - 'sed -i "s/commit:.*/commit: $(git rev-parse HEAD)/" fdroid/metadata/com.barghest.mesh.yml'
       - ls fdroid/config.yml &>/dev/null || (cd fdroid && fdroid init)
       - 'grep -q gradle fdroid/config.yml || echo "gradle: {{.GRADLE_PATH}}" >> fdroid/config.yml'
       - ls fdroid/build/com.barghest.mesh &>/dev/null || git clone https://github.com/BARGHEST-ngo/MESH fdroid/build/com.barghest.mesh

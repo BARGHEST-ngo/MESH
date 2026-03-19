@@ -70,6 +70,11 @@ ifeq ($(wildcard $(NDK_ROOT)),)
 $(error NDK version $(NDK_VERSION) is not installed at $(NDK_ROOT). Run 'make androidsdk' to install it)
 endif
 
+# Reproducibility: force gomobile to use the exact NDK version we specify.
+# Without this, gomobile scans $ANDROID_HOME/ndk/ and picks the *highest*
+# version it finds, which may differ between build environments.
+export ANDROID_NDK_HOME := $(NDK_ROOT)
+
 HOST_OS := $(shell uname | tr A-Z a-z)
 ifeq ($(HOST_OS),linux)
     STRIP_TOOL := $(NDK_ROOT)/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
@@ -271,11 +276,11 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 	#      - .go.fipsinfo    (FIPS integrity data, layout-dependent)
 	#      - .note.go.buildid (Go build ID note)
 	#   3. Strip all symbols and debug sections.
-	#   4. Remove linker/compiler-generated sections that differ across
-	#      environments but are not needed at runtime:
-	#      - .relro_padding    (RELRO alignment padding, size varies by linker)
-	#      - .eh_frame         (C exception-handling frames, differs by compiler)
-	#      - .eh_frame_hdr     (index into .eh_frame)
+	#   4. Zero linker/compiler-generated content that differs across
+	#      environments but is not needed at runtime.  These sections
+	#      reside inside LOAD segments, so --remove-section silently
+	#      fails to actually remove them.  normalize-elf zeros their
+	#      content in-place and zeroes the ELF entry point instead.
 	@for arch in $(AAR_ARCHS); do \
 		so_path="temp_aar/jni/$${arch}/libgojni.so"; \
 		if [ -f "$${so_path}" ]; then \
@@ -286,10 +291,8 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 				--remove-section=.go.module \
 				--remove-section=.go.fipsinfo \
 				--remove-section=.note.go.buildid \
-				--remove-section=.relro_padding \
-				--remove-section=.eh_frame \
-				--remove-section=.eh_frame_hdr \
 				"$${so_path}"; \
+			go run ./cmd/normalize-elf "$${so_path}"; \
 		fi; \
 	done
 	# Normalize timestamps and permissions inside classes.jar (nested zip)
