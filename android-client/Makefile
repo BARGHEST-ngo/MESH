@@ -157,7 +157,16 @@ RELEASE_APK_SIGNED := mesh-release.apk
 release-apk-signed: jarsign-env $(RELEASE_APK)
 	@echo "Signing release APK"
 	@cp $(RELEASE_APK) $(RELEASE_APK_SIGNED)
-	@apksigner sign --ks $(JKS_PATH) --ks-pass env:JKS_PASSWORD --ks-key-alias $(JKS_ALIAS) $(RELEASE_APK_SIGNED)
+	# Disable v1 (JAR) signing so apksigner inserts only the v2/v3 signing
+	# block without re-writing ZIP entries.  build-tools 35+ re-aligns the
+	# ZIP with 0xd935 extra-field headers when it touches entry layout
+	# (which v1 triggers by adding META-INF files).  Skipping v1 preserves
+	# the zero-byte alignment produced by zipalign above, matching what
+	# fdroidserver produces.  v1 is unnecessary: minSdk is 26 (v2 requires
+	# API 24+).
+	@apksigner sign --v1-signing-enabled false \
+		--ks $(JKS_PATH) --ks-pass env:JKS_PASSWORD --ks-key-alias $(JKS_ALIAS) \
+		$(RELEASE_APK_SIGNED)
 	@echo "Signed APK: $(RELEASE_APK_SIGNED)"
 
 # Builds the release AAB and signs it (phone/tablet/chromeOS variant)
