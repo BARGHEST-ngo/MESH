@@ -1,0 +1,1007 @@
+2026-03-20T15:15:29.147837Z 00O [0KRunning with gitlab-runner 18.10.0~pre.705.ge11dde90 (e11dde90)[0;m
+2026-03-20T15:15:29.147850Z 00O [0K  on blue-5.saas-linux-medium-amd64.runners-manager.gitlab.com/default nEW2M-oDE, system ID: s_fe9b8d77dc4b[0;m
+2026-03-20T15:15:29.147856Z 00O [0K  feature flags: FF_USE_GIT_PROACTIVE_AUTH:true[0;m
+2026-03-20T15:15:29.147884Z 00O section_start:1774019729:prepare_executor
+2026-03-20T15:15:29.147885Z 00O+[0K[0K[36;1mPreparing the "docker+machine" executor[0;m[0;m
+2026-03-20T15:15:29.280367Z 00O [0KUsing Docker executor with image registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie ...[0;m
+2026-03-20T15:15:33.370405Z 00O [0KUsing effective pull policy of [always] for container registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie[0;m
+2026-03-20T15:15:33.371029Z 00O [0KAuthenticating with credentials from job payload (GitLab Registry)[0;m
+2026-03-20T15:15:33.371038Z 00O [0KPulling docker image registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie ...[0;m
+2026-03-20T15:15:52.164488Z 00O [0KUsing docker image sha256:21e2e245dafd4193294ba7e858bb76cb97df6f9576eda095359943e2d686038a for registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie with digest registry.gitlab.com/fdroid/fdroidserver@sha256:391b7ceca3e3ca56b1c53e2e1d67fe5c2a4f9e0999d0e1e3b3ef7fc50857db8f ...[0;m
+2026-03-20T15:15:52.164563Z 00O section_end:1774019752:prepare_executor
+2026-03-20T15:15:52.164564Z 00O+[0Ksection_start:1774019752:prepare_script
+2026-03-20T15:15:52.164649Z 00O+[0K[0K[36;1mPreparing environment[0;m[0;m
+2026-03-20T15:15:52.165358Z 00O [0KUsing effective pull policy of [always] for container sha256:c91f19af5751cd47c6016ee2cbc6b1db4c96ba6a08db12cca75c304b5876c7a3[0;m
+2026-03-20T15:15:58.817183Z 01O Running on runner-new2m-ode-project-80043289-concurrent-0 via runner-new2m-ode-s-l-m-amd64-1774019680-22f0c6eb...
+2026-03-20T15:15:58.999294Z 00O section_end:1774019758:prepare_script
+2026-03-20T15:15:58.999298Z 00O+[0Ksection_start:1774019758:get_sources
+2026-03-20T15:15:58.999756Z 00O+[0K[0K[36;1mGetting source from Git repository[0;m[0;m
+2026-03-20T15:15:59.415906Z 01O [32;1mGitaly correlation ID: a11c4e8897f5418ead7a7df3a68d5a5b[0;m
+2026-03-20T15:15:59.422849Z 01O [32;1mFetching changes with git depth set to 5000...[0;m
+2026-03-20T15:15:59.426345Z 01O Initialized empty Git repository in /builds/BARGHEST-ngo/fdroiddata/.git/
+2026-03-20T15:15:59.428813Z 01O [32;1mCreated fresh repository.[0;m
+2026-03-20T15:16:14.944836Z 01O [32;1mChecking out 4a47a8df as detached HEAD (ref is com.barghest.mesh)...[0;m
+2026-03-20T15:16:28.180421Z 01O 
+2026-03-20T15:16:28.180424Z 01O [32;1mSkipping Git submodules setup[0;m
+2026-03-20T15:16:28.180425Z 01O [32;1m$ git remote set-url origin "${CI_REPOSITORY_URL}" || echo 'Not a git repository; skipping'[0;m
+2026-03-20T15:16:34.047961Z 00O section_end:1774019794:get_sources
+2026-03-20T15:16:34.047966Z 00O+[0Ksection_start:1774019794:restore_cache
+2026-03-20T15:16:34.050082Z 00O+[0K[0K[36;1mRestoring cache[0;m[0;m
+2026-03-20T15:16:34.483567Z 01O [32;1mChecking cache for fdroid build-protected...[0;m
+2026-03-20T15:16:34.703351Z 01E Downloading cache from https://storage.googleapis.com/gitlab-com-runners-cache/project/80043289/fdroid%20build-protected[0;m  ETag[0;m="76cdb2bad9582d23c1f6f4d868218d6c"
+2026-03-20T15:16:34.706867Z 01O [32;1mSuccessfully extracted cache[0;m
+2026-03-20T15:16:34.888134Z 00O section_end:1774019794:restore_cache
+2026-03-20T15:16:34.888137Z 00O+[0Ksection_start:1774019794:step_script
+2026-03-20T15:16:34.888932Z 00O+[0K[0K[36;1mExecuting "step_script" stage of the job script[0;m[0;m
+2026-03-20T15:16:34.888950Z 00O [0KUsing effective pull policy of [always] for container registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie[0;m
+2026-03-20T15:16:34.890152Z 00O [0KUsing docker image sha256:21e2e245dafd4193294ba7e858bb76cb97df6f9576eda095359943e2d686038a for registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie with digest registry.gitlab.com/fdroid/fdroidserver@sha256:391b7ceca3e3ca56b1c53e2e1d67fe5c2a4f9e0999d0e1e3b3ef7fc50857db8f ...[0;m
+2026-03-20T15:16:35.288656Z 01O [32;1m$ chown -R $(whoami) .[0;m
+2026-03-20T15:16:37.444796Z 01O [32;1m$ test -d build || mkdir build[0;m
+2026-03-20T15:16:37.444800Z 01O [32;1m$ if [ "$CI_PROJECT_PATH" = "fdroid/fdroiddata" ] && [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then # collapsed multi-line command[0;m
+2026-03-20T15:16:37.993875Z 01E From https://gitlab.com/fdroid/fdroiddata
+2026-03-20T15:16:37.993882Z 01E  * branch                master     -> FETCH_HEAD
+2026-03-20T15:16:37.994510Z 01E  * [new branch]          master     -> upstream/master
+2026-03-20T15:16:38.004130Z 01O [32;1m$ echo $TARGET_REF[0;m
+2026-03-20T15:16:38.004133Z 01O 67ec2f1b17ed463fd797c328ad39692a9e8b76be
+2026-03-20T15:16:38.004133Z 01O [32;1m$ for f in $(git diff --name-only --diff-filter=d "${TARGET_REF}...${SOURCE_REF}" -- metadata/*.yml) $(git diff --name-only --diff-filter=d "${TARGET_REF}...${SOURCE_REF}" -- metadata/*/signatures); do # collapsed multi-line command[0;m
+2026-03-20T15:16:38.694617Z 01O diff --git a/metadata/com.barghest.mesh.yml b/metadata/com.barghest.mesh.yml
+2026-03-20T15:16:38.694621Z 01O new file mode 100644
+2026-03-20T15:16:38.694621Z 01O index 000000000..baea98cd9
+2026-03-20T15:16:38.694622Z 01O --- /dev/null
+2026-03-20T15:16:38.694622Z 01O +++ b/metadata/com.barghest.mesh.yml
+2026-03-20T15:16:38.694623Z 01O @@ -0,0 +1,46 @@
+2026-03-20T15:16:38.694624Z 01O +Categories:
+2026-03-20T15:16:38.694624Z 01O +  - Connectivity
+2026-03-20T15:16:38.694624Z 01O +  - Security
+2026-03-20T15:16:38.694625Z 01O +  - VPN & Proxy
+2026-03-20T15:16:38.694625Z 01O +License: AGPL-3.0-or-later
+2026-03-20T15:16:38.694626Z 01O +WebSite: https://barghest.asia/work/mesh/
+2026-03-20T15:16:38.694626Z 01O +SourceCode: https://github.com/BARGHEST-ngo/MESH
+2026-03-20T15:16:38.694630Z 01O +IssueTracker: https://github.com/BARGHEST-ngo/MESH/issues
+2026-03-20T15:16:38.694630Z 01O +
+2026-03-20T15:16:38.694631Z 01O +AutoName: MESH
+2026-03-20T15:16:38.694631Z 01O +
+2026-03-20T15:16:38.694632Z 01O +RepoType: git
+2026-03-20T15:16:38.694632Z 01O +Repo: https://github.com/BARGHEST-ngo/MESH
+2026-03-20T15:16:38.694633Z 01O +Binaries: https://github.com/BARGHEST-ngo/MESH/releases/download/v%v/mesh-%v.apk
+2026-03-20T15:16:38.694633Z 01O +
+2026-03-20T15:16:38.694634Z 01O +Builds:
+2026-03-20T15:16:38.694634Z 01O +  - versionName: 0.1.3-alpha
+2026-03-20T15:16:38.694634Z 01O +    versionCode: 359
+2026-03-20T15:16:38.694635Z 01O +    commit: 6960e9a5be75722ff06f3851ed10fa4732744224
+2026-03-20T15:16:38.694635Z 01O +    subdir: android-client/android
+2026-03-20T15:16:38.694636Z 01O +    submodules: true
+2026-03-20T15:16:38.694636Z 01O +    sudo:
+2026-03-20T15:16:38.694637Z 01O +      - apt-get update
+2026-03-20T15:16:38.694637Z 01O +      - apt-get install -y golang-go gcc libc-dev make zip
+2026-03-20T15:16:38.694638Z 01O +    gradle:
+2026-03-20T15:16:38.694638Z 01O +      - yes
+2026-03-20T15:16:38.694639Z 01O +    prebuild:
+2026-03-20T15:16:38.694639Z 01O +      - echo -e "\norg.gradle.jvmargs=-Xmx4096m" >> gradle.properties
+2026-03-20T15:16:38.694640Z 01O +      - sdkmanager 'platforms;android-34' 'platform-tools' 'build-tools;36.0.0'
+2026-03-20T15:16:38.694640Z 01O +      - sed -i -e 's|$(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager|sdkmanager|g'
+2026-03-20T15:16:38.694641Z 01O +        -e 's/list_installed/list/' ../Makefile
+2026-03-20T15:16:38.694641Z 01O +      - sed -i -e 's/getVersionProperty("VERSION_LONG")/"$$VERSION$$"/' build.gradle
+2026-03-20T15:16:38.694642Z 01O +    scandelete:
+2026-03-20T15:16:38.694642Z 01O +      - tailscale
+2026-03-20T15:16:38.694643Z 01O +    build:
+2026-03-20T15:16:38.694643Z 01O +      - export ANDROID_NDK_ROOT=$$NDK$$
+2026-03-20T15:16:38.694644Z 01O +      - make -C .. env
+2026-03-20T15:16:38.694644Z 01O +      - make -C .. libtailscale
+2026-03-20T15:16:38.694645Z 01O +    ndk: r23c
+2026-03-20T15:16:38.694645Z 01O +
+2026-03-20T15:16:38.694646Z 01O +AllowedAPKSigningKeys: 57ee4b4302bf4f6d5269588d6b4cf8160294c1500dba8c567ec0dfa96d298497
+2026-03-20T15:16:38.694646Z 01O +
+2026-03-20T15:16:38.694647Z 01O +AutoUpdateMode: Version
+2026-03-20T15:16:38.694647Z 01O +UpdateCheckMode: Tags
+2026-03-20T15:16:38.694647Z 01O +CurrentVersion: 0.1.3-alpha
+2026-03-20T15:16:38.694648Z 01O +CurrentVersionCode: 359
+2026-03-20T15:16:38.702841Z 01O [32;1m$ test -n "$(printf "$CHANGED" | tr -d '[:space:]')" || { echo "no packages need processing, exiting"; exit 0; }[0;m
+2026-03-20T15:16:38.705544Z 01O [32;1m$ apt-get update[0;m
+2026-03-20T15:16:38.801716Z 01O Get:1 https://deb.debian.org/debian trixie InRelease [140 kB]
+2026-03-20T15:16:38.831202Z 01O Get:2 https://security.debian.org/debian-security trixie-security InRelease [43.4 kB]
+2026-03-20T15:16:38.845180Z 01O Get:3 https://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+2026-03-20T15:16:38.860745Z 01O Get:4 https://deb.debian.org/debian trixie-backports InRelease [54.0 kB]
+2026-03-20T15:16:38.875122Z 01O Get:5 https://deb.debian.org/debian trixie/main amd64 Packages [9671 kB]
+2026-03-20T15:16:38.884406Z 01O Get:6 https://security.debian.org/debian-security trixie-security/main amd64 Packages [116 kB]
+2026-03-20T15:16:38.970647Z 01O Get:7 https://deb.debian.org/debian trixie-updates/main amd64 Packages [5412 B]
+2026-03-20T15:16:38.983234Z 01O Get:8 https://deb.debian.org/debian trixie-backports/main amd64 Packages [182 kB]
+2026-03-20T15:16:39.671174Z 01O Fetched 10.3 MB in 1s (10.9 MB/s)
+2026-03-20T15:16:39.671179Z 01O Reading package lists...
+2026-03-20T15:16:40.319489Z 01O [32;1m$ apt-get dist-upgrade[0;m
+2026-03-20T15:16:40.328212Z 01O Reading package lists...
+2026-03-20T15:16:40.957715Z 01O Building dependency tree...
+2026-03-20T15:16:41.174616Z 01O Reading state information...
+2026-03-20T15:16:41.270409Z 01O Calculating upgrade...
+2026-03-20T15:16:41.693361Z 01O The following packages will be upgraded:
+2026-03-20T15:16:41.694717Z 01O   libfreetype6
+2026-03-20T15:16:41.784903Z 01O 1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+2026-03-20T15:16:41.784907Z 01O Need to get 452 kB of archives.
+2026-03-20T15:16:41.784907Z 01O After this operation, 1024 B of additional disk space will be used.
+2026-03-20T15:16:41.784908Z 01O Get:1 https://security.debian.org/debian-security trixie-security/main amd64 libfreetype6 amd64 2.13.3+dfsg-1+deb13u1 [452 kB]
+2026-03-20T15:16:42.691999Z 01O Fetched 452 kB in 0s (3485 kB/s)
+2026-03-20T15:16:42.745864Z 01O (Reading database ... 35690 files and directories currently installed.)
+2026-03-20T15:16:42.747871Z 01O Preparing to unpack .../libfreetype6_2.13.3+dfsg-1+deb13u1_amd64.deb ...
+2026-03-20T15:16:42.763663Z 01O Unpacking libfreetype6:amd64 (2.13.3+dfsg-1+deb13u1) over (2.13.3+dfsg-1) ...
+2026-03-20T15:16:42.860628Z 01O Setting up libfreetype6:amd64 (2.13.3+dfsg-1+deb13u1) ...
+2026-03-20T15:16:42.872581Z 01O Processing triggers for libc-bin (2.41-12+deb13u2) ...
+2026-03-20T15:16:42.938157Z 01O [32;1m$ test -n "$fdroidserver" || source /etc/profile.d/bsenv.sh[0;m
+2026-03-20T15:16:42.938259Z 01O [32;1m$ sdkmanager "platform-tools" "build-tools;31.0.0"[0;m
+2026-03-20T15:16:44.731359Z 01O Downloading https://f-droid.github.io/android-sdk-transparency-log/signed/checksums.json.asc into /root/.cache/sdkmanager/checksums.json.asc
+2026-03-20T15:16:44.731366Z 01O Downloading https://f-droid.github.io/android-sdk-transparency-log/signed/checksums.json into /root/.cache/sdkmanager/checksums.json
+2026-03-20T15:16:44.731367Z 01O Downloading https://dl.google.com/android/repository/platform-tools_r36.0.2-linux.zip into /root/.cache/sdkmanager/platform-tools_r36.0.2-linux.zip
+2026-03-20T15:16:44.731368Z 01O Unzipping to /tmp/.sdkmanager-tbk_o_ei
+2026-03-20T15:16:44.731369Z 01O Installing into /opt/android-sdk/platform-tools
+2026-03-20T15:16:44.731369Z 01O Downloading https://dl.google.com/android/repository/build-tools_r31-linux.zip into /root/.cache/sdkmanager/build-tools_r31-linux.zip
+2026-03-20T15:16:44.731370Z 01O Unzipping to /tmp/.sdkmanager-szgg3l77
+2026-03-20T15:16:44.731371Z 01O Installing into /opt/android-sdk/build-tools/31.0.0
+2026-03-20T15:16:44.762086Z 01O [32;1m$ rm -rf $fdroidserver[0;m
+2026-03-20T15:16:44.763566Z 01O [32;1m$ mkdir $fdroidserver[0;m
+2026-03-20T15:16:44.765592Z 01O [32;1m$ git ls-remote https://gitlab.com/fdroid/fdroidserver.git master[0;m
+2026-03-20T15:16:45.328423Z 01O 5e0b6a851507c7b60b42b16a40188cd6e2968a68	refs/heads/master
+2026-03-20T15:16:45.328661Z 01O [32;1m$ curl --silent https://gitlab.com/fdroid/fdroidserver/-/archive/master/fdroidserver-master.tar.gz | tar -xz --directory=$fdroidserver --strip-components=1[0;m
+2026-03-20T15:16:45.992333Z 01O [32;1m$ export PATH="$fdroidserver:$PATH"[0;m
+2026-03-20T15:16:45.992336Z 01O [32;1m$ export PYTHONPATH="$fdroidserver:$fdroidserver/examples"[0;m
+2026-03-20T15:16:45.992336Z 01O [32;1m$ export PYTHONUNBUFFERED=true[0;m
+2026-03-20T15:16:45.992337Z 01O [32;1m$ export serverwebroot=/tmp[0;m
+2026-03-20T15:16:45.992338Z 01O [32;1m$ git -C $home_vagrant/gradlew-fdroid pull[0;m
+2026-03-20T15:16:46.572779Z 01O Already up to date.
+2026-03-20T15:16:46.573305Z 01O [32;1m$ export CODEQUALITY_DIR=$HOME/codequality[0;m
+2026-03-20T15:16:46.573306Z 01O [32;1m$ mkdir -p $CODEQUALITY_DIR[0;m
+2026-03-20T15:16:46.575393Z 01O [32;1m$ curl --silent 'https://gitlab.com/fdroid/fdroid-bootstrap-buildserver/-/raw/master/roles/production_hardening/files/gitconfig' >> $CI_PROJECT_DIR/../.gitconfig[0;m
+2026-03-20T15:16:46.971053Z 01O [32;1m$ for d in logs tmp unsigned $home_vagrant/.android $home_vagrant/.gradle $home_vagrant/metadata; do test -d $d || mkdir $d; chown -R vagrant $d; done[0;m
+2026-03-20T15:16:46.993792Z 01O [32;1m$ ln -s $home_vagrant/.gradle $CI_PROJECT_DIR/.gradle[0;m
+2026-03-20T15:16:46.994875Z 01O [32;1m$ ln -s $CI_PROJECT_DIR/tmp $home_vagrant/tmp[0;m
+2026-03-20T15:16:46.996081Z 01O [32;1m$ ln -s $CI_PROJECT_DIR/srclibs $home_vagrant/srclibs[0;m
+2026-03-20T15:16:46.997235Z 01O [32;1m$ sysctl fs.inotify.max_user_watches=524288 || true[0;m
+2026-03-20T15:16:46.998324Z 01O fs.inotify.max_user_watches = 524288
+2026-03-20T15:16:46.998465Z 01O [32;1m$ export GRADLE_USER_HOME=$home_vagrant/.gradle[0;m
+2026-03-20T15:16:46.998466Z 01O [32;1m$ export fdroid="sudo --preserve-env --user vagrant env PATH=$fdroidserver:$PATH env PYTHONPATH=$fdroidserver:$fdroidserver/examples env PYTHONUNBUFFERED=true env TERM=$TERM env HOME=$home_vagrant fdroid"[0;m
+2026-03-20T15:16:46.998550Z 01O [32;1m$ export keystorepass='r9aquRHYoI8+dYz6jKrLntQ5/NJNASFBacJh7Jv2BlI='[0;m
+2026-03-20T15:16:46.998651Z 01O [32;1m$ export keypass='r9aquRHYoI8+dYz6jKrLntQ5/NJNASFBacJh7Jv2BlI='[0;m
+2026-03-20T15:16:46.998651Z 01O [32;1m$ export keystore=$fdroidserver/tests/keystore.jks[0;m
+2026-03-20T15:16:46.998754Z 01O [32;1m$ keytool -changealias -alias sova -destalias ciarang -keystore $keystore -storepass:env keystorepass -keypass:env keypass[0;m
+2026-03-20T15:16:47.176777Z 01E 
+2026-03-20T15:16:47.176780Z 01E Warning:
+2026-03-20T15:16:47.176780Z 01E The JKS keystore uses a proprietary format. It is recommended to migrate to PKCS12 which is an industry standard format using "keytool -importkeystore -srckeystore /home/vagrant/fdroidserver/tests/keystore.jks -destkeystore /home/vagrant/fdroidserver/tests/keystore.jks -deststoretype pkcs12".
+2026-03-20T15:16:47.193753Z 01O [32;1m$ APPS="$(./tools/find-changed-builds.py)"[0;m
+2026-03-20T15:16:47.359423Z 01O [32;1m$ if [[ -z "$APPS" ]]; then exit 0; fi[0;m
+2026-03-20T15:16:47.359427Z 01O [32;1m$ for build in $APPS; do # collapsed multi-line command[0;m
+2026-03-20T15:16:47.359470Z 01E ++ apt-get install sudo
+2026-03-20T15:16:47.367901Z 01O Reading package lists...
+2026-03-20T15:16:48.007054Z 01O Building dependency tree...
+2026-03-20T15:16:48.229855Z 01O Reading state information...
+2026-03-20T15:16:48.587656Z 01O sudo is already the newest version (1.9.16p2-3+deb13u1).
+2026-03-20T15:16:48.587660Z 01O 0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+2026-03-20T15:16:48.588562Z 01E ++ apt-get install -y openjdk-21-jdk-headless
+2026-03-20T15:16:48.596693Z 01O Reading package lists...
+2026-03-20T15:16:49.237227Z 01O Building dependency tree...
+2026-03-20T15:16:49.472208Z 01O Reading state information...
+2026-03-20T15:16:49.829706Z 01O openjdk-21-jdk-headless is already the newest version (21.0.10+7-1~deb13u1).
+2026-03-20T15:16:49.829710Z 01O openjdk-21-jdk-headless set to manually installed.
+2026-03-20T15:16:49.829710Z 01O 0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+2026-03-20T15:16:49.830640Z 01E ++ update-alternatives --set java /usr/lib/jvm/java-21-openjdk-amd64/bin/java
+2026-03-20T15:16:49.836544Z 01E ++ cp -R /builds/BARGHEST-ngo/fdroiddata/build /home/vagrant/build
+2026-03-20T15:16:49.880575Z 01E ++ appid=com.barghest.mesh
+2026-03-20T15:16:49.880577Z 01E ++ '[' -d metadata/com.barghest.mesh ']'
+2026-03-20T15:16:49.880577Z 01E ++ cp -R metadata/com.barghest.mesh.yml /home/vagrant/metadata
+2026-03-20T15:16:49.882635Z 01E ++ chown -R vagrant /home/vagrant /builds/BARGHEST-ngo/fdroiddata
+2026-03-20T15:16:57.024433Z 01O /home/vagrant /builds/BARGHEST-ngo/fdroiddata
+2026-03-20T15:16:57.024443Z 01E ++ pushd /home/vagrant
+2026-03-20T15:16:57.024444Z 01E ++ ln -s /builds/BARGHEST-ngo/fdroiddata /home/vagrant/fdroiddata
+2026-03-20T15:16:57.025930Z 01E ++ ln -s /builds/BARGHEST-ngo/fdroiddata/../.gitconfig /home/vagrant/.gitconfig
+2026-03-20T15:16:57.027438Z 01E ++ sudo --preserve-env --user vagrant env PATH=/home/vagrant/fdroidserver:/home/vagrant/fdroidserver:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/android-sdk/tools:/opt/android-sdk/platform-tools env PYTHONPATH=/home/vagrant/fdroidserver:/home/vagrant/fdroidserver/examples env PYTHONUNBUFFERED=true env TERM=dumb env HOME=/home/vagrant fdroid fetchsrclibs com.barghest.mesh:359 --verbose
+2026-03-20T15:16:57.436670Z 01E 2026-03-20 15:16:57,436 DEBUG: Getting git vcs interface for https://github.com/BARGHEST-ngo/MESH
+2026-03-20T15:16:57.437036Z 01E 2026-03-20 15:16:57,436 DEBUG: > git -c core.askpass=/bin/true -c core.sshCommand=/bin/false -c url.https://.insteadOf=ssh:// -c url.https://u:p@bitbucket.org/.insteadOf=git@bitbucket.org: -c url.https://u:p@bitbucket.org.insteadOf=git://bitbucket.org -c url.https://u:p@bitbucket.org.insteadOf=https://bitbucket.org -c url.https://u:p@github.com/.insteadOf=git@github.com: -c url.https://u:p@github.com.insteadOf=git://github.com -c url.https://u:p@github.com.insteadOf=https://github.com -c url.https://u:p@gitlab.com/.insteadOf=git@gitlab.com: -c url.https://u:p@gitlab.com.insteadOf=git://gitlab.com -c url.https://u:p@gitlab.com.insteadOf=https://gitlab.com -c url.https://u:p@codeberg.org/.insteadOf=git@codeberg.org: -c url.https://u:p@codeberg.org.insteadOf=git://codeberg.org -c url.https://u:p@codeberg.org.insteadOf=https://codeberg.org clone -- https://github.com/BARGHEST-ngo/MESH build/com.barghest.mesh
+2026-03-20T15:16:57.538777Z 01E Cloning into 'build/com.barghest.mesh'...
+2026-03-20T15:17:02.545653Z 01E 2026-03-20 15:17:02,545 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:17:02.545656Z 01E 2026-03-20 15:17:02,545 DEBUG: > git rev-parse --show-toplevel
+2026-03-20T15:17:02.748988Z 01E 2026-03-20 15:17:02,747 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:17:02.748992Z 01E 2026-03-20 15:17:02,748 DEBUG: > git checkout -f 6960e9a5be75722ff06f3851ed10fa4732744224
+2026-03-20T15:17:02.951450Z 01E 2026-03-20 15:17:02,950 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:17:02.951453Z 01E 2026-03-20 15:17:02,951 DEBUG: > git clean -dffx
+2026-03-20T15:17:03.053635Z 01E 2026-03-20 15:17:03,053 INFO: commit: 6960e9a5be75722ff06f3851ed10fa4732744224 (SHA1: 6960e9a5be75722ff06f3851ed10fa4732744224)
+2026-03-20T15:17:03.054061Z 01E 2026-03-20 15:17:03,053 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:17:03.054063Z 01E 2026-03-20 15:17:03,053 DEBUG: > git rev-parse --show-toplevel
+2026-03-20T15:17:03.256973Z 01E 2026-03-20 15:17:03,256 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:17:03.256976Z 01E 2026-03-20 15:17:03,256 DEBUG: > git submodule sync
+2026-03-20T15:17:03.358913Z 01E 2026-03-20 15:17:03,358 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:17:03.358915Z 01E 2026-03-20 15:17:03,358 DEBUG: > git -c core.askpass=/bin/true -c core.sshCommand=/bin/false -c url.https://.insteadOf=ssh:// -c url.https://u:p@bitbucket.org/.insteadOf=git@bitbucket.org: -c url.https://u:p@bitbucket.org.insteadOf=git://bitbucket.org -c url.https://u:p@bitbucket.org.insteadOf=https://bitbucket.org -c url.https://u:p@github.com/.insteadOf=git@github.com: -c url.https://u:p@github.com.insteadOf=git://github.com -c url.https://u:p@github.com.insteadOf=https://github.com -c url.https://u:p@gitlab.com/.insteadOf=git@gitlab.com: -c url.https://u:p@gitlab.com.insteadOf=git://gitlab.com -c url.https://u:p@gitlab.com.insteadOf=https://gitlab.com -c url.https://u:p@codeberg.org/.insteadOf=git@codeberg.org: -c url.https://u:p@codeberg.org.insteadOf=git://codeberg.org -c url.https://u:p@codeberg.org.insteadOf=https://codeberg.org submodule update --init --force --recursive
+2026-03-20T15:17:03.460261Z 01E Submodule 'tailscale' (https://github.com/BARGHEST-ngo/mesh-tailscale.git) registered for path 'tailscale'
+2026-03-20T15:17:03.460264Z 01E Cloning into '/home/vagrant/build/com.barghest.mesh/tailscale'...
+2026-03-20T15:17:09.368249Z 01E Submodule path 'tailscale': checked out 'aa61c1758b452cdb0d25fdca34028d9062da77ea'
+2026-03-20T15:17:09.468556Z 01O Set up srclibs:
+2026-03-20T15:17:09.468558Z 01O []
+2026-03-20T15:17:09.509933Z 01E ++ rm /home/vagrant/fdroiddata /home/vagrant/.gitconfig
+2026-03-20T15:17:09.511569Z 01E ++ unset CI
+2026-03-20T15:17:09.511570Z 01E ++ sudo --preserve-env --user vagrant env PATH=/home/vagrant/fdroidserver:/home/vagrant/fdroidserver:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/android-sdk/tools:/opt/android-sdk/platform-tools env PYTHONPATH=/home/vagrant/fdroidserver:/home/vagrant/fdroidserver/examples env PYTHONUNBUFFERED=true env TERM=dumb env HOME=/home/vagrant fdroid build --verbose --test --refresh-scanner --on-server --no-tarball com.barghest.mesh:359
+2026-03-20T15:17:09.856757Z 01E 2026-03-20 15:17:09,856 INFO: Creating log directory
+2026-03-20T15:17:09.954081Z 01E 2026-03-20 15:17:09,953 DEBUG: Getting git vcs interface for https://github.com/BARGHEST-ngo/MESH
+2026-03-20T15:17:09.954086Z 01E 2026-03-20 15:17:09,953 DEBUG: Checking com.barghest.mesh:359
+2026-03-20T15:17:09.954087Z 01E 2026-03-20 15:17:09,953 INFO: Building com.barghest.mesh:359
+2026-03-20T15:17:09.954088Z 01E 2026-03-20 15:17:09,953 WARNING: Android NDK version 'r23c' could not be found!
+2026-03-20T15:17:09.954088Z 01E 2026-03-20 15:17:09,953 WARNING: Configured versions:
+2026-03-20T15:17:09.955766Z 01O Downloading https://fdroid.gitlab.io/android-sdk-transparency-log/checksums.json.asc into /home/vagrant/.cache/sdkmanager/checksums.json.asc
+2026-03-20T15:17:09.956985Z 01E 2026-03-20 15:17:09,956 DEBUG: Starting new HTTPS connection (1): fdroid.gitlab.io:443
+2026-03-20T15:17:10.097009Z 01E 2026-03-20 15:17:10,096 DEBUG: https://fdroid.gitlab.io:443 "GET /android-sdk-transparency-log/checksums.json.asc HTTP/1.1" 200 488
+2026-03-20T15:17:10.098332Z 01E 2026-03-20 15:17:10,097 DEBUG: Starting new HTTPS connection (1): fdroid.gitlab.io:443
+2026-03-20T15:17:10.206566Z 01E 2026-03-20 15:17:10,206 DEBUG: https://fdroid.gitlab.io:443 "GET /android-sdk-transparency-log/checksums.json HTTP/1.1" 200 854431
+2026-03-20T15:17:10.212194Z 01O Downloading https://fdroid.gitlab.io/android-sdk-transparency-log/checksums.json into /home/vagrant/.cache/sdkmanager/checksums.json
+2026-03-20T15:17:10.317307Z 01O Downloading https://dl.google.com/android/repository/android-ndk-r23c-linux.zip into /home/vagrant/.cache/sdkmanager/android-ndk-r23c-linux.zip
+2026-03-20T15:17:10.318017Z 01E 2026-03-20 15:17:10,317 DEBUG: Starting new HTTPS connection (1): dl.google.com:443
+2026-03-20T15:17:10.338277Z 01E 2026-03-20 15:17:10,337 DEBUG: https://dl.google.com:443 "GET /android/repository/android-ndk-r23c-linux.zip HTTP/1.1" 200 717504038
+2026-03-20T15:17:15.127607Z 01O Unzipping to /tmp/.sdkmanager-ju0puunz
+2026-03-20T15:17:27.634149Z 01O Installing into /opt/android-sdk/ndk/23.2.8568313
+2026-03-20T15:17:27.774921Z 01E 2026-03-20 15:17:27,774 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:17:27.777391Z 01E 2026-03-20 15:17:27,777 DEBUG: Popen(['git', 'log', '-n', '1', '--pretty=%ct'], cwd=/home/vagrant/build/com.barghest.mesh, stdin=None, shell=False, universal_newlines=False)
+2026-03-20T15:17:27.780797Z 01E 2026-03-20 15:17:27,780 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:17:27.781088Z 01E 2026-03-20 15:17:27,780 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:17:27.781496Z 01E 2026-03-20 15:17:27,781 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:17:27.781810Z 01E 2026-03-20 15:17:27,781 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:17:27.781811Z 01E 2026-03-20 15:17:27,781 INFO: Running 'sudo' commands in /home/vagrant
+2026-03-20T15:17:27.782132Z 01E 2026-03-20 15:17:27,781 DEBUG: > sudo DEBIAN_FRONTEND=noninteractive bash -e -u -o pipefail -x -c apt-get update; apt-get install -y golang-go gcc libc-dev make zip
+2026-03-20T15:17:27.883743Z 01E + apt-get update
+2026-03-20T15:17:27.983942Z 01E Hit:1 https://deb.debian.org/debian trixie InRelease
+2026-03-20T15:17:27.983944Z 01E Hit:2 https://security.debian.org/debian-security trixie-security InRelease
+2026-03-20T15:17:27.983945Z 01E Hit:3 https://deb.debian.org/debian trixie-updates InRelease
+2026-03-20T15:17:27.983946Z 01E Hit:4 https://deb.debian.org/debian trixie-backports InRelease
+2026-03-20T15:17:28.584983Z 01E Reading package lists...
+2026-03-20T15:17:28.685289Z 01E + apt-get install -y golang-go gcc libc-dev make zip
+2026-03-20T15:17:29.286249Z 01E Reading package lists...
+2026-03-20T15:17:29.586779Z 01E Building dependency tree...
+2026-03-20T15:17:29.586789Z 01E Reading state information...
+2026-03-20T15:17:29.787107Z 01E The following additional packages will be installed:
+2026-03-20T15:17:29.787116Z 01E   binutils binutils-common binutils-x86-64-linux-gnu cpp cpp-14
+2026-03-20T15:17:29.787117Z 01E   cpp-14-x86-64-linux-gnu cpp-x86-64-linux-gnu gcc-14 gcc-14-x86-64-linux-gnu
+2026-03-20T15:17:29.787118Z 01E   gcc-x86-64-linux-gnu golang-1.24-go golang-1.24-src golang-src libasan8
+2026-03-20T15:17:29.787118Z 01E   libbinutils libc-dev-bin libcc1-0 libcrypt-dev libctf-nobfd0 libctf0
+2026-03-20T15:17:29.787119Z 01E   libgcc-14-dev libgprofng0 libhwasan0 libisl23 libitm1 libjansson4 liblsan0
+2026-03-20T15:17:29.787120Z 01E   libmpc3 libmpfr6 libquadmath0 libsframe1 libtsan2 libubsan1 linux-libc-dev
+2026-03-20T15:17:29.787120Z 01E   rpcsvc-proto
+2026-03-20T15:17:29.787121Z 01E Suggested packages:
+2026-03-20T15:17:29.787121Z 01E   binutils-doc gprofng-gui binutils-gold cpp-doc gcc-14-locales cpp-14-doc
+2026-03-20T15:17:29.787122Z 01E   gcc-multilib manpages-dev autoconf automake libtool flex bison gdb gcc-doc
+2026-03-20T15:17:29.787123Z 01E   gcc-14-multilib gcc-14-doc gdb-x86-64-linux-gnu bzr | brz mercurial
+2026-03-20T15:17:29.787123Z 01E   subversion libc-devtools glibc-doc make-doc
+2026-03-20T15:17:29.787124Z 01E Recommended packages:
+2026-03-20T15:17:29.787124Z 01E   g++ pkgconf manpages manpages-dev
+2026-03-20T15:17:29.987454Z 01E The following NEW packages will be installed:
+2026-03-20T15:17:29.987459Z 01E   binutils binutils-common binutils-x86-64-linux-gnu cpp cpp-14
+2026-03-20T15:17:29.987459Z 01E   cpp-14-x86-64-linux-gnu cpp-x86-64-linux-gnu gcc gcc-14
+2026-03-20T15:17:29.987460Z 01E   gcc-14-x86-64-linux-gnu gcc-x86-64-linux-gnu golang-1.24-go golang-1.24-src
+2026-03-20T15:17:29.987461Z 01E   golang-go golang-src libasan8 libbinutils libc-dev-bin libc6-dev libcc1-0
+2026-03-20T15:17:29.987462Z 01E   libcrypt-dev libctf-nobfd0 libctf0 libgcc-14-dev libgprofng0 libhwasan0
+2026-03-20T15:17:29.987462Z 01E   libisl23 libitm1 libjansson4 liblsan0 libmpc3 libmpfr6 libquadmath0
+2026-03-20T15:17:29.987463Z 01E   libsframe1 libtsan2 libubsan1 linux-libc-dev make rpcsvc-proto zip
+2026-03-20T15:17:30.087641Z 01E 0 upgraded, 40 newly installed, 0 to remove and 0 not upgraded.
+2026-03-20T15:17:30.087644Z 01E Need to get 107 MB of archives.
+2026-03-20T15:17:30.087644Z 01E After this operation, 477 MB of additional disk space will be used.
+2026-03-20T15:17:30.087645Z 01E Get:1 https://deb.debian.org/debian trixie/main amd64 libsframe1 amd64 2.44-3 [78.4 kB]
+2026-03-20T15:17:30.087646Z 01E Get:2 https://security.debian.org/debian-security trixie-security/main amd64 linux-libc-dev all 6.12.74-2 [2746 kB]
+2026-03-20T15:17:30.087647Z 01E Get:3 https://deb.debian.org/debian trixie/main amd64 binutils-common amd64 2.44-3 [2509 kB]
+2026-03-20T15:17:30.187819Z 01E Get:4 https://deb.debian.org/debian trixie/main amd64 libbinutils amd64 2.44-3 [534 kB]
+2026-03-20T15:17:30.187822Z 01E Get:5 https://deb.debian.org/debian trixie/main amd64 libgprofng0 amd64 2.44-3 [808 kB]
+2026-03-20T15:17:30.187823Z 01E Get:6 https://deb.debian.org/debian trixie/main amd64 libctf-nobfd0 amd64 2.44-3 [156 kB]
+2026-03-20T15:17:30.187823Z 01E Get:7 https://deb.debian.org/debian trixie/main amd64 libctf0 amd64 2.44-3 [88.6 kB]
+2026-03-20T15:17:30.187824Z 01E Get:8 https://deb.debian.org/debian trixie/main amd64 libjansson4 amd64 2.14-2+b3 [39.8 kB]
+2026-03-20T15:17:30.187825Z 01E Get:9 https://deb.debian.org/debian trixie/main amd64 binutils-x86-64-linux-gnu amd64 2.44-3 [1014 kB]
+2026-03-20T15:17:30.187826Z 01E Get:10 https://deb.debian.org/debian trixie/main amd64 binutils amd64 2.44-3 [265 kB]
+2026-03-20T15:17:30.187826Z 01E Get:11 https://deb.debian.org/debian trixie/main amd64 libisl23 amd64 0.27-1 [659 kB]
+2026-03-20T15:17:30.187827Z 01E Get:12 https://deb.debian.org/debian trixie/main amd64 libmpfr6 amd64 4.2.2-1 [729 kB]
+2026-03-20T15:17:30.187841Z 01E Get:13 https://deb.debian.org/debian trixie/main amd64 libmpc3 amd64 1.3.1-1+b3 [52.2 kB]
+2026-03-20T15:17:30.187842Z 01E Get:14 https://deb.debian.org/debian trixie/main amd64 cpp-14-x86-64-linux-gnu amd64 14.2.0-19 [11.0 MB]
+2026-03-20T15:17:30.187843Z 01E Get:15 https://deb.debian.org/debian trixie/main amd64 cpp-14 amd64 14.2.0-19 [1280 B]
+2026-03-20T15:17:30.187843Z 01E Get:16 https://deb.debian.org/debian trixie/main amd64 cpp-x86-64-linux-gnu amd64 4:14.2.0-1 [4840 B]
+2026-03-20T15:17:30.187844Z 01E Get:17 https://deb.debian.org/debian trixie/main amd64 cpp amd64 4:14.2.0-1 [1568 B]
+2026-03-20T15:17:30.187845Z 01E Get:18 https://deb.debian.org/debian trixie/main amd64 libcc1-0 amd64 14.2.0-19 [42.8 kB]
+2026-03-20T15:17:30.187845Z 01E Get:19 https://deb.debian.org/debian trixie/main amd64 libitm1 amd64 14.2.0-19 [26.0 kB]
+2026-03-20T15:17:30.187846Z 01E Get:20 https://deb.debian.org/debian trixie/main amd64 libasan8 amd64 14.2.0-19 [2725 kB]
+2026-03-20T15:17:30.288141Z 01E Get:21 https://deb.debian.org/debian trixie/main amd64 liblsan0 amd64 14.2.0-19 [1204 kB]
+2026-03-20T15:17:30.288143Z 01E Get:22 https://deb.debian.org/debian trixie/main amd64 libtsan2 amd64 14.2.0-19 [2460 kB]
+2026-03-20T15:17:30.288144Z 01E Get:23 https://deb.debian.org/debian trixie/main amd64 libubsan1 amd64 14.2.0-19 [1074 kB]
+2026-03-20T15:17:30.288144Z 01E Get:24 https://deb.debian.org/debian trixie/main amd64 libhwasan0 amd64 14.2.0-19 [1488 kB]
+2026-03-20T15:17:30.288146Z 01E Get:25 https://deb.debian.org/debian trixie/main amd64 libquadmath0 amd64 14.2.0-19 [145 kB]
+2026-03-20T15:17:30.288146Z 01E Get:26 https://deb.debian.org/debian trixie/main amd64 libgcc-14-dev amd64 14.2.0-19 [2672 kB]
+2026-03-20T15:17:30.288211Z 01E Get:27 https://deb.debian.org/debian trixie/main amd64 gcc-14-x86-64-linux-gnu amd64 14.2.0-19 [21.4 MB]
+2026-03-20T15:17:30.388472Z 01E Get:28 https://deb.debian.org/debian trixie/main amd64 gcc-14 amd64 14.2.0-19 [540 kB]
+2026-03-20T15:17:30.388474Z 01E Get:29 https://deb.debian.org/debian trixie/main amd64 gcc-x86-64-linux-gnu amd64 4:14.2.0-1 [1436 B]
+2026-03-20T15:17:30.388475Z 01E Get:30 https://deb.debian.org/debian trixie/main amd64 gcc amd64 4:14.2.0-1 [5136 B]
+2026-03-20T15:17:30.388476Z 01E Get:31 https://deb.debian.org/debian trixie/main amd64 golang-1.24-src all 1.24.4-1 [21.2 MB]
+2026-03-20T15:17:30.488683Z 01E Get:32 https://deb.debian.org/debian trixie/main amd64 golang-1.24-go amd64 1.24.4-1 [28.7 MB]
+2026-03-20T15:17:30.789331Z 01E Get:33 https://deb.debian.org/debian trixie/main amd64 golang-src all 2:1.24~2 [5136 B]
+2026-03-20T15:17:30.789335Z 01E Get:34 https://deb.debian.org/debian trixie/main amd64 golang-go amd64 2:1.24~2 [44.3 kB]
+2026-03-20T15:17:30.789336Z 01E Get:35 https://deb.debian.org/debian trixie/main amd64 libc-dev-bin amd64 2.41-12+deb13u2 [59.4 kB]
+2026-03-20T15:17:30.789336Z 01E Get:36 https://deb.debian.org/debian trixie/main amd64 libcrypt-dev amd64 1:4.4.38-1 [119 kB]
+2026-03-20T15:18:00.838585Z 01E Get:37 https://deb.debian.org/debian trixie/main amd64 rpcsvc-proto amd64 1.4.3-1 [63.3 kB]
+2026-03-20T15:18:00.938489Z 01E Get:38 https://deb.debian.org/debian trixie/main amd64 libc6-dev amd64 2.41-12+deb13u2 [1996 kB]
+2026-03-20T15:18:00.938493Z 01E Get:39 https://deb.debian.org/debian trixie/main amd64 make amd64 4.4.1-2 [463 kB]
+2026-03-20T15:18:01.038777Z 01E Get:40 https://deb.debian.org/debian trixie/main amd64 zip amd64 3.0-15 [235 kB]
+2026-03-20T15:18:02.541008Z 01E Fetched 107 MB in 31s (3458 kB/s)
+2026-03-20T15:18:02.541015Z 01E Selecting previously unselected package libsframe1:amd64.
+2026-03-20T15:18:02.541016Z 01E (Reading database ... 35690 files and directories currently installed.)
+2026-03-20T15:18:02.541016Z 01E Preparing to unpack .../00-libsframe1_2.44-3_amd64.deb ...
+2026-03-20T15:18:02.541017Z 01E Unpacking libsframe1:amd64 (2.44-3) ...
+2026-03-20T15:18:02.541018Z 01E Selecting previously unselected package binutils-common:amd64.
+2026-03-20T15:18:02.641174Z 01E Preparing to unpack .../01-binutils-common_2.44-3_amd64.deb ...
+2026-03-20T15:18:02.641178Z 01E Unpacking binutils-common:amd64 (2.44-3) ...
+2026-03-20T15:18:02.741340Z 01E Selecting previously unselected package libbinutils:amd64.
+2026-03-20T15:18:02.741345Z 01E Preparing to unpack .../02-libbinutils_2.44-3_amd64.deb ...
+2026-03-20T15:18:02.741346Z 01E Unpacking libbinutils:amd64 (2.44-3) ...
+2026-03-20T15:18:02.841523Z 01E Selecting previously unselected package libgprofng0:amd64.
+2026-03-20T15:18:02.841528Z 01E Preparing to unpack .../03-libgprofng0_2.44-3_amd64.deb ...
+2026-03-20T15:18:02.841529Z 01E Unpacking libgprofng0:amd64 (2.44-3) ...
+2026-03-20T15:18:02.941786Z 01E Selecting previously unselected package libctf-nobfd0:amd64.
+2026-03-20T15:18:02.941793Z 01E Preparing to unpack .../04-libctf-nobfd0_2.44-3_amd64.deb ...
+2026-03-20T15:18:02.941794Z 01E Unpacking libctf-nobfd0:amd64 (2.44-3) ...
+2026-03-20T15:18:02.941794Z 01E Selecting previously unselected package libctf0:amd64.
+2026-03-20T15:18:02.941795Z 01E Preparing to unpack .../05-libctf0_2.44-3_amd64.deb ...
+2026-03-20T15:18:02.941795Z 01E Unpacking libctf0:amd64 (2.44-3) ...
+2026-03-20T15:18:03.041908Z 01E Selecting previously unselected package libjansson4:amd64.
+2026-03-20T15:18:03.041914Z 01E Preparing to unpack .../06-libjansson4_2.14-2+b3_amd64.deb ...
+2026-03-20T15:18:03.041915Z 01E Unpacking libjansson4:amd64 (2.14-2+b3) ...
+2026-03-20T15:18:03.041916Z 01E Selecting previously unselected package binutils-x86-64-linux-gnu.
+2026-03-20T15:18:03.041917Z 01E Preparing to unpack .../07-binutils-x86-64-linux-gnu_2.44-3_amd64.deb ...
+2026-03-20T15:18:03.041917Z 01E Unpacking binutils-x86-64-linux-gnu (2.44-3) ...
+2026-03-20T15:18:03.142074Z 01E Selecting previously unselected package binutils.
+2026-03-20T15:18:03.142081Z 01E Preparing to unpack .../08-binutils_2.44-3_amd64.deb ...
+2026-03-20T15:18:03.142082Z 01E Unpacking binutils (2.44-3) ...
+2026-03-20T15:18:03.242306Z 01E Selecting previously unselected package libisl23:amd64.
+2026-03-20T15:18:03.242308Z 01E Preparing to unpack .../09-libisl23_0.27-1_amd64.deb ...
+2026-03-20T15:18:03.242309Z 01E Unpacking libisl23:amd64 (0.27-1) ...
+2026-03-20T15:18:03.242309Z 01E Selecting previously unselected package libmpfr6:amd64.
+2026-03-20T15:18:03.342407Z 01E Preparing to unpack .../10-libmpfr6_4.2.2-1_amd64.deb ...
+2026-03-20T15:18:03.342409Z 01E Unpacking libmpfr6:amd64 (4.2.2-1) ...
+2026-03-20T15:18:03.342410Z 01E Selecting previously unselected package libmpc3:amd64.
+2026-03-20T15:18:03.342411Z 01E Preparing to unpack .../11-libmpc3_1.3.1-1+b3_amd64.deb ...
+2026-03-20T15:18:03.342411Z 01E Unpacking libmpc3:amd64 (1.3.1-1+b3) ...
+2026-03-20T15:18:03.342412Z 01E Selecting previously unselected package cpp-14-x86-64-linux-gnu.
+2026-03-20T15:18:03.342413Z 01E Preparing to unpack .../12-cpp-14-x86-64-linux-gnu_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:03.442510Z 01E Unpacking cpp-14-x86-64-linux-gnu (14.2.0-19) ...
+2026-03-20T15:18:03.843333Z 01E Selecting previously unselected package cpp-14.
+2026-03-20T15:18:03.843338Z 01E Preparing to unpack .../13-cpp-14_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:03.843338Z 01E Unpacking cpp-14 (14.2.0-19) ...
+2026-03-20T15:18:03.843339Z 01E Selecting previously unselected package cpp-x86-64-linux-gnu.
+2026-03-20T15:18:03.843340Z 01E Preparing to unpack .../14-cpp-x86-64-linux-gnu_4%3a14.2.0-1_amd64.deb ...
+2026-03-20T15:18:03.843340Z 01E Unpacking cpp-x86-64-linux-gnu (4:14.2.0-1) ...
+2026-03-20T15:18:03.943533Z 01E Selecting previously unselected package cpp.
+2026-03-20T15:18:03.943561Z 01E Preparing to unpack .../15-cpp_4%3a14.2.0-1_amd64.deb ...
+2026-03-20T15:18:03.943562Z 01E Unpacking cpp (4:14.2.0-1) ...
+2026-03-20T15:18:03.943562Z 01E Selecting previously unselected package libcc1-0:amd64.
+2026-03-20T15:18:03.943563Z 01E Preparing to unpack .../16-libcc1-0_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:03.943564Z 01E Unpacking libcc1-0:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.043654Z 01E Selecting previously unselected package libitm1:amd64.
+2026-03-20T15:18:04.043658Z 01E Preparing to unpack .../17-libitm1_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.043659Z 01E Unpacking libitm1:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.043660Z 01E Selecting previously unselected package libasan8:amd64.
+2026-03-20T15:18:04.043661Z 01E Preparing to unpack .../18-libasan8_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.043661Z 01E Unpacking libasan8:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.244031Z 01E Selecting previously unselected package liblsan0:amd64.
+2026-03-20T15:18:04.244035Z 01E Preparing to unpack .../19-liblsan0_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.244036Z 01E Unpacking liblsan0:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.344226Z 01E Selecting previously unselected package libtsan2:amd64.
+2026-03-20T15:18:04.344230Z 01E Preparing to unpack .../20-libtsan2_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.344231Z 01E Unpacking libtsan2:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.544536Z 01E Selecting previously unselected package libubsan1:amd64.
+2026-03-20T15:18:04.544539Z 01E Preparing to unpack .../21-libubsan1_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.544539Z 01E Unpacking libubsan1:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.644696Z 01E Selecting previously unselected package libhwasan0:amd64.
+2026-03-20T15:18:04.644699Z 01E Preparing to unpack .../22-libhwasan0_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.644700Z 01E Unpacking libhwasan0:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.744887Z 01E Selecting previously unselected package libquadmath0:amd64.
+2026-03-20T15:18:04.744891Z 01E Preparing to unpack .../23-libquadmath0_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.744891Z 01E Unpacking libquadmath0:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.744892Z 01E Selecting previously unselected package libgcc-14-dev:amd64.
+2026-03-20T15:18:04.744893Z 01E Preparing to unpack .../24-libgcc-14-dev_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.744893Z 01E Unpacking libgcc-14-dev:amd64 (14.2.0-19) ...
+2026-03-20T15:18:04.945093Z 01E Selecting previously unselected package gcc-14-x86-64-linux-gnu.
+2026-03-20T15:18:04.945241Z 01E Preparing to unpack .../25-gcc-14-x86-64-linux-gnu_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:04.945363Z 01E Unpacking gcc-14-x86-64-linux-gnu (14.2.0-19) ...
+2026-03-20T15:18:05.546464Z 01E Selecting previously unselected package gcc-14.
+2026-03-20T15:18:05.546467Z 01E Preparing to unpack .../26-gcc-14_14.2.0-19_amd64.deb ...
+2026-03-20T15:18:05.546468Z 01E Unpacking gcc-14 (14.2.0-19) ...
+2026-03-20T15:18:05.546468Z 01E Selecting previously unselected package gcc-x86-64-linux-gnu.
+2026-03-20T15:18:05.546469Z 01E Preparing to unpack .../27-gcc-x86-64-linux-gnu_4%3a14.2.0-1_amd64.deb ...
+2026-03-20T15:18:05.546470Z 01E Unpacking gcc-x86-64-linux-gnu (4:14.2.0-1) ...
+2026-03-20T15:18:05.646481Z 01E Selecting previously unselected package gcc.
+2026-03-20T15:18:05.646484Z 01E Preparing to unpack .../28-gcc_4%3a14.2.0-1_amd64.deb ...
+2026-03-20T15:18:05.646485Z 01E Unpacking gcc (4:14.2.0-1) ...
+2026-03-20T15:18:05.646486Z 01E Selecting previously unselected package golang-1.24-src.
+2026-03-20T15:18:05.646487Z 01E Preparing to unpack .../29-golang-1.24-src_1.24.4-1_all.deb ...
+2026-03-20T15:18:05.646487Z 01E Unpacking golang-1.24-src (1.24.4-1) ...
+2026-03-20T15:18:08.149789Z 01E Selecting previously unselected package golang-1.24-go.
+2026-03-20T15:18:08.149795Z 01E Preparing to unpack .../30-golang-1.24-go_1.24.4-1_amd64.deb ...
+2026-03-20T15:18:08.149796Z 01E Unpacking golang-1.24-go (1.24.4-1) ...
+2026-03-20T15:18:08.950730Z 01E Selecting previously unselected package golang-src.
+2026-03-20T15:18:08.950733Z 01E Preparing to unpack .../31-golang-src_2%3a1.24~2_all.deb ...
+2026-03-20T15:18:08.950734Z 01E Unpacking golang-src (2:1.24~2) ...
+2026-03-20T15:18:08.950734Z 01E Selecting previously unselected package golang-go:amd64.
+2026-03-20T15:18:08.950735Z 01E Preparing to unpack .../32-golang-go_2%3a1.24~2_amd64.deb ...
+2026-03-20T15:18:08.950736Z 01E Unpacking golang-go:amd64 (2:1.24~2) ...
+2026-03-20T15:18:09.050953Z 01E Selecting previously unselected package libc-dev-bin.
+2026-03-20T15:18:09.050959Z 01E Preparing to unpack .../33-libc-dev-bin_2.41-12+deb13u2_amd64.deb ...
+2026-03-20T15:18:09.050960Z 01E Unpacking libc-dev-bin (2.41-12+deb13u2) ...
+2026-03-20T15:18:09.050961Z 01E Selecting previously unselected package linux-libc-dev.
+2026-03-20T15:18:09.050962Z 01E Preparing to unpack .../34-linux-libc-dev_6.12.74-2_all.deb ...
+2026-03-20T15:18:09.050963Z 01E Unpacking linux-libc-dev (6.12.74-2) ...
+2026-03-20T15:18:09.451574Z 01E Selecting previously unselected package libcrypt-dev:amd64.
+2026-03-20T15:18:09.451577Z 01E Preparing to unpack .../35-libcrypt-dev_1%3a4.4.38-1_amd64.deb ...
+2026-03-20T15:18:09.451578Z 01E Unpacking libcrypt-dev:amd64 (1:4.4.38-1) ...
+2026-03-20T15:18:09.451578Z 01E Selecting previously unselected package rpcsvc-proto.
+2026-03-20T15:18:09.451579Z 01E Preparing to unpack .../36-rpcsvc-proto_1.4.3-1_amd64.deb ...
+2026-03-20T15:18:09.451580Z 01E Unpacking rpcsvc-proto (1.4.3-1) ...
+2026-03-20T15:18:09.551701Z 01E Selecting previously unselected package libc6-dev:amd64.
+2026-03-20T15:18:09.551737Z 01E Preparing to unpack .../37-libc6-dev_2.41-12+deb13u2_amd64.deb ...
+2026-03-20T15:18:09.551910Z 01E Unpacking libc6-dev:amd64 (2.41-12+deb13u2) ...
+2026-03-20T15:18:09.652380Z 01E Selecting previously unselected package make.
+2026-03-20T15:18:09.652385Z 01E Preparing to unpack .../38-make_4.4.1-2_amd64.deb ...
+2026-03-20T15:18:09.752510Z 01E Unpacking make (4.4.1-2) ...
+2026-03-20T15:18:09.752515Z 01E Selecting previously unselected package zip.
+2026-03-20T15:18:09.752516Z 01E Preparing to unpack .../39-zip_3.0-15_amd64.deb ...
+2026-03-20T15:18:09.752516Z 01E Unpacking zip (3.0-15) ...
+2026-03-20T15:18:09.852711Z 01E Setting up golang-1.24-src (1.24.4-1) ...
+2026-03-20T15:18:09.852714Z 01E Setting up binutils-common:amd64 (2.44-3) ...
+2026-03-20T15:18:09.852714Z 01E Setting up linux-libc-dev (6.12.74-2) ...
+2026-03-20T15:18:09.852715Z 01E Setting up libctf-nobfd0:amd64 (2.44-3) ...
+2026-03-20T15:18:09.852716Z 01E Setting up libsframe1:amd64 (2.44-3) ...
+2026-03-20T15:18:09.852716Z 01E Setting up libjansson4:amd64 (2.14-2+b3) ...
+2026-03-20T15:18:09.852717Z 01E Setting up zip (3.0-15) ...
+2026-03-20T15:18:09.953719Z 01E Setting up rpcsvc-proto (1.4.3-1) ...
+2026-03-20T15:18:09.953723Z 01E Setting up make (4.4.1-2) ...
+2026-03-20T15:18:09.953724Z 01E Setting up libmpfr6:amd64 (4.2.2-1) ...
+2026-03-20T15:18:09.953724Z 01E Setting up libquadmath0:amd64 (14.2.0-19) ...
+2026-03-20T15:18:09.953725Z 01E Setting up libmpc3:amd64 (1.3.1-1+b3) ...
+2026-03-20T15:18:09.953726Z 01E Setting up golang-1.24-go (1.24.4-1) ...
+2026-03-20T15:18:09.953726Z 01E Setting up libubsan1:amd64 (14.2.0-19) ...
+2026-03-20T15:18:09.953727Z 01E Setting up libhwasan0:amd64 (14.2.0-19) ...
+2026-03-20T15:18:09.953727Z 01E Setting up libcrypt-dev:amd64 (1:4.4.38-1) ...
+2026-03-20T15:18:10.053947Z 01E Setting up libasan8:amd64 (14.2.0-19) ...
+2026-03-20T15:18:10.053950Z 01E Setting up libtsan2:amd64 (14.2.0-19) ...
+2026-03-20T15:18:10.053950Z 01E Setting up libbinutils:amd64 (2.44-3) ...
+2026-03-20T15:18:10.053951Z 01E Setting up libisl23:amd64 (0.27-1) ...
+2026-03-20T15:18:10.053952Z 01E Setting up libc-dev-bin (2.41-12+deb13u2) ...
+2026-03-20T15:18:10.053952Z 01E Setting up golang-src (2:1.24~2) ...
+2026-03-20T15:18:10.053953Z 01E Setting up libcc1-0:amd64 (14.2.0-19) ...
+2026-03-20T15:18:10.053953Z 01E Setting up liblsan0:amd64 (14.2.0-19) ...
+2026-03-20T15:18:10.053954Z 01E Setting up libitm1:amd64 (14.2.0-19) ...
+2026-03-20T15:18:10.154026Z 01E Setting up libctf0:amd64 (2.44-3) ...
+2026-03-20T15:18:10.154054Z 01E Setting up golang-go:amd64 (2:1.24~2) ...
+2026-03-20T15:18:10.154055Z 01E Setting up libgprofng0:amd64 (2.44-3) ...
+2026-03-20T15:18:10.154055Z 01E Setting up cpp-14-x86-64-linux-gnu (14.2.0-19) ...
+2026-03-20T15:18:10.154056Z 01E Setting up cpp-14 (14.2.0-19) ...
+2026-03-20T15:18:10.154056Z 01E Setting up libc6-dev:amd64 (2.41-12+deb13u2) ...
+2026-03-20T15:18:10.154057Z 01E Setting up libgcc-14-dev:amd64 (14.2.0-19) ...
+2026-03-20T15:18:10.154057Z 01E Setting up binutils-x86-64-linux-gnu (2.44-3) ...
+2026-03-20T15:18:10.154058Z 01E Setting up cpp-x86-64-linux-gnu (4:14.2.0-1) ...
+2026-03-20T15:18:10.154058Z 01E Setting up binutils (2.44-3) ...
+2026-03-20T15:18:10.254301Z 01E Setting up cpp (4:14.2.0-1) ...
+2026-03-20T15:18:10.254308Z 01E Setting up gcc-14-x86-64-linux-gnu (14.2.0-19) ...
+2026-03-20T15:18:10.254309Z 01E Setting up gcc-x86-64-linux-gnu (4:14.2.0-1) ...
+2026-03-20T15:18:10.254310Z 01E Setting up gcc-14 (14.2.0-19) ...
+2026-03-20T15:18:10.254310Z 01E Setting up gcc (4:14.2.0-1) ...
+2026-03-20T15:18:10.254311Z 01E Processing triggers for libc-bin (2.41-12+deb13u2) ...
+2026-03-20T15:18:10.354972Z 01E 2026-03-20 15:18:10,354 DEBUG: > sudo passwd --lock root
+2026-03-20T15:18:10.456835Z 01E passwd: password changed.
+2026-03-20T15:18:10.557652Z 01E 2026-03-20 15:18:10,557 DEBUG: > sudo SUDO_FORCE_REMOVE=yes dpkg --purge sudo
+2026-03-20T15:18:10.659214Z 01E (Reading database ... 55544 files and directories currently installed.)
+2026-03-20T15:18:10.659219Z 01E Removing sudo (1.9.16p2-3+deb13u1) ...
+2026-03-20T15:18:10.659220Z 01E invoke-rc.d: could not determine current runlevel
+2026-03-20T15:18:10.659221Z 01E invoke-rc.d: policy-rc.d denied execution of stop.
+2026-03-20T15:18:10.759420Z 01E Purging configuration files for sudo (1.9.16p2-3+deb13u1) ...
+2026-03-20T15:18:10.759424Z 01E dpkg: warning: while removing sudo, directory '/etc/sudoers.d' not empty so not removed
+2026-03-20T15:18:10.759424Z 01E Processing triggers for libc-bin (2.41-12+deb13u2) ...
+2026-03-20T15:18:10.893720Z 01E 2026-03-20 15:18:10,893 INFO: Getting source for revision 6960e9a5be75722ff06f3851ed10fa4732744224
+2026-03-20T15:18:10.893953Z 01E 2026-03-20 15:18:10,893 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:10.893954Z 01E 2026-03-20 15:18:10,893 DEBUG: > git rev-parse --show-toplevel
+2026-03-20T15:18:11.096538Z 01E 2026-03-20 15:18:11,096 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:11.096542Z 01E 2026-03-20 15:18:11,096 DEBUG: > git submodule foreach --recursive git reset --hard
+2026-03-20T15:18:11.399090Z 01E 2026-03-20 15:18:11,398 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:11.399094Z 01E 2026-03-20 15:18:11,398 DEBUG: > git reset --hard
+2026-03-20T15:18:11.601433Z 01E 2026-03-20 15:18:11,600 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:11.601440Z 01E 2026-03-20 15:18:11,600 DEBUG: > git submodule foreach --recursive git clean -dffx
+2026-03-20T15:18:11.803818Z 01E 2026-03-20 15:18:11,803 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:11.803822Z 01E 2026-03-20 15:18:11,803 DEBUG: > git clean -dffx
+2026-03-20T15:18:11.906228Z 01E 2026-03-20 15:18:11,905 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:11.906231Z 01E 2026-03-20 15:18:11,905 DEBUG: > git -c core.askpass=/bin/true -c core.sshCommand=/bin/false -c url.https://.insteadOf=ssh:// -c url.https://u:p@bitbucket.org/.insteadOf=git@bitbucket.org: -c url.https://u:p@bitbucket.org.insteadOf=git://bitbucket.org -c url.https://u:p@bitbucket.org.insteadOf=https://bitbucket.org -c url.https://u:p@github.com/.insteadOf=git@github.com: -c url.https://u:p@github.com.insteadOf=git://github.com -c url.https://u:p@github.com.insteadOf=https://github.com -c url.https://u:p@gitlab.com/.insteadOf=git@gitlab.com: -c url.https://u:p@gitlab.com.insteadOf=git://gitlab.com -c url.https://u:p@gitlab.com.insteadOf=https://gitlab.com -c url.https://u:p@codeberg.org/.insteadOf=git@codeberg.org: -c url.https://u:p@codeberg.org.insteadOf=git://codeberg.org -c url.https://u:p@codeberg.org.insteadOf=https://codeberg.org fetch --prune --prune-tags --force origin
+2026-03-20T15:18:12.108501Z 01E 2026-03-20 15:18:12,108 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:12.108505Z 01E 2026-03-20 15:18:12,108 DEBUG: > git -c core.askpass=/bin/true -c core.sshCommand=/bin/false -c url.https://.insteadOf=ssh:// -c url.https://u:p@bitbucket.org/.insteadOf=git@bitbucket.org: -c url.https://u:p@bitbucket.org.insteadOf=git://bitbucket.org -c url.https://u:p@bitbucket.org.insteadOf=https://bitbucket.org -c url.https://u:p@github.com/.insteadOf=git@github.com: -c url.https://u:p@github.com.insteadOf=git://github.com -c url.https://u:p@github.com.insteadOf=https://github.com -c url.https://u:p@gitlab.com/.insteadOf=git@gitlab.com: -c url.https://u:p@gitlab.com.insteadOf=git://gitlab.com -c url.https://u:p@gitlab.com.insteadOf=https://gitlab.com -c url.https://u:p@codeberg.org/.insteadOf=git@codeberg.org: -c url.https://u:p@codeberg.org.insteadOf=git://codeberg.org -c url.https://u:p@codeberg.org.insteadOf=https://codeberg.org fetch --prune --tags --force origin
+2026-03-20T15:18:12.310641Z 01E 2026-03-20 15:18:12,310 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:12.310644Z 01E 2026-03-20 15:18:12,310 DEBUG: > git remote set-head origin --auto
+2026-03-20T15:18:12.612901Z 01E 2026-03-20 15:18:12,612 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:12.612905Z 01E 2026-03-20 15:18:12,612 DEBUG: > git checkout -f 6960e9a5be75722ff06f3851ed10fa4732744224
+2026-03-20T15:18:12.815182Z 01E 2026-03-20 15:18:12,814 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:12.815186Z 01E 2026-03-20 15:18:12,814 DEBUG: > git clean -dffx
+2026-03-20T15:18:12.917335Z 01E 2026-03-20 15:18:12,916 INFO: commit: 6960e9a5be75722ff06f3851ed10fa4732744224 (SHA1: 6960e9a5be75722ff06f3851ed10fa4732744224)
+2026-03-20T15:18:12.917338Z 01E 2026-03-20 15:18:12,917 INFO: Initialising submodules
+2026-03-20T15:18:12.917670Z 01E 2026-03-20 15:18:12,917 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:12.917671Z 01E 2026-03-20 15:18:12,917 DEBUG: > git rev-parse --show-toplevel
+2026-03-20T15:18:13.120629Z 01E 2026-03-20 15:18:13,120 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:13.120631Z 01E 2026-03-20 15:18:13,120 DEBUG: > git submodule sync
+2026-03-20T15:18:13.322974Z 01E 2026-03-20 15:18:13,322 DEBUG: Directory: build/com.barghest.mesh
+2026-03-20T15:18:13.322980Z 01E 2026-03-20 15:18:13,322 DEBUG: > git -c core.askpass=/bin/true -c core.sshCommand=/bin/false -c url.https://.insteadOf=ssh:// -c url.https://u:p@bitbucket.org/.insteadOf=git@bitbucket.org: -c url.https://u:p@bitbucket.org.insteadOf=git://bitbucket.org -c url.https://u:p@bitbucket.org.insteadOf=https://bitbucket.org -c url.https://u:p@github.com/.insteadOf=git@github.com: -c url.https://u:p@github.com.insteadOf=git://github.com -c url.https://u:p@github.com.insteadOf=https://github.com -c url.https://u:p@gitlab.com/.insteadOf=git@gitlab.com: -c url.https://u:p@gitlab.com.insteadOf=git://gitlab.com -c url.https://u:p@gitlab.com.insteadOf=https://gitlab.com -c url.https://u:p@codeberg.org/.insteadOf=git@codeberg.org: -c url.https://u:p@codeberg.org.insteadOf=git://codeberg.org -c url.https://u:p@codeberg.org.insteadOf=https://codeberg.org submodule update --init --force --recursive
+2026-03-20T15:18:13.424831Z 01E Submodule path 'tailscale': checked out 'aa61c1758b452cdb0d25fdca34028d9062da77ea'
+2026-03-20T15:18:13.525324Z 01E 2026-03-20 15:18:13,524 INFO: Creating local.properties file at build/com.barghest.mesh/local.properties
+2026-03-20T15:18:13.525887Z 01E 2026-03-20 15:18:13,525 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:18:13.526708Z 01E 2026-03-20 15:18:13,526 INFO: Creating local.properties file at build/com.barghest.mesh/android-client/local.properties
+2026-03-20T15:18:13.527100Z 01E 2026-03-20 15:18:13,526 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:18:13.527284Z 01E 2026-03-20 15:18:13,527 INFO: Creating local.properties file at build/com.barghest.mesh/android-client/android/local.properties
+2026-03-20T15:18:13.527729Z 01E 2026-03-20 15:18:13,527 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:18:13.543217Z 01E 2026-03-20 15:18:13,542 INFO: Running 'prebuild' commands in build/com.barghest.mesh/android-client/android
+2026-03-20T15:18:13.543760Z 01E 2026-03-20 15:18:13,543 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:18:13.544207Z 01E 2026-03-20 15:18:13,543 DEBUG: Directory: build/com.barghest.mesh/android-client/android
+2026-03-20T15:18:13.544208Z 01E 2026-03-20 15:18:13,543 DEBUG: > bash -e -u -o pipefail -x -c -- echo -e "\norg.gradle.jvmargs=-Xmx4096m" >> gradle.properties; sdkmanager 'platforms;android-34' 'platform-tools' 'build-tools;36.0.0'; sed -i -e 's|$(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager|sdkmanager|g' -e 's/list_installed/list/' ../Makefile; sed -i -e 's/getVersionProperty("VERSION_LONG")/"0.1.3-alpha"/' build.gradle
+2026-03-20T15:18:13.646343Z 01E + echo -e '\norg.gradle.jvmargs=-Xmx4096m'
+2026-03-20T15:18:13.646347Z 01E + sdkmanager 'platforms;android-34' platform-tools 'build-tools;36.0.0'
+2026-03-20T15:18:13.846750Z 01E Downloading https://dl.google.com/android/repository/platform-34-ext7_r03.zip into /home/vagrant/.cache/sdkmanager/platform-34-ext7_r03.zip
+2026-03-20T15:18:14.347489Z 01E Unzipping to /tmp/.sdkmanager-2tfqwcxm
+2026-03-20T15:18:16.450428Z 01E Installing into /opt/android-sdk/platforms/android-34
+2026-03-20T15:18:16.450435Z 01E Downloading https://dl.google.com/android/repository/build-tools_r36_linux.zip into /home/vagrant/.cache/sdkmanager/build-tools_r36_linux.zip
+2026-03-20T15:18:16.850902Z 01E Unzipping to /tmp/.sdkmanager-k3oh47ge
+2026-03-20T15:18:17.652185Z 01E Installing into /opt/android-sdk/build-tools/36.0.0
+2026-03-20T15:18:17.652189Z 01E + sed -i -e 's|$(ANDROID_HOME)/cmdline-tools/latest/bin/sdkmanager|sdkmanager|g' -e s/list_installed/list/ ../Makefile
+2026-03-20T15:18:17.652190Z 01E + sed -i -e 's/getVersionProperty("VERSION_LONG")/"0.1.3-alpha"/' build.gradle
+2026-03-20T15:18:17.752733Z 01E 2026-03-20 15:18:17,752 INFO: Cleaning Gradle project...
+2026-03-20T15:18:17.752878Z 01E 2026-03-20 15:18:17,752 DEBUG: Directory: build/com.barghest.mesh/android-client/android
+2026-03-20T15:18:17.753000Z 01E 2026-03-20 15:18:17,752 DEBUG: > /usr/local/bin/gradlew-fdroid clean
+2026-03-20T15:18:17.854303Z 01E CACHEDIR set to /home/vagrant/.cache/gradlew-fdroid
+2026-03-20T15:18:17.954383Z 01E Update checksum from gradle-transparency-log
+2026-03-20T15:18:17.954385Z 01E Found 9.3.1 via distributionUrl
+2026-03-20T15:18:17.954386Z 01E Downloading missing gradle version 9.3.1
+2026-03-20T15:18:17.954387Z 01E Using cache directory /home/vagrant/.cache/gradlew-fdroid
+2026-03-20T15:18:19.757187Z 01E Running /home/vagrant/.cache/gradlew-fdroid/versions/9.3.1/bin/gradle clean
+2026-03-20T15:18:20.358089Z 01E 
+2026-03-20T15:18:20.358144Z 01E Welcome to Gradle 9.3.1!
+2026-03-20T15:18:20.358290Z 01E 
+2026-03-20T15:18:20.358293Z 01E Here are the highlights of this release:
+2026-03-20T15:18:20.358378Z 01E  - Test reporting improvements
+2026-03-20T15:18:20.358451Z 01E  - Error and warning improvements
+2026-03-20T15:18:20.358540Z 01E  - Build authoring improvements
+2026-03-20T15:18:20.358637Z 01E 
+2026-03-20T15:18:20.358726Z 01E For more details see https://docs.gradle.org/9.3.1/release-notes.html
+2026-03-20T15:18:20.358872Z 01E 
+2026-03-20T15:18:20.559350Z 01E To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-03-20T15:18:21.760920Z 01E Daemon will be stopped at the end of the build 
+2026-03-20T15:19:07.219436Z 01E 
+2026-03-20T15:19:07.219439Z 01E > Configure project :
+2026-03-20T15:19:07.219440Z 01E WARNING: The option setting 'android.usesSdkInManifest.disallowed=false' is deprecated.
+2026-03-20T15:19:07.219441Z 01E The current default is 'true'.
+2026-03-20T15:19:07.219441Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:19:07.219442Z 01E WARNING: The option setting 'android.sdk.defaultTargetSdkToCompileSdkIfUnset=false' is deprecated.
+2026-03-20T15:19:07.219443Z 01E The current default is 'true'.
+2026-03-20T15:19:07.219443Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:19:07.219444Z 01E WARNING: The option setting 'android.enableAppCompileTimeRClass=false' is deprecated.
+2026-03-20T15:19:07.219445Z 01E The current default is 'true'.
+2026-03-20T15:19:07.219445Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:19:07.219446Z 01E WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+2026-03-20T15:19:07.219446Z 01E The current default is 'true'.
+2026-03-20T15:19:07.219447Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:19:07.219447Z 01E WARNING: The option setting 'android.newDsl=false' is deprecated.
+2026-03-20T15:19:07.219448Z 01E The current default is 'true'.
+2026-03-20T15:19:07.219448Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:19:07.219449Z 01E WARNING: The option setting 'android.r8.optimizedResourceShrinking=false' is deprecated.
+2026-03-20T15:19:07.219449Z 01E The current default is 'true'.
+2026-03-20T15:19:07.219450Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:19:07.219450Z 01E WARNING: The option setting 'android.defaults.buildfeatures.resvalues=true' is deprecated.
+2026-03-20T15:19:07.219451Z 01E The current default is 'false'.
+2026-03-20T15:19:07.219451Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:19:07.219452Z 01E WARNING: The option setting 'android.nonFinalResIds=false' is deprecated.
+2026-03-20T15:19:07.219453Z 01E The current default is 'true'.
+2026-03-20T15:19:07.219453Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:19:08.820896Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:19:08.821091Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:19:08.821265Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:19:08.821388Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:19:08.821475Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:19:08.821619Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:19:08.922064Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:19:08.922199Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:19:08.922321Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:19:08.922443Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:19:08.922559Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:19:08.922672Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:19:11.926462Z 01E 
+2026-03-20T15:19:11.926600Z 01E > Task :clean UP-TO-DATE
+2026-03-20T15:19:12.027072Z 01E 
+2026-03-20T15:19:12.027175Z 01E [Incubating] Problems report is available at: file:///home/vagrant/build/com.barghest.mesh/android-client/android/build/reports/problems/problems-report.html
+2026-03-20T15:19:12.027293Z 01E 
+2026-03-20T15:19:12.027418Z 01E Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+2026-03-20T15:19:12.027573Z 01E 
+2026-03-20T15:19:12.027724Z 01E You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+2026-03-20T15:19:12.027835Z 01E 
+2026-03-20T15:19:12.027935Z 01E For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+2026-03-20T15:19:12.028089Z 01E 
+2026-03-20T15:19:12.028139Z 01E BUILD SUCCESSFUL in 52s
+2026-03-20T15:19:12.028264Z 01E 1 actionable task: 1 up-to-date
+2026-03-20T15:19:12.028352Z 01E Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.1/userguide/configuration_cache_enabling.html
+2026-03-20T15:19:12.245632Z 01E 2026-03-20 15:19:12,245 INFO: Scanning source for common problems...
+2026-03-20T15:19:12.250609Z 01E 2026-03-20 15:19:12,250 DEBUG: scanner is configured to use signature data from: 'suss'
+2026-03-20T15:19:12.250753Z 01E 2026-03-20 15:19:12,250 DEBUG: downloading 'https://fdroid.gitlab.io/fdroid-suss/suss.json'
+2026-03-20T15:19:12.307025Z 01E 2026-03-20 15:19:12,306 DEBUG: write 'suss.json' to cache
+2026-03-20T15:19:12.307829Z 01E 2026-03-20 15:19:12,307 DEBUG: next suss.json cache update due in 23:59:59.997146
+2026-03-20T15:19:12.339462Z 01E 2026-03-20 15:19:12,338 INFO: Removing gradle-wrapper.jar at android-client/android/gradle/wrapper/gradle-wrapper.jar
+2026-03-20T15:19:12.354614Z 01E 2026-03-20 15:19:12,354 INFO: Removing gzip file archive at tailscale/tempfork/spf13/cobra/comp.ps1.gz
+2026-03-20T15:19:12.354761Z 01E 2026-03-20 15:19:12,354 INFO: Removing gzip file archive at tailscale/tempfork/spf13/cobra/comp.fish.gz
+2026-03-20T15:19:12.354991Z 01E 2026-03-20 15:19:12,354 INFO: Removing gzip file archive at tailscale/tempfork/spf13/cobra/comp.zsh.gz
+2026-03-20T15:19:12.355580Z 01E 2026-03-20 15:19:12,355 INFO: Removing gzip file archive at tailscale/tempfork/spf13/cobra/comp.bash.gz
+2026-03-20T15:19:12.377505Z 01E 2026-03-20 15:19:12,377 INFO: Removing binary at tailscale/tstest/tailmac/Swift/TailMac/main
+2026-03-20T15:19:12.402280Z 01E 2026-03-20 15:19:12,401 INFO: Removing gzip file archive at tailscale/util/eventbus/assets/htmx.min.js.gz
+2026-03-20T15:19:12.402543Z 01E 2026-03-20 15:19:12,402 INFO: Removing gzip file archive at tailscale/util/eventbus/assets/htmx-websocket.min.js.gz
+2026-03-20T15:19:12.435751Z 01E 2026-03-20 15:19:12,435 INFO: Running 'build' commands in build/com.barghest.mesh/android-client/android
+2026-03-20T15:19:12.436373Z 01E 2026-03-20 15:19:12,436 INFO: Set up NDK r23c (23.2.8568313)
+2026-03-20T15:19:12.436623Z 01E 2026-03-20 15:19:12,436 DEBUG: Directory: build/com.barghest.mesh/android-client/android
+2026-03-20T15:19:12.436625Z 01E 2026-03-20 15:19:12,436 DEBUG: > bash -e -u -o pipefail -x -c export ANDROID_NDK_ROOT=/opt/android-sdk/ndk/23.2.8568313; make -C .. env; make -C .. libtailscale
+2026-03-20T15:19:12.538360Z 01E + export ANDROID_NDK_ROOT=/opt/android-sdk/ndk/23.2.8568313
+2026-03-20T15:19:12.538364Z 01E + ANDROID_NDK_ROOT=/opt/android-sdk/ndk/23.2.8568313
+2026-03-20T15:19:12.538365Z 01E + make -C .. env
+2026-03-20T15:19:12.538365Z 01E make: Entering directory '/home/vagrant/build/com.barghest.mesh/android-client'
+2026-03-20T15:19:12.538366Z 01E Using ANDROID_HOME: /opt/android-sdk
+2026-03-20T15:19:12.538367Z 01E Using NDK_ROOT: /opt/android-sdk/ndk/23.2.8568313
+2026-03-20T15:19:12.538367Z 01E Using STRIP_TOOL: /opt/android-sdk/ndk/23.2.8568313/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+2026-03-20T15:19:12.538368Z 01E PATH=/home/vagrant/go/bin:/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:/opt/android-sdk/ndk/23.2.8568313:/home/vagrant/fdroidserver:/home/vagrant/fdroidserver:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/android-sdk/tools:/opt/android-sdk/platform-tools
+2026-03-20T15:19:12.538393Z 01E ANDROID_SDK_ROOT=/opt/android-sdk
+2026-03-20T15:19:12.538393Z 01E ANDROID_HOME=/opt/android-sdk
+2026-03-20T15:19:12.538394Z 01E ANDROID_STUDIO_ROOT=
+2026-03-20T15:19:12.538394Z 01E JAVA_HOME=
+2026-03-20T15:19:12.538395Z 01E AVD_IMAGE=system-images;android-34;google_apis;x86_64
+2026-03-20T15:19:12.538395Z 01E make: Leaving directory '/home/vagrant/build/com.barghest.mesh/android-client'
+2026-03-20T15:19:12.538396Z 01E + make -C .. libtailscale
+2026-03-20T15:19:12.538396Z 01E make: Entering directory '/home/vagrant/build/com.barghest.mesh/android-client'
+2026-03-20T15:19:12.538397Z 01E Using ANDROID_HOME: /opt/android-sdk
+2026-03-20T15:19:12.538397Z 01E Using NDK_ROOT: /opt/android-sdk/ndk/23.2.8568313
+2026-03-20T15:19:12.538398Z 01E Using STRIP_TOOL: /opt/android-sdk/ndk/23.2.8568313/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy
+2026-03-20T15:19:12.538399Z 01E go install golang.org/x/mobile/cmd/gobind
+2026-03-20T15:19:12.538399Z 01E go: downloading go1.26.1 (linux/amd64)
+2026-03-20T15:19:17.645623Z 01E go: downloading golang.org/x/mobile v0.0.0-20260217195705-b56b3793a9c4
+2026-03-20T15:19:17.845418Z 01E go: downloading golang.org/x/tools v0.42.0
+2026-03-20T15:19:18.346080Z 01E go: downloading golang.org/x/sync v0.20.0
+2026-03-20T15:19:18.346087Z 01E go: downloading golang.org/x/mod v0.33.0
+2026-03-20T15:19:30.397493Z 01E go install golang.org/x/mobile/cmd/gomobile
+2026-03-20T15:19:35.907509Z 01E Running gomobile bind to generate unstripped AAR...
+2026-03-20T15:19:35.907514Z 01E Output file: /home/vagrant/build/com.barghest.mesh/android-client/android/libs/libtailscale_unstripped.aar
+2026-03-20T15:19:35.907515Z 01E mkdir -p /home/vagrant/build/com.barghest.mesh/android-client/android/libs/
+2026-03-20T15:19:35.907516Z 01E rm -f /home/vagrant/build/com.barghest.mesh/android-client/android/libs/libtailscale_unstripped.aar
+2026-03-20T15:19:35.907517Z 01E # Reproducibility flags:
+2026-03-20T15:19:35.907517Z 01E #   CANONICAL_SRC      symlink with a fixed path so gomobile's generated
+2026-03-20T15:19:35.907518Z 01E #                      replace directives always embed the same module
+2026-03-20T15:19:35.907519Z 01E #                      path in the Go build info, regardless of the
+2026-03-20T15:19:35.907519Z 01E #                      actual workspace location on different machines.
+2026-03-20T15:19:35.907520Z 01E #   GOCACHE=<fresh-dir> ensures gobind's packages.Load always starts from
+2026-03-20T15:19:35.907520Z 01E #                       a clean cache, avoiding non-deterministic type
+2026-03-20T15:19:35.907521Z 01E #                       resolution (golang/go#33687).  Without this, the
+2026-03-20T15:19:35.907522Z 01E #                       build cache state leaks into gobind's output,
+2026-03-20T15:19:35.907522Z 01E #                       causing invokevirtual ↔ invokeinterface bytecode
+2026-03-20T15:19:35.907523Z 01E #                       differences in classes.jar across machines.
+2026-03-20T15:19:35.907524Z 01E #   -buildid=          zeroes the Go build ID
+2026-03-20T15:19:35.907524Z 01E #   -trimpath          removes host filesystem paths from the binary
+2026-03-20T15:19:35.907525Z 01E #                      NOTE: passed directly to gomobile bind because
+2026-03-20T15:19:35.907526Z 01E #                      gomobile strips the parent process environment
+2026-03-20T15:19:35.907526Z 01E #                      (GOFLAGS, CGO_CFLAGS, GOCACHE, GOTOOLCHAIN, etc.)
+2026-03-20T15:19:35.907527Z 01E #                      when spawning `go build` subprocesses.  Only
+2026-03-20T15:19:35.907527Z 01E #                      gomobile's own CLI flags survive to the subprocess.
+2026-03-20T15:19:35.907528Z 01E #   -buildvcs=false    prevents embedding VCS info (commit hash, dirty flag)
+2026-03-20T15:19:35.907529Z 01E #   CGO_CFLAGS         strips absolute paths from C debug info
+2026-03-20T15:19:35.907529Z 01E #   -linkmode=external uses the NDK linker (required for 16kb page alignment)
+2026-03-20T15:19:35.907538Z 01E GOBIND_CACHE=$(mktemp -d) && \
+2026-03-20T15:19:35.907538Z 01E CANONICAL_SRC="/tmp/_mesh_build_src" && \
+2026-03-20T15:19:35.907539Z 01E ln -sfn "$(cd .. && pwd)" "$CANONICAL_SRC" && \
+2026-03-20T15:19:35.907539Z 01E trap "rm -rf $GOBIND_CACHE $CANONICAL_SRC" EXIT && \
+2026-03-20T15:19:35.907540Z 01E cd "$CANONICAL_SRC/android-client" && \
+2026-03-20T15:19:35.907540Z 01E CGO_CFLAGS="-ffile-prefix-map=$(pwd)=. -ffile-prefix-map=${HOME}=." \
+2026-03-20T15:19:35.907541Z 01E CGO_CXXFLAGS="-ffile-prefix-map=$(pwd)=. -ffile-prefix-map=${HOME}=." \
+2026-03-20T15:19:35.907542Z 01E GOCACHE="$GOBIND_CACHE" \
+2026-03-20T15:19:35.907542Z 01E GONOSUMCHECK=* \
+2026-03-20T15:19:35.907834Z 01E GONOSUMDB=* \
+2026-03-20T15:19:35.907835Z 01E GOFLAGS="-trimpath -buildvcs=false" \
+2026-03-20T15:19:35.907835Z 01E gomobile bind -trimpath -target android -androidapi 26 \
+2026-03-20T15:19:35.907836Z 01E 	-ldflags "-buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $(./version-ldflags.sh)" \
+2026-03-20T15:19:35.907836Z 01E 	-o /home/vagrant/build/com.barghest.mesh/android-client/android/libs/libtailscale_unstripped.aar ./libtailscale || { echo "gomobile bind failed"; exit 1; }
+2026-03-20T15:24:36.293269Z 01E Generated unstripped AAR: /home/vagrant/build/com.barghest.mesh/android-client/android/libs/libtailscale_unstripped.aar
+2026-03-20T15:24:36.293274Z 01E Repackaging AAR with stripped libgojni.so for all architectures...
+2026-03-20T15:24:36.293275Z 01E rm -rf temp_aar
+2026-03-20T15:24:36.293276Z 01E mkdir temp_aar
+2026-03-20T15:24:36.393024Z 01E unzip /home/vagrant/build/com.barghest.mesh/android-client/android/libs/libtailscale_unstripped.aar -d temp_aar
+2026-03-20T15:24:36.393030Z 01E Archive:  /home/vagrant/build/com.barghest.mesh/android-client/android/libs/libtailscale_unstripped.aar
+2026-03-20T15:24:36.393031Z 01E   inflating: temp_aar/AndroidManifest.xml  
+2026-03-20T15:24:36.393032Z 01E   inflating: temp_aar/proguard.txt   
+2026-03-20T15:24:36.393033Z 01E   inflating: temp_aar/classes.jar    
+2026-03-20T15:24:36.693634Z 01E   inflating: temp_aar/jni/armeabi-v7a/libgojni.so  
+2026-03-20T15:24:36.893880Z 01E   inflating: temp_aar/jni/arm64-v8a/libgojni.so  
+2026-03-20T15:24:37.094241Z 01E   inflating: temp_aar/jni/x86/libgojni.so  
+2026-03-20T15:24:37.394679Z 01E   inflating: temp_aar/jni/x86_64/libgojni.so  
+2026-03-20T15:24:37.394683Z 01E   inflating: temp_aar/R.txt          
+2026-03-20T15:24:37.394684Z 01E    creating: temp_aar/res/
+2026-03-20T15:24:37.394685Z 01E # Strip and normalize every architecture's libgojni.so for reproducibility.
+2026-03-20T15:24:37.394685Z 01E # Per arch:
+2026-03-20T15:24:37.394686Z 01E #   1. llvm-objcopy strips symbols/debug sections and removes Go metadata
+2026-03-20T15:24:37.394687Z 01E #      sections (.go.buildinfo, .go.module, .go.fipsinfo, .note.go.buildid).
+2026-03-20T15:24:37.394687Z 01E #   2. normalize-elf zeros remaining non-deterministic content in-place:
+2026-03-20T15:24:37.394688Z 01E #      Go build info strings in .rodata (contain local filesystem paths),
+2026-03-20T15:24:37.394689Z 01E #      .eh_frame/.eh_frame_hdr (differ by linker version), .relro_padding,
+2026-03-20T15:24:37.394689Z 01E #      and the ELF entry point.
+2026-03-20T15:24:37.394690Z 01E Stripping temp_aar/jni/arm64-v8a/libgojni.so
+2026-03-20T15:24:38.596195Z 01E Zeroing Go build info at offset 0x3127d0, length 5441 bytes (marker: "path\tgobind")
+2026-03-20T15:24:38.596205Z 01E Zeroing section .eh_frame at offset 0xa9d6a8, size 0x31cc (12748 bytes)
+2026-03-20T15:24:38.596206Z 01E Zeroing section .eh_frame_hdr at offset 0xa9ca24, size 0xc84 (3204 bytes)
+2026-03-20T15:24:38.596207Z 01E Zeroing entry point (was 0xaa4880)
+2026-03-20T15:24:38.696266Z 01E Done: temp_aar/jni/arm64-v8a/libgojni.so
+2026-03-20T15:24:38.696274Z 01E Stripping temp_aar/jni/armeabi-v7a/libgojni.so
+2026-03-20T15:24:38.796493Z 01E Zeroing Go build info at offset 0x147a00, length 5429 bytes (marker: "path\tgobind")
+2026-03-20T15:24:38.796502Z 01E Zeroing entry point (was 0x868910)
+2026-03-20T15:24:38.896665Z 01E Done: temp_aar/jni/armeabi-v7a/libgojni.so
+2026-03-20T15:24:38.896674Z 01E Stripping temp_aar/jni/x86/libgojni.so
+2026-03-20T15:24:38.996860Z 01E Zeroing Go build info at offset 0x148210, length 5433 bytes (marker: "path\tgobind")
+2026-03-20T15:24:38.996870Z 01E Section .eh_frame already zeroed (0x4 bytes)
+2026-03-20T15:24:38.996871Z 01E Zeroing section .eh_frame_hdr at offset 0x8adba0, size 0xc (12 bytes)
+2026-03-20T15:24:38.996872Z 01E Zeroing entry point (was 0x8b1bb0)
+2026-03-20T15:24:39.097244Z 01E Done: temp_aar/jni/x86/libgojni.so
+2026-03-20T15:24:39.097247Z 01E Stripping temp_aar/jni/x86_64/libgojni.so
+2026-03-20T15:24:39.197386Z 01E Zeroing Go build info at offset 0x315550, length 5433 bytes (marker: "path\tgobind")
+2026-03-20T15:24:39.197389Z 01E Zeroing section .eh_frame at offset 0xad81d0, size 0x31b4 (12724 bytes)
+2026-03-20T15:24:39.197390Z 01E Zeroing section .eh_frame_hdr at offset 0xad7554, size 0xc7c (3196 bytes)
+2026-03-20T15:24:39.197390Z 01E Zeroing entry point (was 0xadf3c0)
+2026-03-20T15:24:39.297730Z 01E Done: temp_aar/jni/x86_64/libgojni.so
+2026-03-20T15:24:39.297736Z 01E # Normalize timestamps and permissions inside classes.jar (nested zip)
+2026-03-20T15:24:39.297737Z 01E # for reproducibility.  The umask differs between build environments,
+2026-03-20T15:24:39.297738Z 01E # causing different Unix permission bits in the ZIP external attributes.
+2026-03-20T15:24:39.397927Z 01E   adding: META-INF/MANIFEST.MF (deflated 5%)
+2026-03-20T15:24:39.397931Z 01E   adding: go/Seq$GoObject.class (deflated 16%)
+2026-03-20T15:24:39.397932Z 01E   adding: go/Seq$GoRef.class (deflated 42%)
+2026-03-20T15:24:39.397933Z 01E   adding: go/Seq$GoRefQueue$1.class (deflated 35%)
+2026-03-20T15:24:39.397933Z 01E   adding: go/Seq$GoRefQueue.class (deflated 46%)
+2026-03-20T15:24:39.397934Z 01E   adding: go/Seq$Proxy.class (deflated 21%)
+2026-03-20T15:24:39.397935Z 01E   adding: go/Seq$Ref.class (deflated 38%)
+2026-03-20T15:24:39.397935Z 01E   adding: go/Seq$RefMap.class (deflated 38%)
+2026-03-20T15:24:39.397936Z 01E   adding: go/Seq$RefTracker.class (deflated 44%)
+2026-03-20T15:24:39.397936Z 01E   adding: go/Seq.class (deflated 47%)
+2026-03-20T15:24:39.397964Z 01E   adding: go/Universe$proxyerror.class (deflated 33%)
+2026-03-20T15:24:39.397965Z 01E   adding: go/Universe.class (deflated 32%)
+2026-03-20T15:24:39.397965Z 01E   adding: go/error.class (deflated 17%)
+2026-03-20T15:24:39.397966Z 01E   adding: libtailscale/App.class (deflated 46%)
+2026-03-20T15:24:39.397966Z 01E   adding: libtailscale/AppContext.class (deflated 56%)
+2026-03-20T15:24:39.397967Z 01E   adding: libtailscale/Application.class (deflated 49%)
+2026-03-20T15:24:39.397968Z 01E   adding: libtailscale/FilePart.class (deflated 44%)
+2026-03-20T15:24:39.397968Z 01E   adding: libtailscale/FileParts.class (deflated 23%)
+2026-03-20T15:24:39.397969Z 01E   adding: libtailscale/IPNService.class (deflated 27%)
+2026-03-20T15:24:39.397969Z 01E   adding: libtailscale/InputStream.class (deflated 23%)
+2026-03-20T15:24:39.397970Z 01E   adding: libtailscale/Libtailscale$proxyAppContext.class (deflated 52%)
+2026-03-20T15:24:39.397970Z 01E   adding: libtailscale/Libtailscale$proxyApplication.class (deflated 46%)
+2026-03-20T15:24:39.398122Z 01E   adding: libtailscale/Libtailscale$proxyFileParts.class (deflated 37%)
+2026-03-20T15:24:39.398123Z 01E   adding: libtailscale/Libtailscale$proxyIPNService.class (deflated 37%)
+2026-03-20T15:24:39.398123Z 01E   adding: libtailscale/Libtailscale$proxyInputStream.class (deflated 37%)
+2026-03-20T15:24:39.398124Z 01E   adding: libtailscale/Libtailscale$proxyLocalAPIResponse.class (deflated 38%)
+2026-03-20T15:24:39.398125Z 01E   adding: libtailscale/Libtailscale$proxyNotificationCallback.class (deflated 37%)
+2026-03-20T15:24:39.398125Z 01E   adding: libtailscale/Libtailscale$proxyNotificationManager.class (deflated 36%)
+2026-03-20T15:24:39.398126Z 01E   adding: libtailscale/Libtailscale$proxyOutputStream.class (deflated 36%)
+2026-03-20T15:24:39.398126Z 01E   adding: libtailscale/Libtailscale$proxyParcelFileDescriptor.class (deflated 37%)
+2026-03-20T15:24:39.398127Z 01E   adding: libtailscale/Libtailscale$proxyShareFileHelper.class (deflated 49%)
+2026-03-20T15:24:39.398128Z 01E   adding: libtailscale/Libtailscale$proxyVPNServiceBuilder.class (deflated 42%)
+2026-03-20T15:24:39.398128Z 01E   adding: libtailscale/Libtailscale.class (deflated 59%)
+2026-03-20T15:24:39.398129Z 01E   adding: libtailscale/LocalAPIResponse.class (deflated 26%)
+2026-03-20T15:24:39.398129Z 01E   adding: libtailscale/NotificationCallback.class (deflated 23%)
+2026-03-20T15:24:39.398130Z 01E   adding: libtailscale/NotificationManager.class (deflated 16%)
+2026-03-20T15:24:39.398131Z 01E   adding: libtailscale/OutputStream.class (deflated 23%)
+2026-03-20T15:24:39.398131Z 01E   adding: libtailscale/ParcelFileDescriptor.class (deflated 23%)
+2026-03-20T15:24:39.398132Z 01E   adding: libtailscale/Response.class (deflated 41%)
+2026-03-20T15:24:39.398132Z 01E   adding: libtailscale/ShareFileHelper.class (deflated 54%)
+2026-03-20T15:24:39.398133Z 01E   adding: libtailscale/VPNFacade.class (deflated 41%)
+2026-03-20T15:24:39.398243Z 01E   adding: libtailscale/VPNServiceBuilder.class (deflated 42%)
+2026-03-20T15:24:39.398250Z 01E   adding: libtailscale/VpnService.class (deflated 40%)
+2026-03-20T15:24:39.398250Z 01E # Normalize all file timestamps and permissions, then produce a
+2026-03-20T15:24:39.398251Z 01E # deterministic zip.
+2026-03-20T15:24:39.398252Z 01E find temp_aar -type d -exec chmod 0755 {} +
+2026-03-20T15:24:39.398252Z 01E find temp_aar -type f -exec chmod 0644 {} +
+2026-03-20T15:24:39.398253Z 01E find temp_aar -exec touch -d @${SOURCE_DATE_EPOCH:-0} {} +
+2026-03-20T15:24:39.398253Z 01E (cd temp_aar && find . -type f | LC_ALL=C sort | zip -X -@ ../android/libs/libtailscale.aar)
+2026-03-20T15:24:39.398254Z 01E   adding: AndroidManifest.xml (deflated 22%)
+2026-03-20T15:24:39.398255Z 01E   adding: R.txt (stored 0%)
+2026-03-20T15:24:39.398255Z 01E   adding: classes.jar (deflated 16%)
+2026-03-20T15:24:40.500020Z 01E   adding: jni/arm64-v8a/libgojni.so (deflated 65%)
+2026-03-20T15:24:41.801924Z 01E   adding: jni/armeabi-v7a/libgojni.so (deflated 62%)
+2026-03-20T15:24:43.003878Z 01E   adding: jni/x86/libgojni.so (deflated 60%)
+2026-03-20T15:24:44.205563Z 01E   adding: jni/x86_64/libgojni.so (deflated 65%)
+2026-03-20T15:24:44.205572Z 01E   adding: proguard.txt (deflated 27%)
+2026-03-20T15:24:44.205573Z 01E rm -rf temp_aar
+2026-03-20T15:24:44.205573Z 01E make: Leaving directory '/home/vagrant/build/com.barghest.mesh/android-client'
+2026-03-20T15:24:44.305912Z 01E 2026-03-20 15:24:44,305 INFO: Building Gradle project...
+2026-03-20T15:24:44.306083Z 01E 2026-03-20 15:24:44,305 DEBUG: Directory: build/com.barghest.mesh/android-client/android
+2026-03-20T15:24:44.306085Z 01E 2026-03-20 15:24:44,305 DEBUG: > /usr/local/bin/gradlew-fdroid assembleRelease
+2026-03-20T15:24:44.609276Z 01E CACHEDIR set to /home/vagrant/.cache/gradlew-fdroid
+2026-03-20T15:24:44.707912Z 01E Remote gradle-transparency-log not changed, reusing cache
+2026-03-20T15:24:44.707919Z 01E Update checksum from gradle-transparency-log
+2026-03-20T15:24:44.707920Z 01E Found 9.3.1 via distributionUrl
+2026-03-20T15:24:44.707921Z 01E Running /home/vagrant/.cache/gradlew-fdroid/versions/9.3.1/bin/gradle assembleRelease
+2026-03-20T15:24:45.508745Z 01E To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-03-20T15:24:46.710129Z 01E Daemon will be stopped at the end of the build 
+2026-03-20T15:24:53.023283Z 01E 
+2026-03-20T15:24:53.023287Z 01E > Configure project :
+2026-03-20T15:24:53.023288Z 01E WARNING: The option setting 'android.usesSdkInManifest.disallowed=false' is deprecated.
+2026-03-20T15:24:53.023288Z 01E The current default is 'true'.
+2026-03-20T15:24:53.023289Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:24:53.023290Z 01E WARNING: The option setting 'android.sdk.defaultTargetSdkToCompileSdkIfUnset=false' is deprecated.
+2026-03-20T15:24:53.023290Z 01E The current default is 'true'.
+2026-03-20T15:24:53.023291Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:24:53.023292Z 01E WARNING: The option setting 'android.enableAppCompileTimeRClass=false' is deprecated.
+2026-03-20T15:24:53.023292Z 01E The current default is 'true'.
+2026-03-20T15:24:53.023293Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:24:53.023293Z 01E WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+2026-03-20T15:24:53.023294Z 01E The current default is 'true'.
+2026-03-20T15:24:53.023294Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:24:53.023295Z 01E WARNING: The option setting 'android.newDsl=false' is deprecated.
+2026-03-20T15:24:53.023295Z 01E The current default is 'true'.
+2026-03-20T15:24:53.023296Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:24:53.023296Z 01E WARNING: The option setting 'android.r8.optimizedResourceShrinking=false' is deprecated.
+2026-03-20T15:24:53.023297Z 01E The current default is 'true'.
+2026-03-20T15:24:53.023297Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:24:53.023298Z 01E WARNING: The option setting 'android.defaults.buildfeatures.resvalues=true' is deprecated.
+2026-03-20T15:24:53.023299Z 01E The current default is 'false'.
+2026-03-20T15:24:53.023299Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:24:53.023300Z 01E WARNING: The option setting 'android.nonFinalResIds=false' is deprecated.
+2026-03-20T15:24:53.023305Z 01E The current default is 'true'.
+2026-03-20T15:24:53.023306Z 01E It will be removed in version 10.0 of the Android Gradle plugin.
+2026-03-20T15:24:54.925336Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:24:54.925346Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:24:54.925348Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:24:54.925349Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:24:54.925350Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:24:54.925351Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:24:54.925352Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:24:54.925353Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:24:55.025416Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:24:55.025425Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:24:55.025452Z 01E WARNING: The property android.dependency.excludeLibraryComponentsFromConstraints improves project import performance for very large projects. It should be enabled to improve performance.
+2026-03-20T15:24:55.025453Z 01E To suppress this warning, add android.generateSyncIssueWhenLibraryConstraintsAreEnabled=false to gradle.properties
+2026-03-20T15:24:58.634351Z 01E 
+2026-03-20T15:24:58.634416Z 01E > Task :preBuild UP-TO-DATE
+2026-03-20T15:24:58.634418Z 01E > Task :preReleaseBuild UP-TO-DATE
+2026-03-20T15:24:58.834534Z 01E > Task :mergeReleaseJniLibFolders
+2026-03-20T15:25:24.769914Z 01E > Task :mergeReleaseNativeLibs
+2026-03-20T15:25:24.769917Z 01E > Task :stripReleaseDebugSymbols SKIPPED
+2026-03-20T15:25:25.170199Z 01E 
+2026-03-20T15:25:25.170420Z 01E > Task :extractReleaseNativeSymbolTables
+2026-03-20T15:25:25.170421Z 01E [CXX5106] NDK was located by using ndk.dir property. This method is deprecated and will be removed in a future release. Please delete ndk.dir from local.properties and set android.ndkVersion to [23.2.8568313] in all native modules in the project. https://developer.android.com/r/studio-ui/ndk-dir
+2026-03-20T15:25:29.776170Z 01E 
+2026-03-20T15:25:29.776178Z 01E > Task :mergeReleaseNativeDebugMetadata
+2026-03-20T15:25:29.876278Z 01E > Task :buildKotlinToolingMetadata
+2026-03-20T15:25:31.778543Z 01E > Task :checkReleaseDuplicateClasses
+2026-03-20T15:25:31.778549Z 01E > Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-03-20T15:25:31.778550Z 01E > Task :generateReleaseBuildConfig
+2026-03-20T15:25:31.979213Z 01E > Task :checkReleaseAarMetadata
+2026-03-20T15:25:31.979221Z 01E > Task :generateReleaseResValues
+2026-03-20T15:25:32.078902Z 01E > Task :mapReleaseSourceSetPaths
+2026-03-20T15:25:32.279199Z 01E > Task :processReleaseNavigationResources
+2026-03-20T15:25:32.479631Z 01E > Task :compileReleaseNavigationResources
+2026-03-20T15:25:32.479642Z 01E > Task :generateReleaseResources
+2026-03-20T15:25:35.983451Z 01E > Task :mergeReleaseResources
+2026-03-20T15:25:35.983585Z 01E > Task :packageReleaseResources
+2026-03-20T15:25:36.584648Z 01E > Task :parseReleaseLocalResources
+2026-03-20T15:25:36.584654Z 01E > Task :createReleaseCompatibleScreenManifests
+2026-03-20T15:25:36.584655Z 01E > Task :extractDeepLinksRelease
+2026-03-20T15:25:37.085300Z 01E > Task :processReleaseMainManifest
+2026-03-20T15:25:37.285586Z 01E > Task :processReleaseManifest
+2026-03-20T15:25:37.285594Z 01E > Task :processReleaseManifestForPackage
+2026-03-20T15:25:39.287757Z 01E > Task :processReleaseResources
+2026-03-20T15:26:09.234950Z 01E > Task :compileReleaseKotlin
+2026-03-20T15:26:25.259309Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/util/ComposableStringFormatter.kt:20:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+2026-03-20T15:26:25.259314Z 01E - To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+2026-03-20T15:26:25.259314Z 01E - To keep applying to the value parameter only, use the '@param:' annotation target.
+2026-03-20T15:26:25.259315Z 01E 
+2026-03-20T15:26:25.259316Z 01E See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+2026-03-20T15:26:25.259316Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/util/Lists.kt:105:15 'fun ClickableText(text: AnnotatedString, modifier: Modifier = ..., style: TextStyle = ..., softWrap: Boolean = ..., overflow: TextOverflow = ..., maxLines: Int = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., onClick: (Int) -> Unit): Unit' is deprecated. Use Text or BasicText and pass an AnnotatedString that contains a LinkAnnotation.
+2026-03-20T15:26:25.259318Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/ADBSetup.kt:115:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-03-20T15:26:25.259319Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/ADBSetup.kt:121:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-03-20T15:26:25.259320Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/ADBSetup.kt:127:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-03-20T15:26:25.259321Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/ADBSetup.kt:133:13 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-03-20T15:26:25.259322Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/SearchView.kt:131:7 'fun SearchBar(query: String, onQueryChange: (String) -> Unit, onSearch: (String) -> Unit, active: Boolean, onActiveChange: (Boolean) -> Unit, modifier: Modifier = ..., enabled: Boolean = ..., placeholder: @Composable() ComposableFunction0<Unit>? = ..., leadingIcon: @Composable() ComposableFunction0<Unit>? = ..., trailingIcon: @Composable() ComposableFunction0<Unit>? = ..., shape: Shape = ..., colors: SearchBarColors = ..., tonalElevation: Dp = ..., shadowElevation: Dp = ..., windowInsets: WindowInsets = ..., interactionSource: MutableInteractionSource? = ..., content: @Composable() ComposableFunction1<ColumnScope, Unit>): Unit' is deprecated. Use overload which takes inputField as a parameter.
+2026-03-20T15:26:25.259325Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/SearchView.kt:155:51 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+2026-03-20T15:26:25.259326Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/SharedViews.kt:137:5 'fun LinearProgressIndicator(progress: Float, modifier: Modifier = ..., color: Color = ..., trackColor: Color = ..., strokeCap: StrokeCap = ...): Unit' is deprecated. Use the overload that takes `progress` as a lambda.
+2026-03-20T15:26:25.259328Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/TailnetLockSetupView.kt:109:5 'fun ClickableText(text: AnnotatedString, modifier: Modifier = ..., style: TextStyle = ..., softWrap: Boolean = ..., overflow: TextOverflow = ..., maxLines: Int = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., onClick: (Int) -> Unit): Unit' is deprecated. Use Text or BasicText and pass an AnnotatedString that contains a LinkAnnotation.
+2026-03-20T15:26:25.259360Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/view/UserSwitcherView.kt:158:3 'fun ClickableText(text: AnnotatedString, modifier: Modifier = ..., style: TextStyle = ..., softWrap: Boolean = ..., overflow: TextOverflow = ..., maxLines: Int = ..., onTextLayout: (TextLayoutResult) -> Unit = ..., onClick: (Int) -> Unit): Unit' is deprecated. Use Text or BasicText and pass an AnnotatedString that contains a LinkAnnotation.
+2026-03-20T15:26:25.259361Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/viewModel/DNSSettingsViewModel.kt:81:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+2026-03-20T15:26:25.259362Z 01E - To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+2026-03-20T15:26:25.259363Z 01E - To keep applying to the value parameter only, use the '@param:' annotation target.
+2026-03-20T15:26:25.259364Z 01E 
+2026-03-20T15:26:25.259364Z 01E See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+2026-03-20T15:26:25.259365Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/viewModel/DNSSettingsViewModel.kt:82:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+2026-03-20T15:26:25.259366Z 01E - To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+2026-03-20T15:26:25.259367Z 01E - To keep applying to the value parameter only, use the '@param:' annotation target.
+2026-03-20T15:26:25.259367Z 01E 
+2026-03-20T15:26:25.259368Z 01E See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+2026-03-20T15:26:25.259368Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/viewModel/TailnetLockSetupViewModel.kt:33:23 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+2026-03-20T15:26:25.259369Z 01E - To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+2026-03-20T15:26:25.259370Z 01E - To keep applying to the value parameter only, use the '@param:' annotation target.
+2026-03-20T15:26:25.259371Z 01E 
+2026-03-20T15:26:25.259371Z 01E See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+2026-03-20T15:26:25.259372Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/ui/viewModel/TailnetLockSetupViewModel.kt:33:50 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+2026-03-20T15:26:25.259373Z 01E - To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+2026-03-20T15:26:25.259374Z 01E - To keep applying to the value parameter only, use the '@param:' annotation target.
+2026-03-20T15:26:25.259374Z 01E 
+2026-03-20T15:26:25.259375Z 01E See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+2026-03-20T15:26:25.259375Z 01E w: file:///home/vagrant/build/com.barghest.mesh/android-client/android/src/main/java/com/barghest/mesh/util/ShareFileHelper.kt:134:9 Condition is always 'false'.
+2026-03-20T15:26:25.359411Z 01E 
+2026-03-20T15:26:25.359534Z 01E > Task :javaPreCompileRelease
+2026-03-20T15:26:37.673517Z 01E > Task :compileReleaseJavaWithJavac
+2026-03-20T15:26:37.673523Z 01E > Task :mergeReleaseArtProfile SKIPPED
+2026-03-20T15:26:37.673524Z 01E > Task :expandReleaseArtProfileWildcards SKIPPED
+2026-03-20T15:26:37.673525Z 01E > Task :extractProguardFiles
+2026-03-20T15:26:37.673525Z 01E > Task :mergeReleaseGeneratedProguardFiles
+2026-03-20T15:26:37.673526Z 01E > Task :processReleaseJavaRes
+2026-03-20T15:26:39.675565Z 01E > Task :mergeReleaseJavaResource
+2026-03-20T15:26:39.675605Z 01E > Task :mergeReleaseStartupProfile
+2026-03-20T15:27:09.616382Z 01E > Task :minifyReleaseWithR8
+2026-03-20T15:29:30.853621Z 01E > Task :compileReleaseArtProfile SKIPPED
+2026-03-20T15:29:30.853627Z 01E > Task :generateReleaseAssets UP-TO-DATE
+2026-03-20T15:29:31.654520Z 01E > Task :mergeReleaseAssets
+2026-03-20T15:29:31.654526Z 01E > Task :compressReleaseAssets
+2026-03-20T15:29:34.658049Z 01E > Task :generateReleaseLintVitalReportModel
+2026-03-20T15:30:04.700366Z 01E > Task :lintVitalAnalyzeRelease
+2026-03-20T15:30:17.916197Z 01E > Task :lintVitalReportRelease
+2026-03-20T15:30:17.916200Z 01E > Task :lintVitalRelease
+2026-03-20T15:30:18.216438Z 01E > Task :convertShrunkResourcesToBinaryRelease
+2026-03-20T15:30:18.416828Z 01E > Task :optimizeReleaseResources
+2026-03-20T15:30:18.617136Z 01E > Task :collectReleaseDependencies
+2026-03-20T15:30:18.817365Z 01E > Task :sdkReleaseDependencyData
+2026-03-20T15:30:18.817368Z 01E > Task :writeReleaseAppMetadata
+2026-03-20T15:30:18.817369Z 01E > Task :writeReleaseSigningConfigVersions
+2026-03-20T15:30:19.518257Z 01E > Task :packageRelease
+2026-03-20T15:30:19.518467Z 01E > Task :createReleaseApkListingFileRedirect
+2026-03-20T15:30:19.518634Z 01E > Task :assembleRelease
+2026-03-20T15:30:19.619313Z 01E 
+2026-03-20T15:30:19.619319Z 01E [Incubating] Problems report is available at: file:///home/vagrant/build/com.barghest.mesh/android-client/android/build/reports/problems/problems-report.html
+2026-03-20T15:30:19.619320Z 01E 
+2026-03-20T15:30:19.619321Z 01E Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+2026-03-20T15:30:19.619322Z 01E 
+2026-03-20T15:30:19.619322Z 01E You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+2026-03-20T15:30:19.619323Z 01E 
+2026-03-20T15:30:19.619324Z 01E For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+2026-03-20T15:30:19.619324Z 01E 
+2026-03-20T15:30:19.619325Z 01E BUILD SUCCESSFUL in 5m 34s
+2026-03-20T15:30:19.619325Z 01E 45 actionable tasks: 45 executed
+2026-03-20T15:30:19.619326Z 01E Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.1/userguide/configuration_cache_enabling.html
+2026-03-20T15:30:20.097433Z 01E 2026-03-20 15:30:20,096 DEBUG: Checking build/com.barghest.mesh/android-client/android/build/outputs/apk/release/android-release-unsigned.apk
+2026-03-20T15:30:20.101617Z 01E 2026-03-20 15:30:20,101 INFO: Successfully built com.barghest.mesh:359 from 6960e9a5be75722ff06f3851ed10fa4732744224
+2026-03-20T15:30:20.107276Z 01E 2026-03-20 15:30:20,106 INFO: Created directory for storing developer supplied reference binaries: 'tmp/binaries'
+2026-03-20T15:30:20.107277Z 01E 2026-03-20 15:30:20,106 INFO: ...retrieving https://github.com/BARGHEST-ngo/MESH/releases/download/v0.1.3-alpha/mesh-0.1.3-alpha.apk
+2026-03-20T15:30:20.108359Z 01E 2026-03-20 15:30:20,108 DEBUG: Starting new HTTPS connection (1): github.com:443
+2026-03-20T15:30:20.244424Z 01E 2026-03-20 15:30:20,244 DEBUG: https://github.com:443 "GET /BARGHEST-ngo/MESH/releases/download/v0.1.3-alpha/mesh-0.1.3-alpha.apk HTTP/1.1" 302 0
+2026-03-20T15:30:20.245990Z 01E 2026-03-20 15:30:20,245 DEBUG: Starting new HTTPS connection (1): release-assets.githubusercontent.com:443
+2026-03-20T15:30:20.426691Z 01E 2026-03-20 15:30:20,426 DEBUG: https://release-assets.githubusercontent.com:443 "GET /github-production-release-asset/1084202697/512b3d23-6942-4ed5-9566-3b8fd77f441c?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-03-20T16%3A22%3A54Z&rscd=attachment%3B+filename%3Dmesh-0.1.3-alpha.apk&rsct=application%2Fvnd.android.package-archive&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-03-20T15%3A22%3A49Z&ske=2026-03-20T16%3A22%3A54Z&sks=b&skv=2018-11-09&sig=fJusjuwS0wsTbtzVAJRSngSXjbFgub6csRuRV9vHWx4%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc3NDAyMDkyMCwibmJmIjoxNzc0MDIwNjIwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.-2M8svNHfCTBizwa9uFdilYEObA_tP2INxQIIeFAICk&response-content-disposition=attachment%3B%20filename%3Dmesh-0.1.3-alpha.apk&response-content-type=application%2Fvnd.android.package-archive HTTP/1.1" 200 4638002
+2026-03-20T15:30:20.917131Z 01E 2026-03-20 15:30:20,916 DEBUG: tmp/binaries/com.barghest.mesh_359.binary.apk: Verifies
+2026-03-20T15:30:20.917137Z 01E Verified using v1 scheme (JAR signing): false
+2026-03-20T15:30:20.917138Z 01E Verified using v2 scheme (APK Signature Scheme v2): true
+2026-03-20T15:30:20.917139Z 01E Verified using v3 scheme (APK Signature Scheme v3): true
+2026-03-20T15:30:20.917140Z 01E Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+2026-03-20T15:30:20.917168Z 01E Verified using v4 scheme (APK Signature Scheme v4): false
+2026-03-20T15:30:20.917169Z 01E Verified for SourceStamp: false
+2026-03-20T15:30:20.917169Z 01E Number of signers: 1
+2026-03-20T15:30:20.917170Z 01E 
+2026-03-20T15:30:21.227270Z 01E DOES NOT VERIFY
+2026-03-20T15:30:21.230728Z 01E ERROR: APK Signature Scheme v3 signer #1: APK integrity check failed. CHUNKED_SHA256 digest mismatch. Expected: <012f5250030292659cb4c6bb76ee193af39e5762ac60a4579822967a2548b83e>, actual: <65ef360fd8b8a27e45420945feaf30d54316badbd36a1cb91b80aa1a9ef09d1d>
+2026-03-20T15:30:21.239101Z 01E 2026-03-20 15:30:21,238 ERROR: 
+2026-03-20T15:30:21.239102Z 01E /tmp/tmp9ksa5iix/sigcp_com.barghest.mesh_359.apk: 
+2026-03-20T15:30:21.239103Z 01E 2026-03-20 15:30:21,238 INFO: ...NOT verified - /tmp/tmp9ksa5iix/sigcp_com.barghest.mesh_359.apk
+2026-03-20T15:30:21.466940Z 01E 2026-03-20 15:30:21,466 DEBUG: > diff -r /tmp/tmp9ksa5iix/tmp_binaries_com.barghest.mesh_359.binary /tmp/tmp9ksa5iix/_tmp_tmp9ksa5iix_sigcp_com.barghest.mesh_359
+2026-03-20T15:30:21.580800Z 01E 2026-03-20 15:30:21,580 WARNING: Keeping failed build "tmp/com.barghest.mesh_359.apk"
+2026-03-20T15:30:21.580806Z 01E 2026-03-20 15:30:21,580 DEBUG: removing tmp/binaries/com.barghest.mesh_359.binary.apk
+2026-03-20T15:30:21.623973Z 01E 2026-03-20 15:30:21,623 ERROR: Could not build app com.barghest.mesh: compared built binary to supplied reference binary but failed
+2026-03-20T15:30:21.623976Z 01E ==== detail begin ====
+2026-03-20T15:30:21.623976Z 01E verification of APK with copied signature failed
+2026-03-20T15:30:21.623977Z 01E Comparing reference APK to APK with copied signature...
+2026-03-20T15:30:21.623978Z 01E Unexpected diff output:
+2026-03-20T15:30:21.623978Z 01E ==== detail end ====
+2026-03-20T15:30:21.623979Z 01E 2026-03-20 15:30:21,623 DEBUG: Error encountered, stopping by user request.
+2026-03-20T15:30:22.659697Z 00O section_end:1774020622:step_script
+2026-03-20T15:30:22.659702Z 00O+[0Ksection_start:1774020622:upload_artifacts_on_failure
+2026-03-20T15:30:22.660443Z 00O+[0K[0K[36;1mUploading artifacts for failed job[0;m[0;m
+2026-03-20T15:30:23.697801Z 01O [32;1mUploading artifacts...[0;m
+2026-03-20T15:30:23.913813Z 01E repo/: found 3 matching artifact files and directories[0;m 
+2026-03-20T15:30:23.913818Z 01E unsigned/: found 1 matching artifact files and directories[0;m 
+2026-03-20T15:30:23.913829Z 01E tmp/: found 3 matching artifact files and directories[0;m 
+2026-03-20T15:30:26.673175Z 01E Uploading artifacts as "archive" to coordinator... 201 Created[0;m  correlation_id[0;m=c72a1d7943434c1f9f88fa94f951f864 id[0;m=13581557734 responseStatus[0;m=201 Created token[0;m=6d_c1BnJo
+2026-03-20T15:30:26.764923Z 01O [32;1mUploading artifacts...[0;m
+2026-03-20T15:30:26.885403Z 01E [0;33mWARNING: codequality.json: no matching files. Ensure that the artifact path is relative to the working directory (/builds/BARGHEST-ngo/fdroiddata)[0;m 
+2026-03-20T15:30:26.885406Z 01E [31;1mERROR: No files to upload                         [0;m 
+2026-03-20T15:30:27.086906Z 00O section_end:1774020627:upload_artifacts_on_failure
+2026-03-20T15:30:27.086910Z 00O+[0Ksection_start:1774020627:cleanup_file_variables
+2026-03-20T15:30:27.087006Z 00O+[0K[0K[36;1mCleaning up project directory and file based variables[0;m[0;m
+2026-03-20T15:30:27.688188Z 00O section_end:1774020627:cleanup_file_variables
+2026-03-20T15:30:27.688193Z 00O+[0K
+2026-03-20T15:30:32.830013Z 00O [31;1mERROR: Job failed: exit code 1[0;m
