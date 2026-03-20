@@ -144,12 +144,7 @@ release-apk: $(RELEASE_APK)
 $(RELEASE_APK): libtailscale gradle-dependencies
 	@echo "Building release APK (unsigned)"
 	(cd android && ./gradlew assembleRelease)
-	# Normalize ZIP alignment: AGP uses 0xd935 extra-field headers for
-	# alignment, but fdroidserver's post-build zipalign replaces them with
-	# traditional zero-byte padding.  Running zipalign here ensures the
-	# reference APK uploaded to GitHub has the same byte layout as what
-	# F-Droid produces, so the copied v2/v3 signature verifies.
-	zipalign -f -p 4 android/build/outputs/apk/release/android-release-unsigned.apk $@
+	install -C android/build/outputs/apk/release/android-release-unsigned.apk $@
 
 # Builds and signs the release APK (for GitHub releases / sideloading)
 RELEASE_APK_SIGNED := mesh-release.apk
@@ -157,14 +152,14 @@ RELEASE_APK_SIGNED := mesh-release.apk
 release-apk-signed: jarsign-env $(RELEASE_APK)
 	@echo "Signing release APK"
 	@cp $(RELEASE_APK) $(RELEASE_APK_SIGNED)
-	# Disable v1 (JAR) signing so apksigner inserts only the v2/v3 signing
-	# block without re-writing ZIP entries.  build-tools 35+ re-aligns the
-	# ZIP with 0xd935 extra-field headers when it touches entry layout
-	# (which v1 triggers by adding META-INF files).  Skipping v1 preserves
-	# the zero-byte alignment produced by zipalign above, matching what
-	# fdroidserver produces.  v1 is unnecessary: minSdk is 26 (v2 requires
-	# API 24+).
-	@apksigner sign --v1-signing-enabled false \
+	# --v1-signing-enabled false: v1 is unnecessary (minSdk=26, v2 needs
+	#   API 24+) and adding META-INF files would trigger ZIP re-writing.
+	# --alignment-preserved: build-tools 35+ apksigner forcibly converts
+	#   zero-byte alignment padding to 0xd935 extra-field headers by
+	#   default (fdroiddata#3299).  This flag preserves the existing
+	#   zero-byte padding produced by AGP, matching what fdroidserver's
+	#   build produces so apksigcopier verification passes.
+	@apksigner sign --v1-signing-enabled false --alignment-preserved \
 		--ks $(JKS_PATH) --ks-pass env:JKS_PASSWORD --ks-key-alias $(JKS_ALIAS) \
 		$(RELEASE_APK_SIGNED)
 	@echo "Signed APK: $(RELEASE_APK_SIGNED)"
