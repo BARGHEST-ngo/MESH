@@ -266,26 +266,18 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 	rm -rf temp_aar
 	mkdir temp_aar
 	unzip $(ABS_UNSTRIPPED_AAR) -d temp_aar
-	# Strip debug info and Go build metadata from every architecture's
-	# libgojni.so.  Steps per arch:
-	#   1. Zero Go build info in .rodata (contains local filesystem paths
-	#      from gomobile's replace directive).
-	#   2. Remove metadata sections that contain non-deterministic data:
-	#      - .go.buildinfo   (Go build info header)
-	#      - .go.module      (module metadata with pointers that shift)
-	#      - .go.fipsinfo    (FIPS integrity data, layout-dependent)
-	#      - .note.go.buildid (Go build ID note)
-	#   3. Strip all symbols and debug sections.
-	#   4. Zero linker/compiler-generated content that differs across
-	#      environments but is not needed at runtime.  These sections
-	#      reside inside LOAD segments, so --remove-section silently
-	#      fails to actually remove them.  normalize-elf zeros their
-	#      content in-place and zeroes the ELF entry point instead.
+	# Strip and normalize every architecture's libgojni.so for reproducibility.
+	# Per arch:
+	#   1. llvm-objcopy strips symbols/debug sections and removes Go metadata
+	#      sections (.go.buildinfo, .go.module, .go.fipsinfo, .note.go.buildid).
+	#   2. normalize-elf zeros remaining non-deterministic content in-place:
+	#      Go build info strings in .rodata (contain local filesystem paths),
+	#      .eh_frame/.eh_frame_hdr (differ by linker version), .relro_padding,
+	#      and the ELF entry point.
 	@for arch in $(AAR_ARCHS); do \
 		so_path="temp_aar/jni/$${arch}/libgojni.so"; \
 		if [ -f "$${so_path}" ]; then \
 			echo "Stripping $${so_path}"; \
-			go run ./cmd/zero-go-buildinfo "$${so_path}"; \
 			$(STRIP_TOOL) --strip-all \
 				--remove-section=.go.buildinfo \
 				--remove-section=.go.module \

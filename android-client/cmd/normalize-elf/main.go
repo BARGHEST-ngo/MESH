@@ -1,21 +1,27 @@
-// Command normalize-elf zeros non-deterministic sections in an ELF shared
-// library to achieve cross-platform reproducible builds.
+// Command normalize-elf normalizes an ELF shared library for reproducible
+// builds by zeroing non-deterministic content.
 //
-// The NDK linker produces subtly different output depending on the host
-// environment (Ubuntu vs Debian, different glibc versions, etc.).  The
-// affected sections (.eh_frame, .eh_frame_hdr, .relro_padding) reside
-// inside LOAD segments, so llvm-objcopy --remove-section silently fails
-// to remove them.  This tool instead zeros their content in-place,
-// preserving the binary layout while making the content deterministic.
+// It performs two categories of normalization:
 //
-// It also zeros the ELF entry point, which differs between environments
-// for shared libraries (some linkers set it to the .text start, others
-// set it to 0).
+//  1. Go build info: gomobile embeds a `replace` directive with the local
+//     filesystem path in the Go build info stored in .rodata. This path
+//     varies between build environments and breaks reproducible builds.
+//     The tool finds the serialised build info strings (starting with
+//     "path\tgobind" or "mod\tgobind") and overwrites them with null bytes.
+//
+//  2. Linker-generated sections: the NDK linker produces subtly different
+//     output depending on the host environment. The affected sections
+//     (.eh_frame, .eh_frame_hdr, .relro_padding) reside inside LOAD
+//     segments, so llvm-objcopy --remove-section silently fails to remove
+//     them. This tool zeros their content in-place, preserving the binary
+//     layout while making the content deterministic. It also zeros the ELF
+//     entry point, which differs between environments for shared libraries.
 //
 // Usage: go run ./cmd/normalize-elf <path-to-libgojni.so>
 package main
 
 import (
+	"bytes"
 	"debug/elf"
 	"encoding/binary"
 	"fmt"
@@ -26,9 +32,17 @@ import (
 // These sections differ across build environments but are not required
 // at runtime for a shared library on Android.
 var sectionsToZero = []string{
-	".eh_frame",     // DWARF call frame information — differs by compiler/linker
-	".eh_frame_hdr", // Index into .eh_frame
+	".eh_frame",      // DWARF call frame information — differs by compiler/linker
+	".eh_frame_hdr",  // Index into .eh_frame
 	".relro_padding", // RELRO alignment padding — presence varies by linker
+}
+
+// buildInfoMarkers are byte patterns that identify Go build info blocks
+// in .rodata. These contain replace directives with absolute filesystem
+// paths that differ between build environments.
+var buildInfoMarkers = [][]byte{
+	[]byte("path\tgobind"),
+	[]byte("mod\tgobind"),
 }
 
 func main() {
@@ -45,6 +59,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	modified := zeroBuildInfo(data)
+
 	f, err := elf.Open(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error parsing ELF %s: %v\n", path, err)
@@ -52,17 +68,72 @@ func main() {
 	}
 	defer f.Close()
 
+	modified = zeroSections(data, f) || modified
+	modified = zeroEntryPoint(data, f.Class) || modified
+
+	if !modified {
+		fmt.Fprintln(os.Stderr, "No modifications needed.")
+		return
+	}
+
+	if err := os.WriteFile(path, data, 0); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing %s: %v\n", path, err)
+		os.Exit(1)
+	}
+
+	fmt.Fprintf(os.Stderr, "Done: %s\n", path)
+}
+
+// zeroBuildInfo finds and zeros Go build info blocks in the raw binary data.
+// Returns true if any modifications were made.
+func zeroBuildInfo(data []byte) bool {
 	modified := false
 
-	// Zero the content of non-deterministic sections.
+	for _, marker := range buildInfoMarkers {
+		for {
+			idx := bytes.Index(data, marker)
+			if idx == -1 {
+				break
+			}
+
+			// Find the end of the build info block (terminated by \n\x00 or \x00).
+			end := bytes.Index(data[idx:], []byte("\n\x00"))
+			if end == -1 {
+				end = bytes.IndexByte(data[idx:], 0x00)
+				if end == -1 {
+					fmt.Fprintf(os.Stderr, "Could not find end of build info block at 0x%x.\n", idx)
+					os.Exit(1)
+				}
+				end += idx
+			} else {
+				end += idx
+			}
+			end++ // include the newline
+
+			length := end - idx
+			fmt.Fprintf(os.Stderr, "Zeroing Go build info at offset 0x%x, length %d bytes (marker: %q)\n", idx, length, marker)
+
+			for i := idx; i < end; i++ {
+				data[i] = 0
+			}
+			modified = true
+		}
+	}
+
+	return modified
+}
+
+// zeroSections zeros the content of non-deterministic ELF sections.
+// Returns true if any modifications were made.
+func zeroSections(data []byte, f *elf.File) bool {
+	modified := false
+
 	for _, name := range sectionsToZero {
 		sec := f.Section(name)
 		if sec == nil {
 			continue
 		}
 
-		// SHT_NOBITS sections (like .relro_padding when it has no file
-		// content) have Size > 0 but occupy no space in the file.
 		if sec.Type == elf.SHT_NOBITS {
 			fmt.Fprintf(os.Stderr, "Skipping %s (NOBITS, no file content)\n", name)
 			continue
@@ -76,7 +147,6 @@ func main() {
 			continue
 		}
 
-		// Check if already zeroed.
 		allZero := true
 		for i := uint64(0); i < size; i++ {
 			if data[offset+i] != 0 {
@@ -97,28 +167,12 @@ func main() {
 		modified = true
 	}
 
-	// Zero the ELF entry point.
-	// Shared libraries don't need an entry point, but some linkers set it
-	// to the start of .text while others set it to 0.
-	modified = zeroEntryPoint(data, f.Class) || modified
-
-	if !modified {
-		fmt.Fprintln(os.Stderr, "No modifications needed.")
-		return
-	}
-
-	if err := os.WriteFile(path, data, 0); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing %s: %v\n", path, err)
-		os.Exit(1)
-	}
-
-	fmt.Fprintf(os.Stderr, "Done: %s\n", path)
+	return modified
 }
 
 // zeroEntryPoint zeros the e_entry field in the ELF header.
 // Returns true if the field was modified.
 func zeroEntryPoint(data []byte, class elf.Class) bool {
-	// The e_entry field is at offset 0x18 in both ELF32 and ELF64 headers.
 	const entryOffset = 0x18
 
 	switch class {
