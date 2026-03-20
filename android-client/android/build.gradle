@@ -118,7 +118,7 @@ android {
 // that have already been normalized by the Makefile. The doNotStrip directive
 // above only applies at the packaging stage; this covers the build stage.
 tasks.whenTaskAdded { task ->
-    if (task.name.contains("ArtProfile") || task.name.contains("StripDebugSymbols")) {
+    if (task.name.contains("ArtProfile") || task.name.contains("DebugSymbols")) {
         task.enabled = false
     }
 }
