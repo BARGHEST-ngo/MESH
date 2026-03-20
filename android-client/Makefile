@@ -144,7 +144,12 @@ release-apk: $(RELEASE_APK)
 $(RELEASE_APK): libtailscale gradle-dependencies
 	@echo "Building release APK (unsigned)"
 	(cd android && ./gradlew assembleRelease)
-	install -C android/build/outputs/apk/release/android-release-unsigned.apk $@
+	# Normalize ZIP alignment: AGP uses 0xd935 extra-field headers for
+	# alignment, but fdroidserver's post-build zipalign replaces them with
+	# traditional zero-byte padding.  Running zipalign here ensures the
+	# reference APK uploaded to GitHub has the same byte layout as what
+	# F-Droid produces, so the copied v2/v3 signature verifies.
+	zipalign -f -p 4 android/build/outputs/apk/release/android-release-unsigned.apk $@
 
 # Builds and signs the release APK (for GitHub releases / sideloading)
 RELEASE_APK_SIGNED := mesh-release.apk
