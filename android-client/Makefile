@@ -231,6 +231,12 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	#   -buildvcs=false    prevents embedding VCS info (commit hash, dirty flag)
 	#   CGO_CFLAGS         strips absolute paths from C debug info
 	#   -linkmode=external uses the NDK linker (required for 16kb page alignment)
+	#   -s -w              omit symbol table and DWARF at build time so that
+	#                      external strip tools (llvm-strip, llvm-objcopy) have
+	#                      nothing to remove and cannot re-layout the ELF.
+	#                      Go binaries MUST be stripped this way: external tools
+	#                      rewrite LOAD segments, shifting code addresses without
+	#                      updating Go's .gopclntab PC tables → runtime crash.
 	GOBIND_CACHE=$$(mktemp -d) && \
 	CANONICAL_SRC="/tmp/_mesh_build_src" && \
 	ln -sfn "$$(cd .. && pwd)" "$$CANONICAL_SRC" && \
@@ -243,7 +249,7 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	GONOSUMDB=* \
 	GOFLAGS="$(GOFLAGS) -buildvcs=false" \
 	gomobile bind -trimpath -target android -androidapi 26 \
-		-ldflags "-buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
+		-ldflags "-s -w -buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
 		-o $(ABS_UNSTRIPPED_AAR) ./libtailscale || { echo "gomobile bind failed"; exit 1; }
 	@if [ ! -f $(ABS_UNSTRIPPED_AAR) ]; then \
 	    echo "Error: $(ABS_UNSTRIPPED_AAR) was not created"; exit 1; \
@@ -283,8 +289,15 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 	unzip $(ABS_UNSTRIPPED_AAR) -d temp_aar
 	# Strip and normalize every architecture's libgojni.so for reproducibility.
 	# Per arch:
-	#   1. llvm-objcopy strips symbols/debug sections and removes Go metadata
-	#      sections (.go.buildinfo, .go.module, .go.fipsinfo, .note.go.buildid).
+	#   1. llvm-objcopy --strip-debug removes DWARF and debug sections.
+	#      IMPORTANT: do NOT use --strip-all — it re-lays out LOAD segments,
+	#      shifting code addresses without updating Go's .gopclntab PC tables,
+	#      causing a fatal stack overflow at runtime.  --strip-debug only
+	#      removes non-ALLOC debug sections and preserves the loaded binary
+	#      layout.  The --remove-section flags target Go metadata sections
+	#      that reside inside LOAD segments; llvm-objcopy silently skips
+	#      them (cannot remove from a LOAD segment), and normalize-elf then
+	#      zeros their content in-place instead.
 	#   2. normalize-elf zeros remaining non-deterministic content in-place:
 	#      Go build info strings in .rodata (contain local filesystem paths),
 	#      .eh_frame/.eh_frame_hdr (differ by linker version), .relro_padding,
@@ -293,7 +306,7 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 		so_path="temp_aar/jni/$${arch}/libgojni.so"; \
 		if [ -f "$${so_path}" ]; then \
 			echo "Stripping $${so_path}"; \
-			$(STRIP_TOOL) --strip-all \
+			$(STRIP_TOOL) --strip-debug \
 				--remove-section=.go.buildinfo \
 				--remove-section=.go.module \
 				--remove-section=.go.fipsinfo \
