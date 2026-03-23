@@ -114,11 +114,8 @@ android {
 // Disable baseline profile / art profile tasks to ensure reproducibility.
 // These tasks produce non-deterministic output that depends on CPU core count
 // and dex checksums. See https://f-droid.org/docs/Reproducible_Builds/
-// Also disable StripDebugSymbols to prevent AGP from re-stripping .so files
-// that have already been normalized by the Makefile. The doNotStrip directive
-// above only applies at the packaging stage; this covers the build stage.
 tasks.whenTaskAdded { task ->
-    if (task.name.contains("ArtProfile") || task.name.contains("DebugSymbols")) {
+    if (task.name.contains("ArtProfile")) {
         task.enabled = false
     }
 }
