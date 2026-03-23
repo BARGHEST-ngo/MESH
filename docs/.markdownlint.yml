@@ -18,5 +18,8 @@ MD040: false
 # MD046/code-block-style
 MD046: false
 
+# MD059/descriptive-link-text
+MD059: false
+
 # MD060/table-column-style
 MD060: false
