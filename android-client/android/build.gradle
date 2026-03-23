@@ -105,9 +105,17 @@ android {
         warningsAsErrors = true
     }
 
-    // Reproducibility: see https://f-droid.org/docs/Reproducible_Builds/#native-library-stripping
-    packagingOptions {
-        doNotStrip '**/*.so'
+    // Reproducibility: prevent AGP from stripping native libraries.
+    // Go shared libraries contain runtime-critical sections (.gopclntab,
+    // .noptrdata, etc.) that llvm-strip corrupts by re-laying out the
+    // ELF, shifting code addresses without updating Go's internal PC
+    // tables. The Makefile already strips and normalizes .so files for
+    // reproducibility; AGP must not re-process them.
+    // See https://f-droid.org/docs/Reproducible_Builds/#native-library-stripping
+    packaging {
+        jniLibs {
+            keepDebugSymbols += ['**/*.so']
+        }
     }
 }
 
