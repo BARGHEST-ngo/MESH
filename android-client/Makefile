@@ -88,9 +88,6 @@ else ifeq ($(HOST_OS),darwin)
     STRIP_TOOL := $(NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy
 endif
 
-$(info Using ANDROID_HOME: $(ANDROID_HOME))
-$(info Using NDK_ROOT: $(NDK_ROOT))
-$(info Using STRIP_TOOL: $(STRIP_TOOL))
 
 # Attempt to find Android Studio for Linux configuration, which does not have a
 # predetermined location.
@@ -126,11 +123,6 @@ export GOROOT := # Unset
 # ------------------------------------------------------------------------------
 # Android Build Targets
 # ------------------------------------------------------------------------------
-
-.PHONY: debug-unstripped
-debug-unstripped: build-unstripped-aar
-	@echo "Listing contents of $(ABS_UNSTRIPPED_AAR):"
-	unzip -l $(ABS_UNSTRIPPED_AAR)
 
 .PHONY: apk
 apk: $(DEBUG_APK)

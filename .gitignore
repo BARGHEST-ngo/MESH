@@ -65,3 +65,6 @@ site/
 
 # F-Droid
 /fdroid
+
+# Log files
+*.log
