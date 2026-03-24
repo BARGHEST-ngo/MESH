@@ -7,15 +7,22 @@
 //     filesystem path in the Go build info stored in .rodata. This path
 //     varies between build environments and breaks reproducible builds.
 //     The tool finds the serialised build info strings (starting with
-//     "path\tgobind" or "mod\tgobind") and overwrites them with null bytes.
+//     "path\tgobind" or "mod\tgobind") within the .rodata section and
+//     overwrites them with null bytes.  The search is constrained to
+//     .rodata to avoid corrupting other sections (e.g. .gopclntab, .text)
+//     that could coincidentally contain the same byte pattern.
 //
 //  2. Linker-generated sections: the NDK linker produces subtly different
-//     output depending on the host environment. The affected sections
-//     (.eh_frame, .eh_frame_hdr, .relro_padding) reside inside LOAD
-//     segments, so llvm-objcopy --remove-section silently fails to remove
-//     them. This tool zeros their content in-place, preserving the binary
-//     layout while making the content deterministic. It also zeros the ELF
-//     entry point, which differs between environments for shared libraries.
+//     .relro_padding depending on the host environment.  This section
+//     resides inside a LOAD segment, so llvm-objcopy --remove-section
+//     cannot safely remove it (doing so re-lays out the LOAD segment and
+//     corrupts Go's .gopclntab PC tables).  This tool zeros its content
+//     in-place, preserving the binary layout.
+//
+//  3. ELF entry point: shared libraries have a non-deterministic e_entry
+//     value that differs between environments.  Since the dynamic linker
+//     uses DT_INIT/DT_INIT_ARRAY (not e_entry) for shared libraries,
+//     zeroing it is safe.
 //
 // Usage: go run ./cmd/normalize-elf <path-to-libgojni.so>
 package main
@@ -31,9 +38,11 @@ import (
 // sectionsToZero lists ELF sections whose content should be zeroed.
 // These sections differ across build environments but are not required
 // at runtime for a shared library on Android.
+//
+// NOTE: .eh_frame and .eh_frame_hdr are intentionally excluded.
+// They reside in LOAD segments and are processed by the Android dynamic
+// linker at load time.  Zeroing them causes Go runtime stack overflows.
 var sectionsToZero = []string{
-	".eh_frame",      // DWARF call frame information — differs by compiler/linker
-	".eh_frame_hdr",  // Index into .eh_frame
 	".relro_padding", // RELRO alignment padding — presence varies by linker
 }
 
@@ -59,8 +68,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	modified := zeroBuildInfo(data)
-
 	f, err := elf.Open(path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error parsing ELF %s: %v\n", path, err)
@@ -68,6 +75,7 @@ func main() {
 	}
 	defer f.Close()
 
+	modified := zeroBuildInfo(data, f)
 	modified = zeroSections(data, f) || modified
 	modified = zeroEntryPoint(data, f.Class) || modified
 
@@ -84,39 +92,59 @@ func main() {
 	fmt.Fprintf(os.Stderr, "Done: %s\n", path)
 }
 
-// zeroBuildInfo finds and zeros Go build info blocks in the raw binary data.
+// zeroBuildInfo finds and zeros Go build info blocks within the .rodata
+// section of the binary.  The search is restricted to .rodata to prevent
+// accidental corruption of other sections (.gopclntab, .text, etc.) that
+// could contain the same byte pattern.
 // Returns true if any modifications were made.
-func zeroBuildInfo(data []byte) bool {
+func zeroBuildInfo(data []byte, f *elf.File) bool {
+	rodata := f.Section(".rodata")
+	if rodata == nil {
+		fmt.Fprintln(os.Stderr, "No .rodata section found — skipping build info zeroing")
+		return false
+	}
+
+	start := rodata.Offset
+	end := rodata.Offset + rodata.FileSize
+	if end > uint64(len(data)) {
+		fmt.Fprintf(os.Stderr, "Warning: .rodata extends beyond file — clamping\n")
+		end = uint64(len(data))
+	}
+
 	modified := false
 
 	for _, marker := range buildInfoMarkers {
+		searchFrom := start
 		for {
-			idx := bytes.Index(data, marker)
+			region := data[searchFrom:end]
+			idx := bytes.Index(region, marker)
 			if idx == -1 {
 				break
 			}
 
+			absIdx := searchFrom + uint64(idx)
+
 			// Find the end of the build info block (terminated by \n\x00 or \x00).
-			end := bytes.Index(data[idx:], []byte("\n\x00"))
-			if end == -1 {
-				end = bytes.IndexByte(data[idx:], 0x00)
-				if end == -1 {
-					fmt.Fprintf(os.Stderr, "Could not find end of build info block at 0x%x.\n", idx)
-					os.Exit(1)
+			blockData := data[absIdx:end]
+			blockEnd := bytes.Index(blockData, []byte("\n\x00"))
+			if blockEnd == -1 {
+				blockEnd = bytes.IndexByte(blockData, 0x00)
+				if blockEnd == -1 {
+					fmt.Fprintf(os.Stderr, "Could not find end of build info block at 0x%x — skipping\n", absIdx)
+					searchFrom = absIdx + uint64(len(marker))
+					continue
 				}
-				end += idx
-			} else {
-				end += idx
 			}
-			end++ // include the newline
+			blockEnd++ // include the terminator byte
 
-			length := end - idx
-			fmt.Fprintf(os.Stderr, "Zeroing Go build info at offset 0x%x, length %d bytes (marker: %q)\n", idx, length, marker)
+			length := blockEnd
+			fmt.Fprintf(os.Stderr, "Zeroing Go build info at offset 0x%x, length %d bytes (marker: %q)\n", absIdx, length, marker)
 
-			for i := idx; i < end; i++ {
-				data[i] = 0
+			for i := 0; i < blockEnd; i++ {
+				data[absIdx+uint64(i)] = 0
 			}
 			modified = true
+			searchFrom = absIdx + uint64(blockEnd)
 		}
 	}
 

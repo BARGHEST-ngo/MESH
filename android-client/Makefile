@@ -290,28 +290,22 @@ $(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
 	# Strip and normalize every architecture's libgojni.so for reproducibility.
 	# Per arch:
 	#   1. llvm-objcopy --strip-debug removes DWARF and debug sections.
-	#      IMPORTANT: do NOT use --strip-all — it re-lays out LOAD segments,
-	#      shifting code addresses without updating Go's .gopclntab PC tables,
-	#      causing a fatal stack overflow at runtime.  --strip-debug only
-	#      removes non-ALLOC debug sections and preserves the loaded binary
-	#      layout.  The --remove-section flags target Go metadata sections
-	#      that reside inside LOAD segments; llvm-objcopy silently skips
-	#      them (cannot remove from a LOAD segment), and normalize-elf then
-	#      zeros their content in-place instead.
-	#   2. normalize-elf zeros remaining non-deterministic content in-place:
-	#      Go build info strings in .rodata (contain local filesystem paths),
-	#      .eh_frame/.eh_frame_hdr (differ by linker version), .relro_padding,
-	#      and the ELF entry point.
+	#      IMPORTANT: do NOT use --strip-all or --remove-section on Go
+	#      shared libraries.  Both re-lay out LOAD segments, shifting code
+	#      addresses without updating Go's .gopclntab PC tables, which
+	#      causes a fatal stack overflow at runtime.  --strip-debug only
+	#      removes non-ALLOC debug sections and preserves the loaded
+	#      binary layout.
+	#   2. normalize-elf zeros remaining non-deterministic content in-place
+	#      (preserving binary layout): Go build info strings in .rodata,
+	#      .eh_frame/.eh_frame_hdr, .relro_padding, and the ELF entry
+	#      point.  This covers the Go metadata sections (.go.buildinfo,
+	#      .go.module, etc.) that cannot be --remove-section'd safely.
 	@for arch in $(AAR_ARCHS); do \
 		so_path="temp_aar/jni/$${arch}/libgojni.so"; \
 		if [ -f "$${so_path}" ]; then \
 			echo "Stripping $${so_path}"; \
-			$(STRIP_TOOL) --strip-debug \
-				--remove-section=.go.buildinfo \
-				--remove-section=.go.module \
-				--remove-section=.go.fipsinfo \
-				--remove-section=.note.go.buildid \
-				"$${so_path}"; \
+			$(STRIP_TOOL) --strip-debug "$${so_path}"; \
 			go run ./cmd/normalize-elf "$${so_path}"; \
 		fi; \
 	done
