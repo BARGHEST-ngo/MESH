@@ -62,3 +62,9 @@ client/web/build/assets
 
 # MkDocs build output
 site/
+
+# F-Droid
+/fdroid
+
+# Log files
+*.log
