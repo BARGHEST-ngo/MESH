@@ -58,10 +58,6 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         buildConfig = true
         compose = true
@@ -90,6 +86,9 @@ android {
             proguardFiles getDefaultProguardFile(
                     'proguard-android-optimize.txt'),
                     'proguard-rules.pro'
+
+            // Disable VCS info to avoid embedding build paths
+            vcsInfo.include false
         }
         release_tv {
             initWith release
@@ -100,6 +99,28 @@ android {
     testBuildType = "applicationTest"
     lint {
         warningsAsErrors = true
+    }
+
+    // Reproducibility: prevent AGP from stripping native libraries.
+    // Go shared libraries contain runtime-critical sections (.gopclntab,
+    // .noptrdata, etc.) that llvm-strip corrupts by re-laying out the
+    // ELF, shifting code addresses without updating Go's internal PC
+    // tables. The Makefile already strips and normalizes .so files for
+    // reproducibility; AGP must not re-process them.
+    // See https://f-droid.org/docs/Reproducible_Builds/#native-library-stripping
+    packaging {
+        jniLibs {
+            keepDebugSymbols += ['**/*.so']
+        }
+    }
+}
+
+// Disable baseline profile / art profile tasks to ensure reproducibility.
+// These tasks produce non-deterministic output that depends on CPU core count
+// and dex checksums. See https://f-droid.org/docs/Reproducible_Builds/
+tasks.whenTaskAdded { task ->
+    if (task.name.contains("ArtProfile")) {
+        task.enabled = false
     }
 }
 
