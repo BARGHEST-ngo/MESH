@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
+	"golang.org/x/mod/semver"
 )
 
 func main() {
@@ -64,11 +65,15 @@ func main() {
 	if tailscaleVersion == "" {
 		log.Fatalf("tailscale.com not found in go.mod")
 	}
+	if !semver.IsValid(tailscaleVersion) {
+		log.Fatalf("invalid tailscale.com version in go.mod: %q", tailscaleVersion)
+	}
 	log.Printf("Found tailscale.com version %q in go.mod", tailscaleVersion)
 
 	// Download the module and get the path to its verified zip file.
 	// go mod verify checksums the zip (not the extracted cache directory),
 	// so extracting directly from the zip avoids trusting the cache.
+	//nolint:gosec // G204 -- tailscaleVersion is validated as semver above
 	output, err = exec.Command("go", "mod", "download", "-json", "tailscale.com@"+tailscaleVersion).CombinedOutput()
 	if err != nil {
 		log.Fatalf("failed to download tailscale.com module: %v\nOutput: %s", err, output)
@@ -172,6 +177,7 @@ func main() {
 
 	log.Println("Replacing upstream Tailscale DNS fallback servers with empty set...")
 	dnsFallbackPath := filepath.Join(tailscaleDir, "net", "dnsfallback", "dns-fallback-servers.json")
+	//nolint:gosec // G306 -- generated source file in build dir, must be readable by build tools
 	if err := os.WriteFile(dnsFallbackPath, []byte(`{"Regions": {}}`+"\n"), 0644); err != nil {
 		log.Fatalf("failed to write dns-fallback-servers.json: %v", err)
 	}
@@ -204,6 +210,7 @@ func main() {
 			return fmt.Errorf("parsing %s: %w", path, err)
 		}
 		if !bytes.Equal(replaced, content) {
+			//nolint:gosec // G306 -- patched source file in build dir, must be readable by build tools
 			if err := os.WriteFile(path, replaced, 0644); err != nil {
 				return fmt.Errorf("writing %s: %w", path, err)
 			}
@@ -345,8 +352,16 @@ func extractZipFile(f *zip.File, destPath string) error {
 	}
 	defer outFile.Close()
 
-	if _, err := io.Copy(outFile, rc); err != nil {
+	// Bound the read to defend against decompression bombs (gosec G110).
+	// 100 MiB is well above the largest file in the tailscale module zip
+	// (~500 KiB) but small enough to catch a malicious payload.
+	const maxFileSize = 100 << 20
+	n, err := io.CopyN(outFile, rc, maxFileSize+1)
+	if err != nil && err != io.EOF {
 		return fmt.Errorf("writing %s: %w", destPath, err)
+	}
+	if n > maxFileSize {
+		return fmt.Errorf("zip entry %s exceeds maximum size of %d bytes", f.Name, maxFileSize)
 	}
 
 	return nil

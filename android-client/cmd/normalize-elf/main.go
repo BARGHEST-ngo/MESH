@@ -33,6 +33,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // sectionsToZero lists ELF sections whose content should be zeroed.
@@ -60,7 +61,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	path := os.Args[1]
+	path := filepath.Clean(os.Args[1])
 
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -118,7 +119,7 @@ func zeroBuildInfo(data []byte, f *elf.File) bool {
 		for {
 			region := data[searchFrom:end]
 			idx := bytes.Index(region, marker)
-			if idx == -1 {
+			if idx < 0 {
 				break
 			}
 
@@ -127,24 +128,27 @@ func zeroBuildInfo(data []byte, f *elf.File) bool {
 			// Find the end of the build info block (terminated by \n\x00 or \x00).
 			blockData := data[absIdx:end]
 			blockEnd := bytes.Index(blockData, []byte("\n\x00"))
-			if blockEnd == -1 {
+			if blockEnd < 0 {
 				blockEnd = bytes.IndexByte(blockData, 0x00)
-				if blockEnd == -1 {
+				if blockEnd < 0 {
 					fmt.Fprintf(os.Stderr, "Could not find end of build info block at 0x%x — skipping\n", absIdx)
 					searchFrom = absIdx + uint64(len(marker))
 					continue
 				}
 			}
 			blockEnd++ // include the terminator byte
+			if blockEnd < 0 {
+				continue
+			}
+			blockSize := uint64(blockEnd)
 
-			length := blockEnd
-			fmt.Fprintf(os.Stderr, "Zeroing Go build info at offset 0x%x, length %d bytes (marker: %q)\n", absIdx, length, marker)
+			fmt.Fprintf(os.Stderr, "Zeroing Go build info at offset 0x%x, length %d bytes (marker: %q)\n", absIdx, blockSize, marker)
 
-			for i := 0; i < blockEnd; i++ {
-				data[absIdx+uint64(i)] = 0
+			for i := uint64(0); i < blockSize; i++ {
+				data[absIdx+i] = 0
 			}
 			modified = true
-			searchFrom = absIdx + uint64(blockEnd)
+			searchFrom = absIdx + blockSize
 		}
 	}
 
