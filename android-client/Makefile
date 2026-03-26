@@ -11,13 +11,28 @@
 ## For signed release build JKS_PASSWORD must be set to the password for the jks keystore
 ## and JKS_PATH must be set to the path to the jks keystore.
 
+# Reproducibility: default SOURCE_DATE_EPOCH to the last git commit timestamp.
+# CI or F-Droid may override this via the environment.
+export SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
+
+# Reproducibility: always pass -trimpath to Go to strip filesystem paths.
+export GOFLAGS := $(strip $(GOFLAGS) -trimpath)
+
+# Reproducibility: pin the exact Go toolchain version from go.mod so that
+# machines with a newer patch release (e.g. go1.26.1 vs go1.26.0) still
+# produce identical binaries.  GOTOOLCHAIN=<ver> forces the Go command to
+# download and use exactly that version instead of the locally installed one.
+export GOTOOLCHAIN := $(shell grep '^toolchain ' ../go.mod | awk '{print $$2}')
+
 DEBUG_APK := mesh-debug.apk
 RELEASE_AAB := mesh-release.aab
 
 # Define output filenames.
 LIBTAILSCALE_AAR := android/libs/libtailscale.aar
 UNSTRIPPED_AAR := android/libs/libtailscale_unstripped.aar
-ARM64_SO_PATH := jni/arm64-v8a/libgojni.so
+
+# All architecture variants of libgojni.so inside the AAR.
+AAR_ARCHS := arm64-v8a armeabi-v7a x86 x86_64
 
 # Compute an absolute path for the unstripped AAR.
 ABS_UNSTRIPPED_AAR := $(shell pwd)/$(UNSTRIPPED_AAR)
@@ -44,12 +59,27 @@ ifeq ($(ANDROID_SDK_ROOT),)
         export ANDROID_SDK_ROOT := $(HOME)/AppData/Local/Android/sdk
     else
         export ANDROID_SDK_ROOT := $(PWD)/android-sdk
-    endif
+endif
 endif
 export ANDROID_HOME ?= $(ANDROID_SDK_ROOT)
 
-# Auto-select an NDK from ANDROID_HOME (choose highest version available)
-NDK_ROOT ?= $(shell ls -1d $(ANDROID_HOME)/ndk/* 2>/dev/null | sort -V | tail -n 1)
+# Use the exact NDK version specified in android/build.gradle.
+NDK_VERSION := $(shell grep 'ndkVersion' android/build.gradle | awk -F'"' '{print $$2}')
+NDK_ROOT := $(ANDROID_HOME)/ndk/$(NDK_VERSION)
+# Only enforce NDK presence for build targets; allow utility/bootstrap
+# targets (androidsdk, help, clean, etc.) to run without it.
+ifeq ($(filter androidsdk checkandroidsdk help env androidpath clean,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),)
+ifeq ($(wildcard $(NDK_ROOT)),)
+$(error NDK version $(NDK_VERSION) is not installed at $(NDK_ROOT). Run 'make androidsdk' to install it)
+endif
+endif
+endif
+
+# Reproducibility: force gomobile to use the exact NDK version we specify.
+# Without this, gomobile scans $ANDROID_HOME/ndk/ and picks the *highest*
+# version it finds, which may differ between build environments.
+export ANDROID_NDK_HOME := $(NDK_ROOT)
 
 HOST_OS := $(shell uname | tr A-Z a-z)
 ifeq ($(HOST_OS),linux)
@@ -58,9 +88,6 @@ else ifeq ($(HOST_OS),darwin)
     STRIP_TOOL := $(NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-objcopy
 endif
 
-$(info Using ANDROID_HOME: $(ANDROID_HOME))
-$(info Using NDK_ROOT: $(NDK_ROOT))
-$(info Using STRIP_TOOL: $(STRIP_TOOL))
 
 # Attempt to find Android Studio for Linux configuration, which does not have a
 # predetermined location.
@@ -97,12 +124,6 @@ export GOROOT := # Unset
 # Android Build Targets
 # ------------------------------------------------------------------------------
 
-
-.PHONY: debug-unstripped
-debug-unstripped: build-unstripped-aar
-	@echo "Listing contents of $(ABS_UNSTRIPPED_AAR):"
-	unzip -l $(ABS_UNSTRIPPED_AAR)
-
 .PHONY: apk
 apk: $(DEBUG_APK)
 
@@ -129,7 +150,16 @@ RELEASE_APK_SIGNED := mesh-release.apk
 release-apk-signed: jarsign-env $(RELEASE_APK)
 	@echo "Signing release APK"
 	@cp $(RELEASE_APK) $(RELEASE_APK_SIGNED)
-	@apksigner sign --ks $(JKS_PATH) --ks-pass env:JKS_PASSWORD --ks-key-alias $(JKS_ALIAS) $(RELEASE_APK_SIGNED)
+	# --v1-signing-enabled false: v1 is unnecessary (minSdk=26, v2 needs
+	#   API 24+) and adding META-INF files would trigger ZIP re-writing.
+	# --alignment-preserved: build-tools 35+ apksigner forcibly converts
+	#   zero-byte alignment padding to 0xd935 extra-field headers by
+	#   default (fdroiddata#3299).  This flag preserves the existing
+	#   zero-byte padding produced by AGP, matching what fdroidserver's
+	#   build produces so apksigcopier verification passes.
+	@apksigner sign --v1-signing-enabled false --alignment-preserved \
+		--ks $(JKS_PATH) --ks-pass env:JKS_PASSWORD --ks-key-alias $(JKS_ALIAS) \
+		$(RELEASE_APK_SIGNED)
 	@echo "Signed APK: $(RELEASE_APK_SIGNED)"
 
 # Builds the release AAB and signs it (phone/tablet/chromeOS variant)
@@ -172,10 +202,46 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	@echo "Output file: $(ABS_UNSTRIPPED_AAR)"
 	mkdir -p $(dir $(ABS_UNSTRIPPED_AAR))
 	rm -f $(ABS_UNSTRIPPED_AAR)
-	# The -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 is specific to NDK 23
-	# to support 16kb page sizes.  Your mileage may vary with other NDK versions.
-	gomobile bind -target android -androidapi 26 \
-		-ldflags "-linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
+	# Reproducibility flags:
+	#   CANONICAL_SRC      symlink with a fixed path so gomobile's generated
+	#                      replace directives always embed the same module
+	#                      path in the Go build info, regardless of the
+	#                      actual workspace location on different machines.
+	#   GOCACHE=<fresh-dir> ensures gobind's packages.Load always starts from
+	#                       a clean cache, avoiding non-deterministic type
+	#                       resolution (golang/go#33687).  Without this, the
+	#                       build cache state leaks into gobind's output,
+	#                       causing invokevirtual ↔ invokeinterface bytecode
+	#                       differences in classes.jar across machines.
+	#   -buildid=          zeroes the Go build ID
+	#   -trimpath          removes host filesystem paths from the binary
+	#                      NOTE: passed directly to gomobile bind because
+	#                      gomobile strips the parent process environment
+	#                      (GOFLAGS, CGO_CFLAGS, GOCACHE, GOTOOLCHAIN, etc.)
+	#                      when spawning `go build` subprocesses.  Only
+	#                      gomobile's own CLI flags survive to the subprocess.
+	#   -buildvcs=false    prevents embedding VCS info (commit hash, dirty flag)
+	#   CGO_CFLAGS         strips absolute paths from C debug info
+	#   -linkmode=external uses the NDK linker (required for 16kb page alignment)
+	#   -s -w              omit symbol table and DWARF at build time so that
+	#                      external strip tools (llvm-strip, llvm-objcopy) have
+	#                      nothing to remove and cannot re-layout the ELF.
+	#                      Go binaries MUST be stripped this way: external tools
+	#                      rewrite LOAD segments, shifting code addresses without
+	#                      updating Go's .gopclntab PC tables → runtime crash.
+	GOBIND_CACHE=$$(mktemp -d) && \
+	CANONICAL_SRC="/tmp/_mesh_build_src" && \
+	ln -sfn "$$(cd .. && pwd)" "$$CANONICAL_SRC" && \
+	trap "rm -rf $$GOBIND_CACHE $$CANONICAL_SRC" EXIT && \
+	cd "$$CANONICAL_SRC/android-client" && \
+	CGO_CFLAGS="-ffile-prefix-map=$$(pwd)=. -ffile-prefix-map=$${HOME}=." \
+	CGO_CXXFLAGS="-ffile-prefix-map=$$(pwd)=. -ffile-prefix-map=$${HOME}=." \
+	GOCACHE="$$GOBIND_CACHE" \
+	GONOSUMCHECK=* \
+	GONOSUMDB=* \
+	GOFLAGS="$(GOFLAGS) -buildvcs=false" \
+	gomobile bind -trimpath -target android -androidapi 26 \
+		-ldflags "-s -w -buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
 		-o $(ABS_UNSTRIPPED_AAR) ./libtailscale || { echo "gomobile bind failed"; exit 1; }
 	@if [ ! -f $(ABS_UNSTRIPPED_AAR) ]; then \
 	    echo "Error: $(ABS_UNSTRIPPED_AAR) was not created"; exit 1; \
@@ -184,6 +250,7 @@ build-unstripped-aar: $(GOBIN)/gomobile
 
 $(UNSTRIPPED_AAR): build-unstripped-aar
 
+# Extract a single arch for standalone debug-symbol extraction (best-effort).
 libgojni.so.unstripped: $(UNSTRIPPED_AAR)
 	@echo "Extracting libgojni.so from unstripped AAR..."
 	@if unzip -p $(ABS_UNSTRIPPED_AAR) jni/arm64-v8a/libgojni.so > libgojni.so.unstripped; then \
@@ -204,13 +271,55 @@ libgojni.so.stripped: libgojni.so.unstripped
 	@echo "Stripping debug symbols from libgojni.so..."
 	$(STRIP_TOOL) --strip-debug libgojni.so.unstripped libgojni.so.stripped
 
-$(LIBTAILSCALE_AAR): libgojni.so.stripped $(UNSTRIPPED_AAR)
-	@echo "Repackaging AAR with stripped libgojni.so..."
+# Repackage the AAR with ALL architecture variants stripped.
+# This is critical for reproducibility: unstripped .so files contain
+# absolute build paths in debug info, which differ between environments.
+$(LIBTAILSCALE_AAR): $(UNSTRIPPED_AAR)
+	@echo "Repackaging AAR with stripped libgojni.so for all architectures..."
 	rm -rf temp_aar
 	mkdir temp_aar
 	unzip $(ABS_UNSTRIPPED_AAR) -d temp_aar
-	cp libgojni.so.stripped temp_aar/$(ARM64_SO_PATH)
-	(cd temp_aar && zip -r ../$(LIBTAILSCALE_AAR) .)
+	# Strip and normalize every architecture's libgojni.so for reproducibility.
+	# Per arch:
+	#   1. llvm-objcopy --strip-debug removes DWARF and debug sections.
+	#      IMPORTANT: do NOT use --strip-all or --remove-section on Go
+	#      shared libraries.  Both re-lay out LOAD segments, shifting code
+	#      addresses without updating Go's .gopclntab PC tables, which
+	#      causes a fatal stack overflow at runtime.  --strip-debug only
+	#      removes non-ALLOC debug sections and preserves the loaded
+	#      binary layout.
+	#   2. normalize-elf zeros remaining non-deterministic content in-place
+	#      (preserving binary layout): Go build info strings in .rodata,
+	#      .eh_frame/.eh_frame_hdr, .relro_padding, and the ELF entry
+	#      point.  This covers the Go metadata sections (.go.buildinfo,
+	#      .go.module, etc.) that cannot be --remove-section'd safely.
+	@for arch in $(AAR_ARCHS); do \
+		so_path="temp_aar/jni/$${arch}/libgojni.so"; \
+		if [ -f "$${so_path}" ]; then \
+			echo "Stripping $${so_path}"; \
+			$(STRIP_TOOL) --strip-debug "$${so_path}"; \
+			go run ./cmd/normalize-elf "$${so_path}"; \
+		fi; \
+	done
+	# Normalize timestamps and permissions inside classes.jar (nested zip)
+	# for reproducibility.  The umask differs between build environments,
+	# causing different Unix permission bits in the ZIP external attributes.
+	@if [ -f temp_aar/classes.jar ]; then \
+		mkdir -p temp_aar/classes_tmp && \
+		(cd temp_aar/classes_tmp && unzip -q ../classes.jar) && \
+		find temp_aar/classes_tmp -type d -exec chmod 0755 {} + && \
+		find temp_aar/classes_tmp -type f -exec chmod 0644 {} + && \
+		find temp_aar/classes_tmp -exec touch -d @$${SOURCE_DATE_EPOCH:-0} {} + && \
+		rm temp_aar/classes.jar && \
+		(cd temp_aar/classes_tmp && find . -type f | LC_ALL=C sort | zip -X -@ ../classes.jar) && \
+		rm -rf temp_aar/classes_tmp; \
+	fi
+	# Normalize all file timestamps and permissions, then produce a
+	# deterministic zip.
+	find temp_aar -type d -exec chmod 0755 {} +
+	find temp_aar -type f -exec chmod 0644 {} +
+	find temp_aar -exec touch -d @$${SOURCE_DATE_EPOCH:-0} {} +
+	(cd temp_aar && find . -type f | LC_ALL=C sort | zip -X -@ ../$(LIBTAILSCALE_AAR))
 	rm -rf temp_aar
 
 .PHONY: libtailscale
