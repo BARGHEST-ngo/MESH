@@ -1,0 +1,55 @@
+name: Govulncheck
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/govulncheck.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/govulncheck.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version-file: "go.mod"
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Scan MESH module
+        run: govulncheck ./analyst/src/cmd/... ./android-client/cmd/...
+
+      - name: Remove empty submodule directory
+        run: rm -rf tailscale
+
+      - name: Generate tailscale build directory
+        run: go generate ./analyst/src/...
+
+      - name: Scan tailscale module with MESH code
+        working-directory: tailscale
+        run: govulncheck ./...
