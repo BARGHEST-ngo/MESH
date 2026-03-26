@@ -1,0 +1,117 @@
+# OSV-Scanner allowlist for known-and-acknowledged vulnerabilities.
+#
+# Each entry below has been manually triaged. The vulnerable code lives in
+# upstream tailscale subsystems that MESH does NOT compile into libtailscale.aar
+# or any shipping binary (k8s-operator, tsnet, tsconsensus, natlab/vnet test
+# infrastructure, release/dist RPM packaging, gorilla web UI). They surface in
+# the tailscale-build-context scan because the tailscale source tree contains
+# code we don't link.
+#
+# Triage notes:
+#   - "called=false"  : osv-scanner call analysis confirmed the vulnerable
+#                       function is not reached from MESH's code paths
+#   - "no analysis"   : govulncheck has no function-level signature for the
+#                       vuln; reachability was determined manually by tracing
+#                       the call path through tailscale's source
+#
+# Re-review policy: each entry has an ignoreUntil date. When an entry expires,
+# osv-scanner will re-fail CI on that vuln until either (a) the suppression is
+# refreshed with current triage notes, or (b) the underlying issue is fixed by
+# bumping the dependency / patching tailscale's go.mod.
+
+# ----- bbolt -----
+
+[[IgnoredVulns]]
+id = "GO-2026-4923"
+ignoreUntil = 2026-10-07
+reason = """
+go.etcd.io/bbolt v1.4.2 — no upstream fix available.
+
+Reported as called=true by osv-scanner, but the only concrete call paths
+go through tailscale.com/tsnet and tailscale.com/tsconsensus (raft consensus
+store), neither of which MESH compiles. This is a govulncheck interface-
+analysis false positive following sync.Once.Do across the whole-program
+call graph.
+"""
+
+# ----- docker/docker (k8s-operator and natlab test infra) -----
+
+[[IgnoredVulns]]
+id = "GO-2026-4883"
+ignoreUntil = 2026-10-07
+reason = """
+github.com/docker/docker v27.5.1 — AuthZ plugin bypass with oversized
+request bodies. Reachable only from tailscale.com/cmd/k8s-operator/e2e
+and tailscale.com/tstest/natlab/vnet, neither of which MESH compiles.
+"""
+
+[[IgnoredVulns]]
+id = "GO-2026-4887"
+ignoreUntil = 2026-10-07
+reason = """
+github.com/docker/docker v27.5.1 — off-by-one in plugin privilege
+validation. Same scope as GO-2026-4883: only k8s-operator and natlab
+paths that MESH does not compile.
+"""
+
+[[IgnoredVulns]]
+id = "GHSA-4vq8-7jfc-9cvp"
+ignoreUntil = 2026-10-07
+reason = """
+github.com/docker/docker v27.5.1 — classified only under GHSA (no GO-ID).
+Same scope as GO-2026-4883 / GO-2026-4887.
+"""
+
+# ----- docker/cli -----
+
+[[IgnoredVulns]]
+id = "GO-2026-4610"
+ignoreUntil = 2026-10-07
+reason = """
+github.com/docker/cli v27.5.1 — osv-scanner call analysis reports
+called=false. Pulled in only as a transitive of docker/docker via the
+k8s-operator code path that MESH does not compile.
+"""
+
+# ----- buildkit -----
+
+[[IgnoredVulns]]
+id = "GO-2026-4858"
+ignoreUntil = 2026-10-07
+reason = """
+github.com/moby/buildkit v0.20.2 (tailscale build context) — pulled in by
+tailscale.com/cmd/k8s-operator only. MESH does not compile k8s-operator,
+so buildkit is never linked into libtailscale.aar. MESH's own go.mod
+pins buildkit to v0.28.1 which has the fix.
+"""
+
+[[IgnoredVulns]]
+id = "GO-2026-4859"
+ignoreUntil = 2026-10-07
+reason = """
+github.com/moby/buildkit v0.20.2 (tailscale build context) — same scope
+as GO-2026-4858.
+"""
+
+# ----- gorilla/csrf -----
+
+[[IgnoredVulns]]
+id = "GO-2025-3884"
+ignoreUntil = 2026-10-07
+reason = """
+github.com/gorilla/csrf v1.7.3 — no upstream fix available. osv-scanner
+call analysis reports called=false. Used by tailscale's web UI which
+MESH does not enable in libtailscale.aar.
+"""
+
+# ----- square/go-jose.v2 -----
+
+[[IgnoredVulns]]
+id = "GO-2024-2631"
+ignoreUntil = 2026-10-07
+reason = """
+gopkg.in/square/go-jose.v2 v2.6.0 — osv-scanner call analysis reports
+called=false. The v2 series is end-of-life upstream; a real fix would
+require migrating to go-jose/go-jose v3+, which is a tailscale-upstream
+concern, not a MESH change.
+"""

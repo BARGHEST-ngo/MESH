@@ -1,0 +1,74 @@
+name: OSV-Scanner
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'osv-scanner.toml'
+      - 'analyst/src/patches/**'
+      - '.github/workflows/osv-scanner.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'osv-scanner.toml'
+      - 'analyst/src/patches/**'
+      - '.github/workflows/osv-scanner.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  osv-scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.1.0
+        with:
+          go-version-file: "go.mod"
+
+      - name: Install osv-scanner
+        run: go install github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.3.5
+
+      - name: Scan MESH module
+        run: osv-scanner scan source --config=osv-scanner.toml --call-analysis=go .
+
+      - name: Remove empty submodule directory
+        run: rm -rf tailscale
+
+      - name: Generate tailscale build directory
+        run: go generate ./analyst/src/...
+
+      - name: Align tailscale go directive with MESH toolchain
+        # osv-scanner uses the `go` directive in go.mod to match against
+        # stdlib vulnerabilities. The tailscale source declares an older
+        # minimum than MESH actually compiles with, which would otherwise
+        # surface stdlib vulns that don't apply to the binaries MESH ships.
+        run: |
+          GO_VERSION=$(grep '^toolchain ' go.mod | awk '{print $2}' | sed 's/^go//')
+          sed -i "s/^go .*/go ${GO_VERSION}/" tailscale/go.mod
+
+      - name: Scan tailscale build context
+        working-directory: tailscale
+        # Scans the patched tailscale source after the analyst CLI files have
+        # been copied in. The MESH allowlist (osv-scanner.toml at repo root)
+        # documents known-and-acknowledged vulnerabilities in upstream
+        # tailscale subsystems that MESH does not compile.
+        run: osv-scanner scan source --config=../osv-scanner.toml --call-analysis=go .
