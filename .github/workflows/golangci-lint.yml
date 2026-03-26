@@ -1,0 +1,60 @@
+name: Lint Go Code
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.golangci.yml'
+      - '.github/workflows/golangci-lint.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.golangci.yml'
+      - '.github/workflows/golangci-lint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version-file: "go.mod"
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
+        with:
+          version: "v2.9.0"
+          install-only: true
+
+      - name: Lint MESH module
+        run: golangci-lint run ./analyst/src/cmd/... ./android-client/cmd/...
+
+      - name: Remove empty submodule directory
+        run: rm -rf tailscale
+
+      - name: Generate tailscale build directory
+        run: go generate ./analyst/src/...
+
+      - name: Lint MESH code in tailscale context
+        working-directory: tailscale
+        run: golangci-lint run ./cmd/tailscale/cli/... ./wgengine/wgcfg/...
