@@ -142,7 +142,7 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
         "Security Alerts",
         "Notifications for security issues such as developer options and outdated security patches",
         NotificationManagerCompat.IMPORTANCE_DEFAULT)
-    val securityWorkRequest = PeriodicWorkRequestBuilder<SecWorker>(30, TimeUnit.MINUTES).build()
+    val securityWorkRequest = PeriodicWorkRequestBuilder<SecWorker>(15, TimeUnit.MINUTES).build()
     WorkManager.getInstance(this).enqueueUniquePeriodicWork(
         "security_check",
         ExistingPeriodicWorkPolicy.KEEP,
