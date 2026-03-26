@@ -52,16 +52,20 @@ Meshes are ephemeral and analyst-controlled: bring devices online, collect evide
 
 ## Architecture summary
 
-MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale) but does **not** require Tailscale infrastructure.
+MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale). In Tailscale, DERP (Designated Encrypted Relay for Packets) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
 
-Enhancements include, though not limited to:
+MESH follows the same model. By default, if an operator has not configured their own DERP infrastructure (which can be done using MESH's control plane), MESH uses Tailscale’s public DERP servers to ensure reliable connectivity, particularly in restrictive network environments. However, MESH does not require Tailscale infrastructure: operators can deploy and use their own DERP servers via the control plane, which includes an embedded DERP implementation. This makes MESH fully self-hostable when desired.
 
-- Self-hostable coordination server with UI for forensics operations
-- Automatic WireGuard key distribution  
-- Optional AmneziaWG transport obfuscation  
-- Encrypted HTTPS relay fallback  
+DERP servers act purely as transport relays. They facilitate connectivity between devices but do not have visibility into the data exchanged, which remains end-to-end encrypted.
 
-The control plane handles peer discovery and key exchange only.  
+Enhancements include (but are not limited to):
+
+- Self-hostable coordination server with a UI tailored for forensic operations
+- Automatic WireGuard key distribution
+- Optional AmneziaWG-based transport obfuscation
+- Encrypted HTTPS relay fallback
+
+The control plane is responsible only for peer discovery and key exchange.
 Forensic traffic flows directly between endpoints whenever possible.
 
 ## Key capabilities
