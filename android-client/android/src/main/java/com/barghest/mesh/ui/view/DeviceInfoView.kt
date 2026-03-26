@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
@@ -42,7 +43,7 @@ data class DeviceInfoItem(
 fun DeviceInfoView(onNavigateBack: () -> Unit) {
     val clipboardManager = LocalClipboardManager.current
     
-    val deviceInfo = buildList {
+    val deviceInfo = remember { buildList {
         add(DeviceInfoItem("Device Model", Build.MODEL))
         add(DeviceInfoItem("Manufacturer", Build.MANUFACTURER))
         add(DeviceInfoItem("Android Version", Build.VERSION.RELEASE))
@@ -53,8 +54,8 @@ fun DeviceInfoView(onNavigateBack: () -> Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             add(DeviceInfoItem("Security Patch", Build.VERSION.SECURITY_PATCH))
         }
-    }
-    
+    }}
+
     val copyAll = {
         val text = deviceInfo.joinToString("\n") { "${it.title}: ${it.value}" }
         clipboardManager.setText(AnnotatedString(text))
