@@ -10,6 +10,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.ListenableWorker.Result
+import com.barghest.mesh.util.SecurityChecker
+import com.barghest.mesh.R
 
 
 class SecWorker(appContext: Context, workerParams: WorkerParameters) :
@@ -29,7 +31,7 @@ class SecWorker(appContext: Context, workerParams: WorkerParameters) :
 
 
 fun showDevNotification(context: Context) {
-    val notification = NotificationCompat.Builder(context, App.CHANNEL_ID)
+    val notification = NotificationCompat.Builder(context, UninitializedApp.CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_notification)
         .setContentTitle("MESH: Developer Options enabled")
         .setContentText("If no forensics session is occuring, please disable for your own security")
@@ -49,7 +51,7 @@ fun showDevNotification(context: Context) {
 }
 
 fun showSPLNotification(context: Context) {
-    val notification = NotificationCompat.Builder(context, App.CHANNEL_ID)
+    val notification = NotificationCompat.Builder(context, UninitializedApp.CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_notification)
         .setContentTitle("MESH: Security Patch Outdated")
         .setContentText("Your security patch is out of date. Please update your device.")
