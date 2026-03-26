@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -54,11 +55,26 @@ fun DeviceInfoView(onNavigateBack: () -> Unit) {
         }
     }
     
+    val copyAll = {
+        val text = deviceInfo.joinToString("\n") { "${it.title}: ${it.value}" }
+        clipboardManager.setText(AnnotatedString(text))
+    }
+
     Scaffold(
         topBar = {
             Header(
                 titleRes = R.string.device_information,
-                onBack = onNavigateBack
+                onBack = onNavigateBack,
+                actions = {
+                    if (!isAndroidTV()) {
+                        IconButton(onClick = copyAll) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.clipboard),
+                                contentDescription = "Copy all to clipboard"
+                            )
+                        }
+                    }
+                }
             )
         }
     ) { innerPadding ->
