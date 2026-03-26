@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
+	"golang.org/x/mod/semver"
 )
 
 func main() {
@@ -64,11 +65,15 @@ func main() {
 	if tailscaleVersion == "" {
 		log.Fatalf("tailscale.com not found in go.mod")
 	}
+	if !semver.IsValid(tailscaleVersion) {
+		log.Fatalf("invalid tailscale.com version in go.mod: %q", tailscaleVersion)
+	}
 	log.Printf("Found tailscale.com version %q in go.mod", tailscaleVersion)
 
 	// Download the module and get the path to its verified zip file.
 	// go mod verify checksums the zip (not the extracted cache directory),
 	// so extracting directly from the zip avoids trusting the cache.
+	//nolint:gosec // G204 -- tailscaleVersion is validated as semver above
 	output, err = exec.Command("go", "mod", "download", "-json", "tailscale.com@"+tailscaleVersion).CombinedOutput()
 	if err != nil {
 		log.Fatalf("failed to download tailscale.com module: %v\nOutput: %s", err, output)
