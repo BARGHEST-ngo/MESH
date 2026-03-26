@@ -43,6 +43,7 @@ jobs:
       - name: Install golangci-lint
         uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
         with:
+          version: "v2.9.0"
           install-only: true
 
       - name: Lint MESH module

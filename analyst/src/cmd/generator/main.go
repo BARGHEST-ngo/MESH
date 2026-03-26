@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
+	"golang.org/x/mod/semver"
 )
 
 func main() {
@@ -63,9 +64,12 @@ func main() {
 	if tailscaleVersion == "" {
 		log.Fatalf("tailscale.com not found in go.mod")
 	}
+	if !semver.IsValid(tailscaleVersion) {
+		log.Fatalf("invalid tailscale.com version in go.mod: %q", tailscaleVersion)
+	}
 	log.Printf("Found tailscale.com version %q in go.mod", tailscaleVersion)
 
-	if err := exec.Command("go", "mod", "download", "tailscale.com@"+tailscaleVersion).Run(); err != nil {
+	if err := exec.Command("go", "mod", "download", "tailscale.com@"+tailscaleVersion).Run(); err != nil { //nolint:gosec // G204 -- tailscaleVersion is validated as semver above
 		log.Fatalf("failed to download tailscale.com module: %v", err)
 	}
 
