@@ -171,6 +171,46 @@ func main() {
 		log.Fatalf("failed to write dns-fallback-servers.json: %v", err)
 	}
 
+	log.Println("Replacing upstream Tailscale hostnames with example.com...")
+	hostReplacements := map[string]string{
+		"log.tailscale.com":          "log.example.com",
+		"controlplane.tailscale.com": "controlplane.example.com",
+		"login.tailscale.com":        "login.example.com",
+	}
+	err = filepath.WalkDir(tailscaleDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if d.Name() == "tstest" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(d.Name(), ".go") || strings.HasSuffix(d.Name(), "_test.go") {
+			return nil
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+		original := string(content)
+		replaced := original
+		for old, new := range hostReplacements {
+			replaced = strings.ReplaceAll(replaced, old, new)
+		}
+		if replaced != original {
+			if err := os.WriteFile(path, []byte(replaced), 0644); err != nil {
+				return fmt.Errorf("writing %s: %w", path, err)
+			}
+			log.Printf("Patched Tailscale hostnames in %s", path)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatalf("failed to replace Tailscale hostnames: %v", err)
+	}
+
 	// Run go mod tidy in the build directory
 	log.Println("Running go mod tidy...")
 	cmd = exec.Command("go", "mod", "tidy")
