@@ -41,6 +41,10 @@ import com.barghest.mesh.ui.model.Ipn
 import com.barghest.mesh.ui.model.Netmap
 import com.barghest.mesh.ui.notifier.HealthNotifier
 import com.barghest.mesh.ui.notifier.Notifier
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 import com.barghest.mesh.ui.viewModel.AppViewModel
 import com.barghest.mesh.ui.viewModel.AppViewModelFactory
 import com.barghest.mesh.util.FeatureFlags
@@ -133,6 +137,16 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
         getString(R.string.health_channel_name),
         getString(R.string.health_channel_description),
         NotificationManagerCompat.IMPORTANCE_HIGH)
+    createNotificationChannel(
+        CHANNEL_ID,
+        "Security Alerts",
+        "Notifications for security issues such as developer options and outdated security patches",
+        NotificationManagerCompat.IMPORTANCE_DEFAULT)
+    val securityWorkRequest = PeriodicWorkRequestBuilder<SecWorker>(15, TimeUnit.MINUTES).build()
+    WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+        "security_check",
+        ExistingPeriodicWorkPolicy.KEEP,
+        securityWorkRequest)
   }
 
   override fun onTerminate() {
@@ -435,6 +449,7 @@ open class UninitializedApp : Application() {
     const val STATUS_NOTIFICATION_ID = 1
     const val STATUS_EXIT_NODE_FAILURE_NOTIFICATION_ID = 2
     const val STATUS_CHANNEL_ID = "barghest-status"
+    const val CHANNEL_ID = "barghest-security"
     // Key for shared preference that tracks whether or not we're able to start
     // the VPN (i.e. we're logged in and machine is authorized).
     private const val ABLE_TO_START_VPN_KEY = "ableToStartVPN"
