@@ -13,13 +13,11 @@ package libtailscale
 import (
 	"context"
 	"log"
-	"net/http"
 	"path/filepath"
 	"runtime/debug"
 	"time"
 
 	"tailscale.com/health"
-	"tailscale.com/logpolicy"
 	"tailscale.com/logtail"
 	"tailscale.com/logtail/filch"
 	"tailscale.com/net/netmon"
@@ -113,12 +111,11 @@ func (a *App) isChromeOS() bool {
 	return isChromeOS
 }
 
-// SetupLogs sets up remote logging.
+// SetupLogs sets up local-only logging (no remote upload).
 func (b *backend) setupLogs(logDir string, logID logid.PrivateID, logf logger.Logf, health *health.Tracker) {
 	if b.netMon == nil {
 		panic("netMon must be created prior to SetupLogs")
 	}
-	transport := logpolicy.NewLogtailTransport(logtail.DefaultHost, b.netMon, health, log.Printf)
 
 	logcfg := logtail.Config{
 		Collection:          logtail.CollectionNode,
@@ -127,7 +124,7 @@ func (b *backend) setupLogs(logDir string, logID logid.PrivateID, logf logger.Lo
 		MetricsDelta:        clientmetric.EncodeLogTailMetricsDelta,
 		IncludeProcID:       true,
 		IncludeProcSequence: true,
-		HTTPC:               &http.Client{Transport: transport},
+		HTTPC:               nil, // no remote log upload
 		CompressLogs:        true,
 	}
 	logcfg.FlushDelayFn = func() time.Duration { return 2 * time.Minute }
