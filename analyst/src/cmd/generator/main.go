@@ -5,6 +5,7 @@ package main
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"go/parser"
@@ -68,9 +69,9 @@ func main() {
 	// Download the module and get the path to its verified zip file.
 	// go mod verify checksums the zip (not the extracted cache directory),
 	// so extracting directly from the zip avoids trusting the cache.
-	output, err = exec.Command("go", "mod", "download", "-json", "tailscale.com@"+tailscaleVersion).Output()
+	output, err = exec.Command("go", "mod", "download", "-json", "tailscale.com@"+tailscaleVersion).CombinedOutput()
 	if err != nil {
-		log.Fatalf("failed to download tailscale.com module: %v", err)
+		log.Fatalf("failed to download tailscale.com module: %v\nOutput: %s", err, output)
 	}
 	var modInfo struct {
 		Zip string `json:"Zip"`
@@ -202,7 +203,7 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("parsing %s: %w", path, err)
 		}
-		if string(replaced) != string(content) {
+		if !bytes.Equal(replaced, content) {
 			if err := os.WriteFile(path, replaced, 0644); err != nil {
 				return fmt.Errorf("writing %s: %w", path, err)
 			}
@@ -267,26 +268,23 @@ func replaceOutsideComments(src []byte, replacements map[string]string) ([]byte,
 		return comments[i].start < comments[j].start
 	})
 
+	// replaceSegment applies all replacements to a code segment.
+	replaceSegment := func(segment string) string {
+		for old, repl := range replacements {
+			segment = strings.ReplaceAll(segment, old, repl)
+		}
+		return segment
+	}
+
 	// Build result: apply replacements only to non-comment segments.
 	var result []byte
 	pos := 0
 	for _, c := range comments {
-		// Code segment before this comment: apply replacements.
-		code := string(src[pos:c.start])
-		for old, repl := range replacements {
-			code = strings.ReplaceAll(code, old, repl)
-		}
-		result = append(result, code...)
-		// Comment segment: copy verbatim.
+		result = append(result, replaceSegment(string(src[pos:c.start]))...)
 		result = append(result, src[c.start:c.end]...)
 		pos = c.end
 	}
-	// Remaining code after last comment.
-	code := string(src[pos:])
-	for old, repl := range replacements {
-		code = strings.ReplaceAll(code, old, repl)
-	}
-	result = append(result, code...)
+	result = append(result, replaceSegment(string(src[pos:]))...)
 
 	return result, nil
 }
@@ -320,29 +318,35 @@ func extractModuleZip(zipPath, destDir string) error {
 			continue
 		}
 
-		if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
-			return fmt.Errorf("creating parent directory for %s: %w", destPath, err)
+		if err := extractZipFile(f, destPath); err != nil {
+			return err
 		}
+	}
 
-		rc, err := f.Open()
-		if err != nil {
-			return fmt.Errorf("opening zip entry %s: %w", f.Name, err)
-		}
+	return nil
+}
 
-		outFile, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-		if err != nil {
-			rc.Close()
-			return fmt.Errorf("creating %s: %w", destPath, err)
-		}
+// extractZipFile extracts a single file from a zip archive to destPath,
+// creating parent directories as needed.
+func extractZipFile(f *zip.File, destPath string) error {
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		return fmt.Errorf("creating parent directory for %s: %w", destPath, err)
+	}
 
-		if _, err := io.Copy(outFile, rc); err != nil {
-			outFile.Close()
-			rc.Close()
-			return fmt.Errorf("writing %s: %w", destPath, err)
-		}
+	rc, err := f.Open()
+	if err != nil {
+		return fmt.Errorf("opening zip entry %s: %w", f.Name, err)
+	}
+	defer rc.Close()
 
-		outFile.Close()
-		rc.Close()
+	outFile, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("creating %s: %w", destPath, err)
+	}
+	defer outFile.Close()
+
+	if _, err := io.Copy(outFile, rc); err != nil {
+		return fmt.Errorf("writing %s: %w", destPath, err)
 	}
 
 	return nil
