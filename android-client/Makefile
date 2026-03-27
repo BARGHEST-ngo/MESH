@@ -11,6 +11,11 @@
 ## For signed release build JKS_PASSWORD must be set to the password for the jks keystore
 ## and JKS_PATH must be set to the path to the jks keystore.
 
+# These tags disable features in Tailscale that reach out to Tailscale-controlled servers
+# ts_omit_clientmetrics excluded: its omit stub is incomplete (missing Type enum)
+# and logtail omission already blocks the only metric exfiltration path.
+GOTAGS := ts_omit_logtail,ts_omit_netlog,ts_omit_captiveportal,ts_omit_clientupdate,ts_omit_usermetrics,ts_omit_cloud
+
 # Reproducibility: default SOURCE_DATE_EPOCH to the last git commit timestamp.
 # CI or F-Droid may override this via the environment.
 export SOURCE_DATE_EPOCH ?= $(shell git log -1 --format=%ct 2>/dev/null || echo 0)
@@ -241,6 +246,7 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	GONOSUMDB=* \
 	GOFLAGS="$(GOFLAGS) -buildvcs=false" \
 	gomobile bind -trimpath -target android -androidapi 26 \
+		-tags $(GOTAGS) \
 		-ldflags "-s -w -buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
 		-o $(ABS_UNSTRIPPED_AAR) ./libtailscale || { echo "gomobile bind failed"; exit 1; }
 	@if [ ! -f $(ABS_UNSTRIPPED_AAR) ]; then \

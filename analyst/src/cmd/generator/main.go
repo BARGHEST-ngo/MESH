@@ -4,23 +4,24 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"go/parser"
+	"go/token"
+	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"golang.org/x/mod/modfile"
 )
 
 func main() {
-	// go mod verify should already have been run by go:generate
-	// so we can be sure that the module files we're about to copy
-	// haven't been tampered with.
-	// TODO: have the pentesters verify this. Do GONOSUMDB or GOSUMDB
-	// env vars affect this?
-
 	// Get absolute path to current module's go.mod file
 	output, err := exec.Command("go", "env", "GOMOD").Output()
 	if err != nil {
@@ -65,33 +66,37 @@ func main() {
 	}
 	log.Printf("Found tailscale.com version %q in go.mod", tailscaleVersion)
 
-	if err := exec.Command("go", "mod", "download", "tailscale.com@"+tailscaleVersion).Run(); err != nil {
-		log.Fatalf("failed to download tailscale.com module: %v", err)
-	}
-
-	// Get Go module cache directory
-	output, err = exec.Command("go", "env", "GOMODCACHE").Output()
+	// Download the module and get the path to its verified zip file.
+	// go mod verify checksums the zip (not the extracted cache directory),
+	// so extracting directly from the zip avoids trusting the cache.
+	output, err = exec.Command("go", "mod", "download", "-json", "tailscale.com@"+tailscaleVersion).CombinedOutput()
 	if err != nil {
-		log.Fatalf("failed to get GOMODCACHE: %v", err)
+		log.Fatalf("failed to download tailscale.com module: %v\nOutput: %s", err, output)
 	}
-	modCachePath := string(output[:len(output)-1]) // remove trailing newline
-	modPath := filepath.Join(modCachePath, "tailscale.com@"+tailscaleVersion)
-	fmt.Println("Located tailscale.com module:", modPath)
+	var modInfo struct {
+		Zip string `json:"Zip"`
+	}
+	if err := json.Unmarshal(output, &modInfo); err != nil {
+		log.Fatalf("failed to parse go mod download output: %v", err)
+	}
+	if modInfo.Zip == "" {
+		log.Fatalf("go mod download did not return a Zip path")
+	}
+	log.Printf("Downloaded module zip: %s", modInfo.Zip)
 
-	// Copy the tailscale.com module to build directory
-	cmd := exec.Command("cp", "-r", modPath, tailscaleDir)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		log.Fatalf("failed to copy tailscale.com module to build directory: %v\nOutput: %s", err, output)
+	// Verify module checksums against go.sum before extracting.
+	cmd := exec.Command("go", "mod", "verify")
+	if verifyOutput, err := cmd.CombinedOutput(); err != nil {
+		log.Fatalf("go mod verify failed (module may have been tampered with): %v\nOutput: %s", err, verifyOutput)
 	}
+	log.Println("Module checksums verified against go.sum")
 
-	// chmod -R u+w the copied directory to ensure we have read/write permissions
-	if err := os.Chmod(tailscaleDir, 0755); err != nil {
-		log.Fatalf("failed to set permissions on copied tailscale.com module: %v", err)
+	// Extract the verified zip directly to the build directory.
+	// Module zips prefix all entries with "module@version/"; we strip that.
+	if err := extractModuleZip(modInfo.Zip, tailscaleDir); err != nil {
+		log.Fatalf("failed to extract module zip: %v", err)
 	}
-	if err := exec.Command("chmod", "-R", "u+w", tailscaleDir).Run(); err != nil {
-		log.Fatalf("failed to set permissions on copied tailscale.com module: %v", err)
-	}
-	log.Printf("Copied tailscale.com module to %q\n", tailscaleDir)
+	log.Printf("Extracted module zip to %q", tailscaleDir)
 
 	// Add files from cli directory to the tailscale.com/cmd/tailscale/cli package in the build directory
 	analystCliDir := filepath.Join(analystSrcDir, "cli")
@@ -165,6 +170,51 @@ func main() {
 		log.Printf("Applied patch %q\n", patchPath)
 	}
 
+	log.Println("Replacing upstream Tailscale DNS fallback servers with empty set...")
+	dnsFallbackPath := filepath.Join(tailscaleDir, "net", "dnsfallback", "dns-fallback-servers.json")
+	if err := os.WriteFile(dnsFallbackPath, []byte(`{"Regions": {}}`+"\n"), 0644); err != nil {
+		log.Fatalf("failed to write dns-fallback-servers.json: %v", err)
+	}
+
+	log.Println("Replacing upstream Tailscale hostnames with example.com...")
+	hostReplacements := map[string]string{
+		"log.tailscale.com":          "log.example.com",
+		"controlplane.tailscale.com": "controlplane.example.com",
+		"login.tailscale.com":        "login.example.com",
+	}
+	err = filepath.WalkDir(tailscaleDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if d.Name() == "tstest" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(d.Name(), ".go") || strings.HasSuffix(d.Name(), "_test.go") {
+			return nil
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+		replaced, err := replaceOutsideComments(content, hostReplacements)
+		if err != nil {
+			return fmt.Errorf("parsing %s: %w", path, err)
+		}
+		if !bytes.Equal(replaced, content) {
+			if err := os.WriteFile(path, replaced, 0644); err != nil {
+				return fmt.Errorf("writing %s: %w", path, err)
+			}
+			log.Printf("Patched Tailscale hostnames in %s", path)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatalf("failed to replace Tailscale hostnames: %v", err)
+	}
+
 	// Run go mod tidy in the build directory
 	log.Println("Running go mod tidy...")
 	cmd = exec.Command("go", "mod", "tidy")
@@ -192,4 +242,112 @@ func main() {
 	}
 
 	log.Println("Done.")
+}
+
+// replaceOutsideComments applies string replacements to Go source code,
+// skipping comments so that documentation and notes are preserved unchanged.
+func replaceOutsideComments(src []byte, replacements map[string]string) ([]byte, error) {
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "", src, parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+
+	// Collect comment byte ranges, sorted by position.
+	type span struct{ start, end int }
+	var comments []span
+	for _, cg := range f.Comments {
+		for _, c := range cg.List {
+			comments = append(comments, span{
+				start: fset.Position(c.Pos()).Offset,
+				end:   fset.Position(c.End()).Offset,
+			})
+		}
+	}
+	sort.Slice(comments, func(i, j int) bool {
+		return comments[i].start < comments[j].start
+	})
+
+	// replaceSegment applies all replacements to a code segment.
+	replaceSegment := func(segment string) string {
+		for old, repl := range replacements {
+			segment = strings.ReplaceAll(segment, old, repl)
+		}
+		return segment
+	}
+
+	// Build result: apply replacements only to non-comment segments.
+	var result []byte
+	pos := 0
+	for _, c := range comments {
+		result = append(result, replaceSegment(string(src[pos:c.start]))...)
+		result = append(result, src[c.start:c.end]...)
+		pos = c.end
+	}
+	result = append(result, replaceSegment(string(src[pos:]))...)
+
+	return result, nil
+}
+
+// extractModuleZip extracts a Go module zip to destDir, stripping the
+// "module@version/" prefix that all entries share per the module zip spec.
+func extractModuleZip(zipPath, destDir string) error {
+	r, err := zip.OpenReader(zipPath)
+	if err != nil {
+		return fmt.Errorf("opening zip: %w", err)
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		// Strip the "module@version/" prefix from each entry.
+		_, relPath, ok := strings.Cut(f.Name, "/")
+		if !ok || relPath == "" {
+			continue
+		}
+		destPath := filepath.Join(destDir, relPath)
+
+		// Verify the path doesn't escape the destination (zip slip protection).
+		if !strings.HasPrefix(filepath.Clean(destPath), filepath.Clean(destDir)+string(os.PathSeparator)) {
+			return fmt.Errorf("zip entry %q would escape destination directory", f.Name)
+		}
+
+		if f.FileInfo().IsDir() {
+			if err := os.MkdirAll(destPath, 0755); err != nil {
+				return fmt.Errorf("creating directory %s: %w", destPath, err)
+			}
+			continue
+		}
+
+		if err := extractZipFile(f, destPath); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// extractZipFile extracts a single file from a zip archive to destPath,
+// creating parent directories as needed.
+func extractZipFile(f *zip.File, destPath string) error {
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		return fmt.Errorf("creating parent directory for %s: %w", destPath, err)
+	}
+
+	rc, err := f.Open()
+	if err != nil {
+		return fmt.Errorf("opening zip entry %s: %w", f.Name, err)
+	}
+	defer rc.Close()
+
+	outFile, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("creating %s: %w", destPath, err)
+	}
+	defer outFile.Close()
+
+	if _, err := io.Copy(outFile, rc); err != nil {
+		return fmt.Errorf("writing %s: %w", destPath, err)
+	}
+
+	return nil
 }
