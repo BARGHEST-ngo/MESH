@@ -7,11 +7,14 @@ import (
 	"archive/zip"
 	"encoding/json"
 	"fmt"
+	"go/parser"
+	"go/token"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"golang.org/x/mod/modfile"
@@ -195,13 +198,12 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("reading %s: %w", path, err)
 		}
-		original := string(content)
-		replaced := original
-		for old, new := range hostReplacements {
-			replaced = strings.ReplaceAll(replaced, old, new)
+		replaced, err := replaceOutsideComments(content, hostReplacements)
+		if err != nil {
+			return fmt.Errorf("parsing %s: %w", path, err)
 		}
-		if replaced != original {
-			if err := os.WriteFile(path, []byte(replaced), 0644); err != nil {
+		if string(replaced) != string(content) {
+			if err := os.WriteFile(path, replaced, 0644); err != nil {
 				return fmt.Errorf("writing %s: %w", path, err)
 			}
 			log.Printf("Patched Tailscale hostnames in %s", path)
@@ -239,6 +241,54 @@ func main() {
 	}
 
 	log.Println("Done.")
+}
+
+// replaceOutsideComments applies string replacements to Go source code,
+// skipping comments so that documentation and notes are preserved unchanged.
+func replaceOutsideComments(src []byte, replacements map[string]string) ([]byte, error) {
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "", src, parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+
+	// Collect comment byte ranges, sorted by position.
+	type span struct{ start, end int }
+	var comments []span
+	for _, cg := range f.Comments {
+		for _, c := range cg.List {
+			comments = append(comments, span{
+				start: fset.Position(c.Pos()).Offset,
+				end:   fset.Position(c.End()).Offset,
+			})
+		}
+	}
+	sort.Slice(comments, func(i, j int) bool {
+		return comments[i].start < comments[j].start
+	})
+
+	// Build result: apply replacements only to non-comment segments.
+	var result []byte
+	pos := 0
+	for _, c := range comments {
+		// Code segment before this comment: apply replacements.
+		code := string(src[pos:c.start])
+		for old, repl := range replacements {
+			code = strings.ReplaceAll(code, old, repl)
+		}
+		result = append(result, code...)
+		// Comment segment: copy verbatim.
+		result = append(result, src[c.start:c.end]...)
+		pos = c.end
+	}
+	// Remaining code after last comment.
+	code := string(src[pos:])
+	for old, repl := range replacements {
+		code = strings.ReplaceAll(code, old, repl)
+	}
+	result = append(result, code...)
+
+	return result, nil
 }
 
 // extractModuleZip extracts a Go module zip to destDir, stripping the
