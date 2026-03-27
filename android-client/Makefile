@@ -229,6 +229,20 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	#                      Go binaries MUST be stripped this way: external tools
 	#                      rewrite LOAD segments, shifting code addresses without
 	#                      updating Go's .gopclntab PC tables → runtime crash.
+	# Strip the hardcoded Tailscale DERP fallback map from the Go module
+	# cache so the client never probes Tailscale relay servers before
+	# reaching the MESH control plane.  The control plane (headscale)
+	# provides the real DERP map after login.
+	# NOTE: the module cache is read-only; chmod before overwriting.
+	@DERP_JSON=$$(cd .. && go list -m -json tailscale.com | grep '"Dir"' | tail -1 | sed 's/.*"Dir": "//;s/".*//'); \
+	DERP_JSON="$$DERP_JSON/net/dnsfallback/dns-fallback-servers.json"; \
+	if [ -f "$$DERP_JSON" ]; then \
+		chmod +w "$$DERP_JSON" && \
+		echo '{"Regions":{}}' > "$$DERP_JSON" && \
+		echo "Patched DERP fallback map: $$DERP_JSON"; \
+	else \
+		echo "WARNING: DERP fallback JSON not found at $$DERP_JSON"; \
+	fi
 	GOBIND_CACHE=$$(mktemp -d) && \
 	CANONICAL_SRC="/tmp/_mesh_build_src" && \
 	ln -sfn "$$(cd .. && pwd)" "$$CANONICAL_SRC" && \
