@@ -238,20 +238,17 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	else \
 		echo "WARNING: DERP fallback JSON not found at $$DERP_JSON"; \
 	fi; \
-	for f in "$$TSDIR/logtail/config.go" "$$TSDIR/net/tlsdial/tlsdial.go"; do \
-		if [ -f "$$f" ]; then \
+	find "$$TSDIR" -name '*.go' -not -path '*/tstest/*' -not -path '*_test.go' | while read f; do \
+		if grep -q 'log\.tailscale\.com\|controlplane\.tailscale\.com\|login\.tailscale\.com' "$$f"; then \
 			chmod +w "$$f" "$$(dirname "$$f")" && \
-			sed -i 's|"log.tailscale.com"|"localhost"|' "$$f" && \
-			echo "Patched log host: $$f"; \
+			sed -i \
+				-e 's|log\.tailscale\.com|localhost|g' \
+				-e 's|controlplane\.tailscale\.com|controlplane.example.com|g' \
+				-e 's|login\.tailscale\.com|login.example.com|g' \
+			"$$f" && \
+			echo "Patched: $$f"; \
 		fi; \
-	done; \
-	SYSPOL="$$TSDIR/util/syspolicy/syspolicy.go"; \
-	if [ -f "$$SYSPOL" ]; then \
-		chmod +w "$$SYSPOL" "$$(dirname "$$SYSPOL")" && \
-		sed -i 's|"https://controlplane.tailscale.com"|"https://controlplane.example.com"|' "$$SYSPOL" && \
-		sed -i 's|"https://login.tailscale.com"|"https://login.example.com"|' "$$SYSPOL" && \
-		echo "Patched control URLs: $$SYSPOL"; \
-	fi
+	done
 	GOBIND_CACHE=$$(mktemp -d) && \
 	CANONICAL_SRC="/tmp/_mesh_build_src" && \
 	ln -sfn "$$(cd .. && pwd)" "$$CANONICAL_SRC" && \
