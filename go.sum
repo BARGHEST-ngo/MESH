@@ -12,8 +12,8 @@ github.com/BARGHEST-ngo/amnezia-wireguard-go v0.1.1-alpha.1.0.20260217195927-fee
 github.com/BARGHEST-ngo/amnezia-wireguard-go v0.1.1-alpha.1.0.20260217195927-fee73f569c4b/go.mod h1:Zls3lR6b2x7Dktrhlrq5SJm9ChkJsy53pn95oiRGAKc=
 github.com/BARGHEST-ngo/androidqf_mesh v0.1.0 h1:8rc2EYQ7H1CndPQjjZg3uY6r3anzqaELIrntHW+mXUk=
 github.com/BARGHEST-ngo/androidqf_mesh v0.1.0/go.mod h1:B1mVzR2BxtB6BpsFclmt6Y+3878Gj3VnSdlQem85n9E=
-github.com/BARGHEST-ngo/mesh-tailscale v1.94.1-0.20260304180408-aa61c1758b45 h1:6e+/t5FImySDulqm/vYBucPJ8d2T4yje6RoX/NDFU90=
-github.com/BARGHEST-ngo/mesh-tailscale v1.94.1-0.20260304180408-aa61c1758b45/go.mod h1:qSyXy39S0vqhg9/RKf0gpY8RjapUhWVMFDHCfL/cZnc=
+github.com/BARGHEST-ngo/mesh-tailscale v1.94.1-0.20260327152222-09919c9dcffc h1:NCEJU1FyoBJFjxXKcMm4NQ/SG8ApMJo1fmAPeTklTR0=
+github.com/BARGHEST-ngo/mesh-tailscale v1.94.1-0.20260327152222-09919c9dcffc/go.mod h1:qSyXy39S0vqhg9/RKf0gpY8RjapUhWVMFDHCfL/cZnc=
 github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg=
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/akutz/memconn v0.1.0 h1:NawI0TORU4hcOMsMr11g7vwlCdkYeLKXBcxWu2W/P8A=

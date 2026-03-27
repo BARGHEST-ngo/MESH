@@ -74,7 +74,7 @@ derp:
   server:
     # If enabled, runs the embedded DERP server and merges it into the rest of the DERP config
     # The Headscale server_url defined above MUST be using https, DERP requires TLS to be in place
-    enabled: false
+    enabled: true
 
     # Region ID to use for the embedded DERP server.
     # The local DERP prevails if the region ID collides with other region ID coming from
@@ -103,14 +103,13 @@ derp:
     # If you enable the DERP server and set this to false, it is required to add the DERP server to the DERP map using DERP.paths
     automatically_add_embedded_derp_region: true
 
-
     # it is possible to optionally add the public IPv4 and IPv6 address to the Derp-Map using:
-    ipv4: 198.51.100.1
-    ipv6: 2001:db8::1
+    # ipv4: 198.51.100.1
+    # ipv6: 2001:db8::1
 
   # List of externally available DERP maps encoded in JSON
-  urls:
-   - https://controlplane.tailscale.com/derpmap/default
+  # Set to empty list to disable Tailscale's built-in DERP servers
+  urls: []
 
   # Locally available DERP map files encoded in YAML
   #

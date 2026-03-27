@@ -165,6 +165,12 @@ func main() {
 		log.Printf("Applied patch %q\n", patchPath)
 	}
 
+	log.Println("Replacing upstream Tailscale DNS fallback servers with empty set...")
+	dnsFallbackPath := filepath.Join(tailscaleDir, "net", "dnsfallback", "dns-fallback-servers.json")
+	if err := os.WriteFile(dnsFallbackPath, []byte(`{"Regions": {}}`+"\n"), 0644); err != nil {
+		log.Fatalf("failed to write dns-fallback-servers.json: %v", err)
+	}
+
 	// Run go mod tidy in the build directory
 	log.Println("Running go mod tidy...")
 	cmd = exec.Command("go", "mod", "tidy")
