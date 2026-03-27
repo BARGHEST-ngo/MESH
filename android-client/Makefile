@@ -227,18 +227,30 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	#                      external strip tools (llvm-strip, llvm-objcopy) have
 	#                      nothing to remove and cannot re-layout the ELF.
 	#                      Go binaries MUST be stripped this way: external tools
-	#                      rewrite LOAD segments, shifting code addresses without
-	#                      updating Go's .gopclntab PC tables → runtime crash.
-	# Empty the upstream DERP fallback map so the client doesn't probe
-	# Tailscale relays before reaching the control plane.
-	@DERP_JSON=$$(cd .. && go list -m -json tailscale.com | grep '"Dir"' | tail -1 | sed 's/.*"Dir": "//;s/".*//'); \
-	DERP_JSON="$$DERP_JSON/net/dnsfallback/dns-fallback-servers.json"; \
+	#                      break .gopclntab if they rewrite LOAD segments.
+	# Patch out Tailscale URLs from the module cache before compiling.
+	@TSDIR=$$(cd .. && go list -m -json tailscale.com | grep '"Dir"' | tail -1 | sed 's/.*"Dir": "//;s/".*//'); \
+	DERP_JSON="$$TSDIR/net/dnsfallback/dns-fallback-servers.json"; \
 	if [ -f "$$DERP_JSON" ]; then \
 		chmod +w "$$DERP_JSON" && \
 		echo '{"Regions":{}}' > "$$DERP_JSON" && \
 		echo "Patched DERP fallback map: $$DERP_JSON"; \
 	else \
 		echo "WARNING: DERP fallback JSON not found at $$DERP_JSON"; \
+	fi; \
+	for f in "$$TSDIR/logtail/config.go" "$$TSDIR/net/tlsdial/tlsdial.go"; do \
+		if [ -f "$$f" ]; then \
+			chmod +w "$$f" "$$(dirname "$$f")" && \
+			sed -i 's|"log.tailscale.com"|"localhost"|' "$$f" && \
+			echo "Patched log host: $$f"; \
+		fi; \
+	done; \
+	SYSPOL="$$TSDIR/util/syspolicy/syspolicy.go"; \
+	if [ -f "$$SYSPOL" ]; then \
+		chmod +w "$$SYSPOL" "$$(dirname "$$SYSPOL")" && \
+		sed -i 's|"https://controlplane.tailscale.com"|"https://controlplane.example.com"|' "$$SYSPOL" && \
+		sed -i 's|"https://login.tailscale.com"|"https://login.example.com"|' "$$SYSPOL" && \
+		echo "Patched control URLs: $$SYSPOL"; \
 	fi
 	GOBIND_CACHE=$$(mktemp -d) && \
 	CANONICAL_SRC="/tmp/_mesh_build_src" && \
