@@ -227,19 +227,7 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
   fun setWantRunning(wantRunning: Boolean, onSuccess: (() -> Unit)? = null) {
     val callback: (Result<Ipn.Prefs>) -> Unit = { result ->
       result.fold(
-          onSuccess = { prefs ->
-            // MESH: If the backend applied the default Tailscale ControlURL, clear it
-            // This prevents the app from connecting to Tailscale's servers
-            if (wantRunning && prefs.ControlURL == "https://controlplane.tailscale.com") {
-              TSLog.d("TAG", "Backend applied default Tailscale ControlURL, clearing it")
-              val clearControlURL = Ipn.MaskedPrefs().apply { ControlURL = "" }
-              Client(applicationScope).editPrefs(clearControlURL) { _ ->
-                onSuccess?.invoke()
-              }
-            } else {
-              onSuccess?.invoke()
-            }
-          },
+          onSuccess = { onSuccess?.invoke() },
           onFailure = { error ->
             TSLog.d("TAG", "Set want running: failed to update preferences: ${error.message}")
           })

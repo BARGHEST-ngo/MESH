@@ -99,7 +99,6 @@ import com.barghest.mesh.ui.view.DNSSettingsView
 import com.barghest.mesh.ui.view.DeviceInfoView
 import com.barghest.mesh.ui.view.ExitNodePicker
 import com.barghest.mesh.ui.view.HealthView
-import com.barghest.mesh.ui.view.LoginQRView
 import com.barghest.mesh.ui.view.LoginWithAuthKeyView
 import com.barghest.mesh.ui.view.LoginWithCustomControlURLView
 import com.barghest.mesh.ui.view.MDMSettingsDebugView
@@ -168,11 +167,6 @@ class MainActivity : ComponentActivity() {
     private fun Context.isLandscapeCapable(): Boolean =
         (resources.configuration.screenLayout and SCREENLAYOUT_SIZE_MASK) >=
             SCREENLAYOUT_SIZE_LARGE
-
-    // The loginQRCode is used to track whether or not we should be rendering a QR code
-    // to the user.  This is used only on TV platforms with no browser in lieu of
-    // simply opening the URL.  This should be consumed once it has been handled.
-    private val loginQRCode: StateFlow<String?> = MutableStateFlow(null)
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("SourceLockedOrientationActivity")
@@ -574,11 +568,6 @@ class MainActivity : ComponentActivity() {
                         //  setIntroScreenViewed(true)
                     }
                 }
-                // Login actions are app wide.  If we are told about a browse-to-url, we should render it
-                // over whatever screen we happen to be on.
-                loginQRCode.collectAsState().value?.let {
-                    LoginQRView(onDismiss = { loginQRCode.set(null) })
-                }
                 if (showPinDialog) {
                     PinEntryDialog(
                         onConfirm = { pin ->
@@ -604,10 +593,6 @@ class MainActivity : ComponentActivity() {
             }
         }
         handleMeshIntent(intent)
-    }
-
-    init {
-        lifecycleScope.launch { Notifier.loginFinished.collect { _ -> loginQRCode.set(null) } }
     }
 
     private fun showOtherVPNConflictDialog() {
