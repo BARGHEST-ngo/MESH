@@ -11,7 +11,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:9.1.0'
+        classpath 'com.android.tools.build:gradle:8.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath("com.ncorti.ktfmt.gradle:plugin:0.17.0")
@@ -163,6 +163,7 @@ dependencies {
     // Supporting libraries.
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("com.google.zxing:core:3.5.1")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0") { transitive = false }
     implementation("com.patrykandpatrick.vico:compose:1.15.0")
     implementation("com.patrykandpatrick.vico:compose-m3:1.15.0")
 

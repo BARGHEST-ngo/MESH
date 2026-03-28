@@ -43,7 +43,8 @@ data class MeshHomeNavigation(
     val onNavigateToAuthKey: () -> Unit,
     val onNavigateToCustomControl: () -> Unit,
     val onNavigateToMainView: () -> Unit,
-    val onNavigateToADBSetup: () -> Unit
+    val onNavigateToADBSetup: () -> Unit,
+    val onUploadQR: () -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -287,6 +288,8 @@ private fun ConnectionStepsSection(
     navigation: MeshHomeNavigation,
     isConnected: Boolean
 ) {
+    var showManual by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -302,24 +305,54 @@ private fun ConnectionStepsSection(
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            ConnectionStepButton(
-                text = stringResource(R.string.step_1_enable_adb),
-                onClick = navigation.onNavigateToADBSetup
-            )
-            ConnectionStepButton(
-                text = stringResource(R.string.step_2_control_server),
-                onClick = navigation.onNavigateToCustomControl
-            )
-            ConnectionStepButton(
-                text = stringResource(R.string.step_3_auth_key),
-                onClick = navigation.onNavigateToAuthKey
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(modifier = Modifier.weight(1f)) {
+                    ConnectionStepButton(
+                        text = "[ SCAN QR CODE ]",
+                        onClick = navigation.onUploadQR
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    ConnectionStepButton(
+                        text = stringResource(R.string.step_1_enable_adb),
+                        onClick = navigation.onNavigateToADBSetup
+                    )
+                }
+            }
+
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                color = Color.Transparent,
+                onClick = { showManual = !showManual }
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = if (showManual) "▲  manual setup" else "▼  manual setup",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            if (showManual) {
+                ConnectionStepButton(
+                    text = stringResource(R.string.step_2_control_server),
+                    onClick = navigation.onNavigateToCustomControl
+                )
+                ConnectionStepButton(
+                    text = stringResource(R.string.step_3_auth_key),
+                    onClick = navigation.onNavigateToAuthKey
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun ColumnScope.ConnectionStepButton(text: String, onClick: () -> Unit) {
+private fun ConnectionStepButton(text: String, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()

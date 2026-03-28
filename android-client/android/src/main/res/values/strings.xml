@@ -55,11 +55,11 @@
     <string name="connection_options">[ CONNECT ] </string>
     <string name="manage_connection">Manage your connection or add additional accounts</string>
     <string name="follow_steps_connect">Follow these steps to connect to an investigation machine</string>
-    <string name="step_1_enable_adb">> 1: Enable_ADB</string>
+    <string name="step_1_enable_adb">Enable_ADB</string>
     <string name="step_1_description">Enable ADB-over-WiFi</string>
-    <string name="step_2_control_server">> 2: Set Control_Server</string>
+    <string name="step_2_control_server">Set Control_Server</string>
     <string name="step_2_description">Connect to a control server</string>
-    <string name="step_3_auth_key">> 3: Set AUTH_KEY</string>
+    <string name="step_3_auth_key">Set AUTH_KEY</string>
     <string name="step_3_description">Use an auth key to join the MESH</string>
     <string name="control_server_status_description">Your custom control server connection status</string>
     <string name="set_to">Set to:</string>

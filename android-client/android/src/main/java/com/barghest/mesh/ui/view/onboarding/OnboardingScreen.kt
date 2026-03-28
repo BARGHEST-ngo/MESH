@@ -4,9 +4,25 @@
 package com.barghest.mesh.ui.view.onboarding
 
 import android.app.Activity
+import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
+import android.graphics.ImageDecoder
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
+import android.provider.MediaStore
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.NotFoundException
+import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.common.HybridBinarizer
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
@@ -66,11 +82,20 @@ private enum class QuizDialogPhase {
 }
 
 @Composable
-fun OnboardingScreen(onComplete: () -> Unit) {
+fun OnboardingScreen(
+    hasPendingIntent: Boolean = false,
+    onQRScanned: (String) -> Unit = {},
+    onComplete: () -> Unit,
+) {
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    var showPendingIntentNotice by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(hasPendingIntent) {
+        if (hasPendingIntent) showPendingIntentNotice = true
+    }
+    var showQRStep by rememberSaveable { mutableStateOf(false) }
     var showQuiz by rememberSaveable { mutableStateOf(false) }
     var showWarning by rememberSaveable { mutableStateOf(false) }
     var warningMessage by rememberSaveable { mutableStateOf("") }
@@ -82,6 +107,28 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         } else {
             scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
         }
+    }
+
+    if (showQRStep) {
+        QRScanStep(
+            onScanned = { uri ->
+                showQRStep = false
+                onQRScanned(uri)
+                onComplete()
+            },
+            onSkip = {
+                showQRStep = false
+                onComplete()
+            },
+        )
+    }
+
+    if (showPendingIntentNotice) {
+        WarningDialog(
+            message = "Your analyst has sent you a secure setup link. " +
+                "Complete onboarding and you will be prompted to enter a PIN to automatically join the network.",
+            onDismiss = { showPendingIntentNotice = false }
+        )
     }
 
     if (showQuiz) {
@@ -102,7 +149,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 showQuiz = false
                 if (answeredTrue) {
                     if (activeQuiz == 2) {
-                        onComplete()
+                        showQRStep = true
                     } else {
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
@@ -130,7 +177,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             onDismiss = {
                 showWarning = false
                 if (activeQuiz == 2) {
-                    onComplete()
+                    showQRStep = true
                 } else {
                     scope.launch {
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
@@ -197,6 +244,159 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                     )
                 ) {
                     Text(if (isLastPage) "Begin Session" else "Next")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QRScanStep(
+    onScanned: (String) -> Unit,
+    onSkip: () -> Unit,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var error by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val cameraScanner = rememberLauncherForActivityResult(ScanContract()) { result ->
+        when {
+            result.contents != null -> onScanned(result.contents)
+            else -> error = "Scan cancelled"
+        }
+    }
+
+    val imagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch(Dispatchers.IO) {
+            try {
+                val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    ImageDecoder.decodeBitmap(
+                        ImageDecoder.createSource(context.contentResolver, uri),
+                    ).copy(Bitmap.Config.ARGB_8888, false)
+                } else {
+                    @Suppress("DEPRECATION")
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                }
+                val pixels = IntArray(bitmap.width * bitmap.height)
+                bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+                val source = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
+                val result = MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source)))
+                withContext(Dispatchers.Main) { onScanned(result.text) }
+            } catch (e: NotFoundException) {
+                withContext(Dispatchers.Main) { error = "No QR code found in that image" }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { error = "Failed to read image" }
+            }
+        }
+    }
+
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false,
+        ),
+    ) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.Black),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "Join Network",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = JetBrainsMonoFamily,
+                    ),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = "Scan the QR code your analyst sent you to join the network automatically.",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = JetBrainsMonoFamily,
+                    ),
+                    color = Color.White.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                )
+                if (error != null) {
+                    Text(
+                        text = error!!,
+                        color = Color(0xFFE03131),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = JetBrainsMonoFamily,
+                        ),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = {
+                            error = null
+                            cameraScanner.launch(
+                                ScanOptions().apply {
+                                    setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                                    setPrompt("")
+                                    setBeepEnabled(false)
+                                    setOrientationLocked(false)
+                                }
+                            )
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text(
+                            "Camera",
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = JetBrainsMonoFamily,
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            error = null
+                            imagePicker.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                            )
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text(
+                            "Upload",
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = JetBrainsMonoFamily,
+                        )
+                    }
+                }
+                Button(
+                    onClick = onSkip,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White.copy(alpha = 0.6f),
+                    ),
+                ) {
+                    Text("Skip", fontFamily = JetBrainsMonoFamily)
                 }
             }
         }
