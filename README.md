@@ -52,8 +52,10 @@ Meshes are ephemeral and analyst-controlled: bring devices online, collect evide
 
 ## Architecture summary
 
-MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale). In Tailscale, DERP (Designated Encrypted Relay for Packets) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
+MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require Tailscale infrastructure. 
 
+To establish peer-2-peer, a end-to-end encrypted channel is established using UDP hole punching. If UDP is unavailable or blocked, it will fail over to E2EE HTTPs relays called DERP relays. In Tailscale, DERP (Designated Encrypted Relay for Packets) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
+ 
 MESH follows the same model. By default, if an operator has not configured their own DERP infrastructure (which can be done using MESH's control plane), MESH uses Tailscale’s public DERP servers to ensure reliable connectivity, particularly in restrictive network environments. However, MESH does not require Tailscale infrastructure: operators can deploy and use their own DERP servers via the control plane, which includes an embedded DERP implementation. This makes MESH fully self-hostable when desired.
 
 DERP servers act purely as transport relays. They facilitate connectivity between devices but do not have visibility into the data exchanged, which remains end-to-end encrypted.
