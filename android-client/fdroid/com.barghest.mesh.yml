@@ -14,9 +14,9 @@ Repo: https://github.com/BARGHEST-ngo/MESH
 Binaries: https://github.com/BARGHEST-ngo/MESH/releases/download/v%v/mesh-%v.apk
 
 Builds:
-  - versionName: 0.1.3-alpha
-    versionCode: 359
-    commit: 62249ac5a87a8a6877b58c30c1152ea3f9601716
+  - versionName: 0.1.4-alpha
+    versionCode: 360
+    commit: 25b5f47e1b7084c20f3b564f3b1e35667ca15784
     subdir: android-client/android
     submodules: true
     sudo:
@@ -42,5 +42,5 @@ AllowedAPKSigningKeys: 57ee4b4302bf4f6d5269588d6b4cf8160294c1500dba8c567ec0dfa96
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.1.3-alpha
-CurrentVersionCode: 359
+CurrentVersion: 0.1.4-alpha
+CurrentVersionCode: 360
