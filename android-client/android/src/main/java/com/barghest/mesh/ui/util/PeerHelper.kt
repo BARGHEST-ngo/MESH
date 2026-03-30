@@ -40,11 +40,6 @@ class PeerCategorizer {
       val userId = peer.User
       val profile = netmap.userProfile(userId)
 
-      // Mullvad nodes should not be shown in the peer list
-      if (peer.isMullvadNode) {
-        continue
-      }
-
       // Hide devices based on MDM settings
       if (hideMyDevices && userId == me?.ID) {
         continue

@@ -338,7 +338,7 @@ fun ExitNodeStatus(navAction: () -> Unit, viewModel: MainViewModel) {
   // don't have an active node.
   val chosenExitNodeId = prefs.activeExitNodeID ?: prefs.selectedExitNodeID
   val exitNodePeer = chosenExitNodeId?.let { id -> netmap?.Peers?.find { it.StableID == id } }
-  val name = exitNodePeer?.exitNodeName
+  val name = exitNodePeer?.displayName
   val managedByOrganization by viewModel.managedByOrganization.collectAsState()
   Box(
       modifier =

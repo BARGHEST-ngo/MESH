@@ -458,7 +458,7 @@ open class UninitializedApp : Application() {
      */
     fun getExitNodeName(prefs: Ipn.Prefs?, netmap: Netmap.NetworkMap?): String? {
       return prefs?.activeExitNodeID?.let { exitNodeID ->
-        netmap?.Peers?.find { it.StableID == exitNodeID }?.exitNodeName
+        netmap?.Peers?.find { it.StableID == exitNodeID }?.displayName
       }
     }
   }

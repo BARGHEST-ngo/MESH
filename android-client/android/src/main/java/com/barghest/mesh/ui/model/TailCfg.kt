@@ -20,7 +20,6 @@ import com.barghest.mesh.ui.theme.on
 import com.barghest.mesh.ui.util.ComposableStringFormatter
 import com.barghest.mesh.ui.util.DisplayAddress
 import com.barghest.mesh.ui.util.TimeUtil
-import com.barghest.mesh.ui.util.flag
 import com.barghest.mesh.ui.viewModel.PeerSettingInfo
 import java.util.Date
 import kotlinx.serialization.Serializable
@@ -114,27 +113,8 @@ class Tailcfg {
     val isExitNode: Boolean =
         (AllowedIPs?.contains("0.0.0.0/0") ?: false) && (AllowedIPs?.contains("::/0") ?: false)
 
-    // mullvad nodes are exit nodes with a mullvad.ts.net domain *or* Location Info.
-    // These checks are intentionally redundant to avoid false negatives.
-    val isMullvadNode: Boolean
-      get() =
-          Name.endsWith(".mullvad.ts.net") ||
-              ComputedName?.endsWith(".mullvad.ts.net") == true ||
-              Hostinfo.Location != null
-
     val displayName: String
       get() = ComputedName ?: Name
-
-    val exitNodeName: String
-      get() {
-        if (isMullvadNode &&
-            Hostinfo.Location?.Country != null &&
-            Hostinfo.Location?.City != null &&
-            Hostinfo.Location?.CountryCode != null) {
-          return "${Hostinfo.Location!!.CountryCode!!.flag()} ${Hostinfo.Location!!.Country!!}: ${Hostinfo.Location!!.City!!}"
-        }
-        return displayName
-      }
 
     val keyDoesNotExpire: Boolean
       get() = KeyExpiry == "0001-01-01T00:00:00Z"
