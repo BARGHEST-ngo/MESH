@@ -623,10 +623,6 @@ class MainActivity : ComponentActivity() {
         return false
     }
 
-    // Returns true if we should render a QR code instead of launching a browser
-    // for login requests
-    private fun useQRCodeLogin(): Boolean = AndroidTVUtil.isAndroidTV()
-
     private fun pinInput(onPinEntered: (String) -> Unit) {
         pinDialogCallback = onPinEntered
         showPinDialog = true
