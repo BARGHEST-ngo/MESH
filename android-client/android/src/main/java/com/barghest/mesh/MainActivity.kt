@@ -679,6 +679,18 @@ class MainActivity : ComponentActivity() {
                 }
             } catch (e: IllegalArgumentException) {
                 Log.e("MainActivity", "Invalid PIN format: $e")
+                withContext(Dispatchers.Main) {
+                    AlertDialog
+                        .Builder(this@MainActivity)
+                        .setTitle("Invalid PIN")
+                        .setMessage("The PIN format is invalid. Please check the PIN and try again.")
+                        .setPositiveButton("Try again") { _, _ ->
+                            pinInput { newPin ->
+                                attemptProvision(newPin, salt, iv, cipherText)
+                            }
+                        }.setNegativeButton("Cancel", null)
+                        .show()
+                }
             } catch (e: Exception) {
                 Log.e("MainActivity", "Decryption failed, wrong pin?: $e")
                 withContext(Dispatchers.Main) {
