@@ -51,7 +51,12 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
 		      return
         }
         try {
-          new URL(trimmedURL)
+          const parsed = new URL(trimmedURL)
+          if (parsed.protocol !== 'https:') {
+            setUrlError('Invalid URL format. Must start with https://')
+            console.error('Invalid URL format')
+            return
+          }
         } catch {
           setUrlError('Invalid URL format. Must start with https://')
           console.error('Invalid URL format')
