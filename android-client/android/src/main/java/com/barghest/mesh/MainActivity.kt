@@ -704,8 +704,20 @@ class MainActivity : ComponentActivity() {
                 Log.e("MainActivity", "mesh intent: missing payload")
                 return
             }
-        val decodedBlob = Base64.decode(blob, Base64.URL_SAFE or Base64.NO_WRAP)
-        require(decodedBlob.size >= 28) { "IntentURI blob incorrect size" }
+        val decodedBlob = try {
+            val decoded = Base64.decode(blob, Base64.URL_SAFE or Base64.NO_WRAP)
+            require(decoded.size >= 28) { "IntentURI blob incorrect size" }
+            decoded
+        } catch (e: Exception) {
+            Log.e("MainActivity", "mesh intent: malformed payload: $e")
+            AlertDialog
+                .Builder(this)
+                .setTitle("Invalid Link")
+                .setMessage("The MESH link appears to be malformed and cannot be processed.")
+                .setPositiveButton("Ok", null)
+                .show()
+            return
+        }
         val salt = decodedBlob.copyOfRange(0, 16)
         val iv = decodedBlob.copyOfRange(16, 28)
         val cipherText = decodedBlob.copyOfRange(28, decodedBlob.size)
