@@ -93,6 +93,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
 
     } catch (error) {
       console.error('Failed to generate key:', error)
+      setIntentError('Failed to generate key')
     }
   }
 
