@@ -17,6 +17,7 @@ fi
     --login-server="${LOGIN_URL}" \
     --auth-key="${AUTH_KEY}" \
     --accept-dns=false \
+    --reset \
     --timeout=10s \
     2>&1 | tee "${MESH_STATE_DIR}/meshcli.log"
 
