@@ -27,6 +27,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
+import android.util.Base64
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -34,7 +36,6 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -51,9 +52,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.core.net.toUri
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -65,28 +87,23 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.barghest.mesh.mdm.MDMSettings
 import com.barghest.mesh.mdm.ShowHide
-import com.barghest.mesh.ui.model.Ipn
 import com.barghest.mesh.ui.notifier.Notifier
 import com.barghest.mesh.ui.theme.AppTheme
 import com.barghest.mesh.ui.util.AndroidTVUtil
 import com.barghest.mesh.ui.util.set
 import com.barghest.mesh.ui.util.universalFit
 import com.barghest.mesh.ui.view.ADBSetup
-import com.barghest.mesh.ui.view.onboarding.OnboardingScreen
-import com.barghest.mesh.ui.view.AboutView
 import com.barghest.mesh.ui.view.AWGSettingsView
-import com.barghest.mesh.ui.view.DeviceInfoView
+import com.barghest.mesh.ui.view.AboutView
 import com.barghest.mesh.ui.view.DNSSettingsView
+import com.barghest.mesh.ui.view.DeviceInfoView
 import com.barghest.mesh.ui.view.ExitNodePicker
 import com.barghest.mesh.ui.view.HealthView
-import com.barghest.mesh.ui.view.LoginQRView
 import com.barghest.mesh.ui.view.LoginWithAuthKeyView
 import com.barghest.mesh.ui.view.LoginWithCustomControlURLView
 import com.barghest.mesh.ui.view.MDMSettingsDebugView
 import com.barghest.mesh.ui.view.MainView
 import com.barghest.mesh.ui.view.MainViewNavigation
-import com.barghest.mesh.ui.view.MeshHomeNavigation
-import com.barghest.mesh.ui.view.MeshHomeView
 import com.barghest.mesh.ui.view.MullvadExitNodePicker
 import com.barghest.mesh.ui.view.MullvadExitNodePickerList
 import com.barghest.mesh.ui.view.MullvadInfoView
@@ -104,8 +121,11 @@ import com.barghest.mesh.ui.view.TaildropDirectoryPickerPrompt
 import com.barghest.mesh.ui.view.TailnetLockSetupView
 import com.barghest.mesh.ui.view.UserSwitcherNav
 import com.barghest.mesh.ui.view.UserSwitcherView
+import com.barghest.mesh.ui.view.onboarding.OnboardingScreen
+import com.barghest.mesh.ui.view.onboarding.QRScanStep
 import com.barghest.mesh.ui.viewModel.AppViewModel
 import com.barghest.mesh.ui.viewModel.ExitNodePickerNav
+import com.barghest.mesh.ui.viewModel.LoginWithAuthKeyViewModel
 import com.barghest.mesh.ui.viewModel.MainViewModel
 import com.barghest.mesh.ui.viewModel.MainViewModelFactory
 import com.barghest.mesh.ui.viewModel.PermissionsViewModel
@@ -115,14 +135,15 @@ import com.barghest.mesh.util.ShareFileHelper
 import com.barghest.mesh.util.TSLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.nio.Buffer
-
 
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
@@ -137,28 +158,28 @@ class MainActivity : ComponentActivity() {
         private const val START_AT_ROOT = "startAtRoot"
     }
 
-    private fun Context.isLandscapeCapable(): Boolean {
-        return (resources.configuration.screenLayout and SCREENLAYOUT_SIZE_MASK) >=
-                SCREENLAYOUT_SIZE_LARGE
-    }
+    private var pendingMeshAction: (() -> Unit)? = null
+    private var hasPendingMeshIntent by mutableStateOf(false)
+    private var showPinDialog by mutableStateOf(false)
+    private var pinDialogCallback: ((String) -> Unit)? = null
+    private var showQRScanFromHome by mutableStateOf(false)
 
-    // The loginQRCode is used to track whether or not we should be rendering a QR code
-    // to the user.  This is used only on TV platforms with no browser in lieu of
-    // simply opening the URL.  This should be consumed once it has been handled.
-    private val loginQRCode: StateFlow<String?> = MutableStateFlow(null)
+    private fun Context.isLandscapeCapable(): Boolean =
+        (resources.configuration.screenLayout and SCREENLAYOUT_SIZE_MASK) >=
+            SCREENLAYOUT_SIZE_LARGE
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+	
         // grab app to make sure it initializes
         App.get()
         appViewModel = (application as App).getAppScopedViewModel()
         viewModel =
             ViewModelProvider(
                 this,
-                MainViewModelFactory(appViewModel)
+                MainViewModelFactory(appViewModel),
             ).get(MainViewModel::class.java)
 
         val rm = getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
@@ -188,13 +209,13 @@ class MainActivity : ComponentActivity() {
                         TSLog.d("VpnPermission", "Permission was denied by the user")
                         appViewModel.setVpnPrepared(false)
 
-                        AlertDialog.Builder(this)
+                        AlertDialog
+                            .Builder(this)
                             .setTitle(R.string.vpn_permission_needed)
                             .setMessage(R.string.vpn_explainer)
                             .setPositiveButton(R.string.try_again) { _, _ ->
                                 viewModel.showVPNPermissionLauncherIfUnauthorized()
-                            }
-                            .setNegativeButton(R.string.cancel, null)
+                            }.setNegativeButton(R.string.cancel, null)
                             .show()
                     }
                 }
@@ -207,7 +228,7 @@ class MainActivity : ComponentActivity() {
                         // Try to take persistable permissions for both read and write.
                         contentResolver.takePersistableUriPermission(
                             uri,
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
                         )
                     } catch (e: SecurityException) {
                         TSLog.e("MainActivity", "Failed to persist permissions: $e")
@@ -218,7 +239,7 @@ class MainActivity : ComponentActivity() {
                             uri,
                             Process.myPid(),
                             Process.myUid(),
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
                         )
                     if (writePermission == PackageManager.PERMISSION_GRANTED) {
                         TSLog.d("MainActivity", "Write permission granted for $uri")
@@ -236,14 +257,14 @@ class MainActivity : ComponentActivity() {
                     } else {
                         TSLog.d(
                             "MainActivity",
-                            "Write access not granted for $uri. Falling back to internal storage."
+                            "Write access not granted for $uri. Falling back to internal storage.",
                         )
                         // Don't save directory URI and fall back to internal storage.
                     }
                 } else {
                     TSLog.d(
                         "MainActivity",
-                        "Taildrop directory not saved. Will fall back to internal storage."
+                        "Taildrop directory not saved. Will fall back to internal storage.",
                     )
                     // Fall back to internal storage.
                 }
@@ -251,8 +272,8 @@ class MainActivity : ComponentActivity() {
 
         appViewModel.directoryPickerLauncher = directoryPickerLauncher
 
-        //Check if device is rooted and alert if so
-        //We do not want to abort, but we do want the analyst to be able to decide what to do next
+        // Check if device is rooted and alert if so
+        // We do not want to abort, but we do want the analyst to be able to decide what to do next
         val rooted = RootUtil.isDeviceRooted
         val builder = AlertDialog.Builder(this)
 
@@ -287,18 +308,22 @@ class MainActivity : ComponentActivity() {
                                 onClick = {
                                     showDialog = false
                                     appViewModel.directoryPickerLauncher?.launch(null)
-                                }) {
+                                },
+                            ) {
                                 Text(text = stringResource(id = R.string.taildrop_directory_picker_button))
                             }
-                        })
+                        },
+                    )
                 }
             }
 
             navController = rememberNavController()
 
             AppTheme {
-                Surface(color = MaterialTheme.colorScheme.inverseSurface) { // Background for the letterbox
-                    Surface(modifier = Modifier.universalFit()) { // Letterbox for AndroidTV
+                Surface(color = MaterialTheme.colorScheme.inverseSurface) {
+                    // Background for the letterbox
+                    Surface(modifier = Modifier.universalFit()) {
+                        // Letterbox for AndroidTV
                         val startDest = if (isIntroScreenViewedSet()) "main" else "onboarding"
                         NavHost(
                             navController = navController,
@@ -306,50 +331,60 @@ class MainActivity : ComponentActivity() {
                             enterTransition = {
                                 slideInHorizontally(
                                     animationSpec = tween(250, easing = LinearOutSlowInEasing),
-                                    initialOffsetX = { it }) +
-                                        fadeIn(
-                                            animationSpec = tween(
+                                    initialOffsetX = { it },
+                                ) +
+                                    fadeIn(
+                                        animationSpec =
+                                            tween(
                                                 500,
-                                                easing = LinearOutSlowInEasing
-                                            )
-                                        )
+                                                easing = LinearOutSlowInEasing,
+                                            ),
+                                    )
                             },
                             exitTransition = {
                                 slideOutHorizontally(
                                     animationSpec = tween(250, easing = LinearOutSlowInEasing),
-                                    targetOffsetX = { -it }) +
-                                        fadeOut(
-                                            animationSpec = tween(
+                                    targetOffsetX = { -it },
+                                ) +
+                                    fadeOut(
+                                        animationSpec =
+                                            tween(
                                                 500,
-                                                easing = LinearOutSlowInEasing
-                                            )
-                                        )
+                                                easing = LinearOutSlowInEasing,
+                                            ),
+                                    )
                             },
                             popEnterTransition = {
                                 slideInHorizontally(
                                     animationSpec = tween(250, easing = LinearOutSlowInEasing),
-                                    initialOffsetX = { -it }) +
-                                        fadeIn(
-                                            animationSpec = tween(
+                                    initialOffsetX = { -it },
+                                ) +
+                                    fadeIn(
+                                        animationSpec =
+                                            tween(
                                                 500,
-                                                easing = LinearOutSlowInEasing
-                                            )
-                                        )
+                                                easing = LinearOutSlowInEasing,
+                                            ),
+                                    )
                             },
                             popExitTransition = {
                                 slideOutHorizontally(
                                     animationSpec = tween(250, easing = LinearOutSlowInEasing),
-                                    targetOffsetX = { it }) +
-                                        fadeOut(
-                                            animationSpec = tween(
+                                    targetOffsetX = { it },
+                                ) +
+                                    fadeOut(
+                                        animationSpec =
+                                            tween(
                                                 500,
-                                                easing = LinearOutSlowInEasing
-                                            )
-                                        )
-                            }) {
-                            fun backTo(route: String): () -> Unit = {
-                                navController.popBackStack(route = route, inclusive = false)
-                            }
+                                                easing = LinearOutSlowInEasing,
+                                            ),
+                                    )
+                            },
+                        ) {
+                            fun backTo(route: String): () -> Unit =
+                                {
+                                    navController.popBackStack(route = route, inclusive = false)
+                                }
 
                             val mainViewNav =
                                 MainViewNavigation(
@@ -366,7 +401,9 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToAuthKey = { navController.navigate("loginWithAuthKey") },
                                     onNavigateToCustomControl = { navController.navigate("loginWithCustomControl") },
                                     onNavigateToADBSetup = { navController.navigate("ADBSetup") },
-                                    onNavigateToDeviceInfo = { navController.navigate("deviceInfo") })
+                                    onNavigateToDeviceInfo = { navController.navigate("deviceInfo") },
+                                    onUploadQR = { showQRScanFromHome = true },
+                                )
                             val settingsNav =
                                 SettingsNav(
                                     onNavigateToBugReport = { navController.navigate("bugReport") },
@@ -381,14 +418,14 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToPermissions = { navController.navigate("permissions") },
                                     onNavigateToAWGSettings = { navController.navigate("awgSettings") },
                                     onBackToSettings = backTo("settings"),
-                                    onNavigateBackHome = backTo("main")
+                                    onNavigateBackHome = backTo("main"),
                                 )
                             val exitNodePickerNav =
                                 ExitNodePickerNav(
                                     onNavigateBackHome = {
                                         navController.popBackStack(
                                             route = "main",
-                                            inclusive = false
+                                            inclusive = false,
                                         )
                                     },
                                     onNavigateBackToExitNodes = backTo("exitNodes"),
@@ -396,20 +433,22 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToMullvadInfo = { navController.navigate("mullvad_info") },
                                     onNavigateBackToMullvad = backTo("mullvad"),
                                     onNavigateToMullvadCountry = { navController.navigate("mullvad/$it") },
-                                    onNavigateToRunAsExitNode = { navController.navigate("runExitNode") })
+                                    onNavigateToRunAsExitNode = { navController.navigate("runExitNode") },
+                                )
                             val userSwitcherNav =
                                 UserSwitcherNav(
                                     backToSettings = backTo("settings"),
-                                    onNavigateHome = backTo("main")
+                                    onNavigateHome = backTo("main"),
                                 )
                             composable(
                                 "main",
-                                enterTransition = { fadeIn(animationSpec = tween(150)) }) {
+                                enterTransition = { fadeIn(animationSpec = tween(150)) },
+                            ) {
                                 MainView(
                                     loginAtUrl = { _ -> },
                                     navigation = mainViewNav,
                                     viewModel = viewModel,
-                                    appViewModel = appViewModel
+                                    appViewModel = appViewModel,
                                 )
                             }
                             composable("search") {
@@ -418,7 +457,7 @@ class MainActivity : ComponentActivity() {
                                     viewModel = viewModel,
                                     navController = navController,
                                     onNavigateBack = { navController.popBackStack() },
-                                    autoFocus = autoFocus
+                                    autoFocus = autoFocus,
                                 )
                             }
                             composable("settings") {
@@ -431,23 +470,27 @@ class MainActivity : ComponentActivity() {
                             composable(
                                 "mullvad/{countryCode}",
                                 arguments =
-                                    listOf(navArgument("countryCode") { type = NavType.StringType })
+                                    listOf(navArgument("countryCode") { type = NavType.StringType }),
                             ) {
                                 MullvadExitNodePicker(
-                                    it.arguments!!.getString("countryCode")!!, exitNodePickerNav
+                                    it.arguments!!.getString("countryCode")!!,
+                                    exitNodePickerNav,
                                 )
                             }
                             composable("runExitNode") { RunExitNodeView(exitNodePickerNav) }
                             composable(
                                 "peerDetails/{nodeId}",
-                                arguments = listOf(navArgument("nodeId") {
-                                    type = NavType.StringType
-                                })
+                                arguments =
+                                    listOf(
+                                        navArgument("nodeId") {
+                                            type = NavType.StringType
+                                        },
+                                    ),
                             ) {
                                 PeerDetails(
                                     { navController.popBackStack() },
                                     it.arguments?.getString("nodeId") ?: "",
-                                    PingViewModel()
+                                    PingViewModel(),
                                 )
                             }
                             composable("dnsSettings") { DNSSettingsView(backTo("settings")) }
@@ -462,14 +505,14 @@ class MainActivity : ComponentActivity() {
                                 PermissionsView(
                                     backTo("settings"),
                                     { navController.navigate("taildropDir") },
-                                    { navController.navigate("notifications") })
+                                    { navController.navigate("notifications") },
+                                )
                             }
                             composable("taildropDir") {
                                 TaildropDirView(
-
                                     backTo("permissions"),
                                     directoryPickerLauncher,
-                                    permissionsViewModel
+                                    permissionsViewModel,
                                 )
                             }
                             composable("notifications") {
@@ -478,64 +521,90 @@ class MainActivity : ComponentActivity() {
                             composable("loginWithAuthKey") {
                                 LoginWithAuthKeyView(
                                     onNavigateHome = backTo("main"),
-                                    backToSettings = backTo("main")
+                                    backToSettings = backTo("main"),
                                 )
                             }
                             composable("onboarding") {
-                                OnboardingScreen(onComplete = {
-                                    setIntroScreenViewed(true)
-                                    navController.navigate("main") {
-                                        popUpTo("onboarding") { inclusive = true }
-                                    }
-                                })
+                                OnboardingScreen(
+                                    hasPendingIntent = hasPendingMeshIntent,
+                                    onQRScanned = { uri ->
+                                        handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+                                    },
+                                    onComplete = {
+                                        setIntroScreenViewed(true)
+                                        navController.navigate("main") {
+                                            popUpTo("onboarding") { inclusive = true }
+                                        }
+                                        val action = pendingMeshAction
+                                        pendingMeshAction = null
+                                        hasPendingMeshIntent = false
+                                        lifecycleScope.launch {
+                                            delay(400)
+                                            action?.invoke()
+                                        }
+                                    },
+                                )
                             }
                             composable("ADBSetup") {
                                 ADBSetup(
                                     onNavigateHome = {
                                         navController.navigate("main")
-                                    }
+                                    },
                                 )
                             }
                             composable("loginWithCustomControl") {
                                 LoginWithCustomControlURLView(
                                     onNavigateHome = backTo("main"),
                                     backToSettings = backTo("main"),
-                                    onNavigateToAuthKey = { navController.navigate("loginWithAuthKey") }
+                                    onNavigateToAuthKey = { navController.navigate("loginWithAuthKey") },
                                 )
                             }
                             composable("deviceInfo") {
                                 DeviceInfoView(backTo("main"))
                             }
-
                         }
-                        //if (isIntroScreenViewedSet()) {
+                        // if (isIntroScreenViewedSet()) {
                         // navController.navigate("intro")
                         //  setIntroScreenViewed(true)
                     }
                 }
-                // Login actions are app wide.  If we are told about a browse-to-url, we should render it
-                // over whatever screen we happen to be on.
-                loginQRCode.collectAsState().value?.let {
-                    LoginQRView(onDismiss = { loginQRCode.set(null) })
+                if (showPinDialog) {
+                    PinEntryDialog(
+                        onConfirm = { pin ->
+                            showPinDialog = false
+                            pinDialogCallback?.invoke(pin)
+                            pinDialogCallback = null
+                        },
+                        onDismiss = {
+                            showPinDialog = false
+                            pinDialogCallback = null
+                        },
+                    )
+                }
+                if (showQRScanFromHome) {
+                    QRScanStep(
+                        onScanned = { uri ->
+                            showQRScanFromHome = false
+                            handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+                        },
+                        onSkip = { showQRScanFromHome = false },
+                    )
                 }
             }
         }
-    }
-
-    init {
-        lifecycleScope.launch { Notifier.loginFinished.collect { _ -> loginQRCode.set(null) } }
+        handleMeshIntent(intent)
     }
 
     private fun showOtherVPNConflictDialog() {
-        AlertDialog.Builder(this)
+        AlertDialog
+            .Builder(this)
             .setTitle(R.string.vpn_permission_denied)
             .setMessage(R.string.multiple_vpn_explainer)
             .setPositiveButton(R.string.go_to_settings) { _, _ ->
                 // Intent to open the VPN settings
                 val intent = Intent(Settings.ACTION_VPN_SETTINGS)
                 startActivity(intent)
-            }
-            .setNegativeButton(R.string.cancel, null)
+            }.setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -554,30 +623,133 @@ class MainActivity : ComponentActivity() {
         return false
     }
 
-    // Returns true if we should render a QR code instead of launching a browser
-    // for login requests
-    private fun useQRCodeLogin(): Boolean {
-        return AndroidTVUtil.isAndroidTV()
+    private fun pinInput(onPinEntered: (String) -> Unit) {
+        pinDialogCallback = onPinEntered
+        showPinDialog = true
+    }
+
+    private fun attemptProvision(
+        pin: String,
+        salt: ByteArray,
+        iv: ByteArray,
+        cipherText: ByteArray,
+    ) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val jsonString = IntentCrypto.decrypt(pin, salt, iv, cipherText)
+                val json = JSONObject(jsonString)
+                val key = json.getString("key")
+                val url = json.getString("url")
+                // TODO: instantiate via ViewModelProvider(this) to tie viewModelScope to lifecycle after testing
+                val vm = LoginWithAuthKeyViewModel()
+                vm.loginWithCustomControlURL(url) { result ->
+                    result.onSuccess {
+                        vm.loginWithAuthKey(key) { authResult ->
+                            authResult.onSuccess {
+                                lifecycleScope.launch(Dispatchers.Main) {
+                                    viewModel.showVPNPermissionLauncherIfUnauthorized()
+                                }
+                            }
+                            authResult.onFailure {
+                                Log.e("MainActivity", "loginWithAuthKey failed: $it")
+                                lifecycleScope.launch(Dispatchers.Main) {
+                                    AlertDialog
+                                        .Builder(this@MainActivity)
+                                        .setMessage("Automatic setup failed, please enter your control URL and auth key manually")
+                                        .setPositiveButton("Ok", null)
+                                        .show()
+                                }
+                            }
+                        }
+                    }
+                    result.onFailure {
+                        Log.e("MainActivity", "loginWithCustomControlURL failed: $it")
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            AlertDialog
+                                .Builder(this@MainActivity)
+                                .setMessage("Automatic setup failed, please enter your control URL and auth key manually")
+                                .setPositiveButton("Ok", null)
+                                .show()
+                        }
+                    }
+                }
+            } catch (e: IllegalArgumentException) {
+                Log.e("MainActivity", "Invalid PIN format: $e")
+                withContext(Dispatchers.Main) {
+                    AlertDialog
+                        .Builder(this@MainActivity)
+                        .setTitle("Invalid PIN")
+                        .setMessage("The PIN format is invalid. Please check the PIN and try again.")
+                        .setPositiveButton("Try again") { _, _ ->
+                            pinInput { newPin ->
+                                attemptProvision(newPin, salt, iv, cipherText)
+                            }
+                        }.setNegativeButton("Cancel", null)
+                        .show()
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Decryption failed, wrong pin?: $e")
+                withContext(Dispatchers.Main) {
+                    AlertDialog
+                        .Builder(this@MainActivity)
+                        .setTitle("Wrong PIN")
+                        .setMessage("Decryption failed, please try again")
+                        .setPositiveButton("Try again") { _, _ ->
+                            pinInput { newPin ->
+                                attemptProvision(newPin, salt, iv, cipherText)
+                            }
+                        }.setNegativeButton("Cancel", null)
+                        .show()
+                }
+            }
+        }
+    }
+
+    private fun handleMeshIntent(intent: Intent) {
+        if (intent.action != Intent.ACTION_VIEW || intent.data?.scheme != "mesh") return
+        val blob =
+            intent.data?.getQueryParameter("d") ?: run {
+                Log.e("MainActivity", "mesh intent: missing payload")
+                return
+            }
+        val decodedBlob = try {
+            val decoded = Base64.decode(blob, Base64.URL_SAFE or Base64.NO_WRAP)
+            require(decoded.size >= 28) { "IntentURI blob incorrect size" }
+            decoded
+        } catch (e: Exception) {
+            Log.e("MainActivity", "mesh intent: malformed payload: $e")
+            AlertDialog
+                .Builder(this)
+                .setTitle("Invalid Link")
+                .setMessage("The MESH link appears to be malformed and cannot be processed.")
+                .setPositiveButton("Ok", null)
+                .show()
+            return
+        }
+        val salt = decodedBlob.copyOfRange(0, 16)
+        val iv = decodedBlob.copyOfRange(16, 28)
+        val cipherText = decodedBlob.copyOfRange(28, decodedBlob.size)
+        val action = { pinInput { pin -> attemptProvision(pin, salt, iv, cipherText) } }
+        if (!isIntroScreenViewedSet()) {
+            pendingMeshAction = action
+            hasPendingMeshIntent = true
+            return
+        }
+        action()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        handleMeshIntent(intent)
         if (intent.getBooleanExtra(START_AT_ROOT, false)) {
             if (this::navController.isInitialized) {
                 val previousEntry = navController.previousBackStackEntry
                 TSLog.d("MainActivity", "onNewIntent: previousBackStackEntry = $previousEntry")
-                if (this::navController.isInitialized) {
-                    val previousEntry = navController.previousBackStackEntry
-                    TSLog.d("MainActivity", "onNewIntent: previousBackStackEntry = $previousEntry")
-                    if (previousEntry != null) {
-                        navController.popBackStack(route = "main", inclusive = false)
-                    } else {
-                        TSLog.e(
-                            "MainActivity",
-                            "onNewIntent: No previous back stack entry, navigating directly to 'main'"
-                        )
-                        navController.navigate("main") { popUpTo("main") { inclusive = true } }
-                    }
+                if (previousEntry != null) {
+                    navController.popBackStack(route = "main", inclusive = false)
+                } else {
+                    TSLog.e("MainActivity", "onNewIntent: No previous back stack entry, navigating directly to 'main'")
+                    navController.navigate("main") { popUpTo("main") { inclusive = true } }
                 }
             }
         }
@@ -587,14 +759,24 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         val restrictionsManager =
             this.getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
-        lifecycleScope.launch(Dispatchers.IO) { MDMSettings.update(App.get(), restrictionsManager) }
+        lifecycleScope.launch(Dispatchers.IO) {
+            MDMSettings.update(
+                App.get(),
+                restrictionsManager,
+            )
+        }
     }
 
     override fun onStop() {
         super.onStop()
         val restrictionsManager =
             this.getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
-        lifecycleScope.launch(Dispatchers.IO) { MDMSettings.update(App.get(), restrictionsManager) }
+        lifecycleScope.launch(Dispatchers.IO) {
+            MDMSettings.update(
+                App.get(),
+                restrictionsManager,
+            )
+        }
     }
 
     private fun openApplicationSettings() {
@@ -606,10 +788,9 @@ class MainActivity : ComponentActivity() {
         startActivity(intent)
     }
 
-    private fun isIntroScreenViewedSet(): Boolean {
-        return getSharedPreferences("introScreen", Context.MODE_PRIVATE)
+    private fun isIntroScreenViewedSet(): Boolean =
+        getSharedPreferences("introScreen", Context.MODE_PRIVATE)
             .getBoolean("seen", false)
-    }
 
     private fun setIntroScreenViewed(seen: Boolean) {
         getSharedPreferences("introScreen", Context.MODE_PRIVATE)
@@ -619,16 +800,128 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-class VpnPermissionContract : ActivityResultContract<Intent, Boolean>() {
-    override fun createIntent(context: Context, input: Intent): Intent {
-        return input
-    }
+@Composable
+private fun PinEntryDialog(
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var pin by remember { mutableStateOf("") }
+    var isError by remember { mutableStateOf(false) }
 
-    override fun parseResult(resultCode: Int, intent: Intent?): Boolean {
-        return resultCode == Activity.RESULT_OK
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false),
+    ) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.Black),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "PIN Required",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                    ),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = "Enter the 6-digit PIN your analyst read to you",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Monospace,
+                    ),
+                    color = Color.White.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                )
+                OutlinedTextField(
+                    value = pin,
+                    onValueChange = { input ->
+                        if (input.length <= 6 && input.all { it.isDigit() }) {
+                            pin = input
+                            isError = false
+                        }
+                    },
+                    singleLine = true,
+                    isError = isError,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            "000000",
+                            fontFamily = FontFamily.Monospace,
+                            color = Color.White.copy(alpha = 0.3f),
+                        )
+                    },
+                )
+                if (isError) {
+                    Text(
+                        text = "Must be exactly 6 digits",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = FontFamily.Monospace,
+                        ),
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text("Cancel", fontFamily = FontFamily.Monospace)
+                    }
+                    Button(
+                        onClick = {
+                            if (pin.length == 6) {
+                                onConfirm(pin)
+                            } else {
+                                isError = true
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            contentColor = Color.White,
+                        ),
+                    ) {
+                        Text(
+                            "Confirm",
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = FontFamily.Monospace,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
+class VpnPermissionContract : ActivityResultContract<Intent, Boolean>() {
+    override fun createIntent(
+        context: Context,
+        input: Intent,
+    ): Intent = input
+
+    override fun parseResult(
+        resultCode: Int,
+        intent: Intent?,
+    ): Boolean = resultCode == Activity.RESULT_OK
+}
+
+// /TODO utilise this, this should also move to outside of main
 object RootUtil {
     val isDeviceRooted: Boolean
         get() = checkTags() || checkCommonBinaries() || runtimeCheck() || isSELinuxEnforcing()
@@ -639,32 +932,33 @@ object RootUtil {
     }
 
     private fun checkCommonBinaries(): Boolean {
-        val paths = arrayOf(
-            "/system/app/Superuser.apk",
-            "/sbin/su",
-            "/system/bin/su",
-            "/system/xbin/su",
-            "/data/local/xbin/su",
-            "/data/local/bin/su",
-            "/system/sd/xbin/su",
-            "/system/bin/failsafe/su",
-            "/data/local/su",
-            "/su/bin/su"
-        )
+        val paths =
+            arrayOf(
+                "/system/app/Superuser.apk",
+                "/sbin/su",
+                "/system/bin/su",
+                "/system/xbin/su",
+                "/data/local/xbin/su",
+                "/data/local/bin/su",
+                "/system/sd/xbin/su",
+                "/system/bin/failsafe/su",
+                "/data/local/su",
+                "/su/bin/su",
+            )
         return paths.any { File(it).exists() }
     }
 
-    private fun runtimeCheck(): Boolean {
-        return try {
-            val process = Runtime.getRuntime().exec(arrayOf("/system/xbin/which", "su"))
+    private fun runtimeCheck(): Boolean =
+        try {
+            val process =
+                Runtime.getRuntime().exec(arrayOf("/system/xbin/which", "su"))
             BufferedReader(InputStreamReader(process.inputStream)).use { it.readLine() != null }
         } catch (_: Throwable) {
             false
         }
-    }
 
-    private fun isSELinuxEnforcing(): Boolean {
-        return try {
+    private fun isSELinuxEnforcing(): Boolean =
+        try {
             val process = Runtime.getRuntime().exec("getenforce")
             val result =
                 BufferedReader(InputStreamReader(process.inputStream)).use { it.readLine() }
@@ -672,11 +966,15 @@ object RootUtil {
         } catch (e: Exception) {
             try {
                 val enforceFile = File("/sys/fs/selinux/enforce")
-                if (enforceFile.exists()) enforceFile.readText().trim() == "1" else false
+                if (enforceFile.exists()) {
+                    enforceFile
+                        .readText()
+                        .trim() == "1"
+                } else {
+                    false
+                }
             } catch (_: Exception) {
                 false
             }
         }
-    }
 }
-
