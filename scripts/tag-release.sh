@@ -169,6 +169,24 @@ go tool yq eval -i '
   .CurrentVersion = strenv(FDROID_VERSION_NAME) |
   .CurrentVersionCode = (strenv(FDROID_VERSION_CODE) | tonumber)
 ' "$FDROID_YML"
+
+# -- Post-process: insert a blank line between Builds entries. fdroiddata CI
+#    runs `fdroid rewritemeta` in check mode, which requires one blank line
+#    between each Builds entry, but yq strips all blank lines on emit. We fix
+#    it with a minimal awk pass rather than shelling out to `fdroid rewritemeta`
+#    (heavy fdroidserver dependency + makes additional unwanted formatting
+#    changes). Only inserts blank lines inside the Builds: section — the exit
+#    rule /^[A-Za-z]/ catches the next top-level key.
+awk '
+  /^Builds:/ { in_builds = 1; first_entry = 1; print; next }
+  in_builds && /^[A-Za-z]/ { in_builds = 0 }
+  in_builds && /^  - versionName:/ {
+    if (!first_entry) print ""
+    first_entry = 0
+  }
+  { print }
+' "$FDROID_YML" > "$FDROID_YML.tmp" && mv "$FDROID_YML.tmp" "$FDROID_YML"
+
 echo "    fdroid yml: appended Builds entry (commit: $TAG), updated CurrentVersion"
 
 # -- Sanity: only the three expected files should be dirty
