@@ -22,7 +22,8 @@
 #   MESH_SKIP_REMOTE_CHECK=1  skip the network-based remote check (offline mode)
 #
 # Prerequisites:
-#   - yq v4 (mikefarah): go install github.com/mikefarah/yq/v4@latest
+#   - Go toolchain (yq is declared as a Go tool dependency in go.mod and
+#     invoked via `go tool yq`; first use builds and caches the binary)
 #   - Standard Unix tools: git, make, awk, grep, printf
 #   - The `task` CLI (go-task) — already required to invoke via Taskfile
 
@@ -74,9 +75,9 @@ require_cmd make
 require_cmd awk
 require_cmd grep
 require_cmd task
-require_cmd yq
-yq --version 2>&1 | grep -qE 'version v?4\.' \
-  || die "yq v4 (mikefarah) required. Install: go install github.com/mikefarah/yq/v4@latest"
+require_cmd go
+go tool yq --version 2>&1 | grep -qE 'version v?4\.' \
+  || die "go tool yq is not available or not v4. yq is declared in go.mod's tool directive — run 'go mod download' if this is a fresh clone."
 
 # 3. Working tree clean (ignore untracked so stray dotfiles don't block)
 [ -z "$(git status --porcelain --untracked-files=no)" ] \
@@ -159,7 +160,7 @@ echo "    barghest.version rewritten (VERSION_LONG=$LONG)"
 export FDROID_VERSION_NAME="$LONG"
 export FDROID_VERSION_CODE="$NEW_CODE"
 export FDROID_COMMIT_REF="$TAG"
-yq eval -i '
+go tool yq eval -i '
   .Builds = .Builds + [(.Builds[-1] * {
     "versionName": strenv(FDROID_VERSION_NAME),
     "versionCode": (strenv(FDROID_VERSION_CODE) | tonumber),
