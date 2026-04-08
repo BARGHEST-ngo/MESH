@@ -34,7 +34,7 @@
 
 **MESH enables remote wireless debugging for mobile devices, providing mobile forensics & network monitoring over an encrypted, censorship-resistant peer-to-peer mesh network.**
 
-Mobile devices are often placed behind carrier-grade NAT (CGNAT), firewalls, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics typically requires centralized VPN servers or risky port-forwarding.
+Mobile devices are often placed behind NAT, firewalls, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics typically requires centralized VPN servers or risky port-forwarding.
 
 MESH Forensics solves this by creating an encrypted peer-to-peer overlay and assigning each node a CGNAT-range address via a virtual TUN interface. Devices appear as if they are on the same local subnet — even when geographically distant or behind multiple NAT layers.
 
