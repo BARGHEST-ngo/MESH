@@ -115,7 +115,7 @@ https://docs.meshforensics.org/
 
 ```
 git clone https://github.com/BARGHEST-ngo/mesh.git
-cd mesh/control-plane
+cd MESH
 ```
 
 ### 2. Start control plane and get an API key
