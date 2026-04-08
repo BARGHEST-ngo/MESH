@@ -54,7 +54,7 @@ Meshes are ephemeral and analyst-controlled: bring devices online, collect evide
 
 MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require Tailscale infrastructure. 
 
-To establish peer-2-peer, a end-to-end encrypted channel is created using UDP hole punching. If UDP is unavailable or blocked, it will fail over to E2EE HTTPs relays called DERP relays. In Tailscale, [DERP (Designated Encrypted Relay for Packets)](https://github.com/tailscale/tailscale/tree/main/derp) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
+To establish peer-to-peer, end-to-end encrypted channel is created using UDP hole punching. If UDP is unavailable or blocked, it will fail over to E2EE HTTPs relays called DERP relays. The DERP protocol [DERP (Designated Encrypted Relay for Packets)](https://github.com/tailscale/tailscale/tree/main/derp) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
  
 MESH follows the same model. By default, if an operator has not configured their own DERP infrastructure (which can be done using MESH's control plane), MESH uses Tailscale’s public DERP servers to ensure reliable connectivity, particularly in restrictive network environments. However, MESH does not require Tailscale infrastructure: operators can deploy and use their own DERP servers via the control plane, which includes an embedded DERP implementation. This makes MESH fully self-hostable when desired.
 
@@ -106,7 +106,7 @@ MESH separates coordination from data transport:
 
 MESH is optimized for transient, high-risk environments rather than permanent enterprise networking.
 
-## Getting started
+## Quick start
 
 For full documentation:  
 https://docs.meshforensics.org/
@@ -118,28 +118,23 @@ git clone https://github.com/BARGHEST-ngo/mesh.git
 cd mesh/control-plane
 ```
 
-### 2. Start control plane
+### 2. Start control plane and get an API key
 
 ```
-docker-compose up -d
+task build
+task controlPlane
+task apiKey
 ```
 
-### 4. Access web UI
+### 4. Access web UI with API key
 
 ```
-Local:  https://localhost:3000/login
+Local:  https://localhost
 Remote: https://your-domain:8443/login
 ```
 
 The Web UI uses a self-signed certificate by default.
 
-### 5. Create API key
-
-```
-docker exec headscale headscale apikeys create --expiration 90d
-```
-
-Use the generated key to authenticate in the Web UI.
 
 > [!IMPORTANT]
 > The default ACL allows nodes in each network talk to each other.
