@@ -36,7 +36,7 @@
 
 Mobile devices are often placed behind NAT, firewalls, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics typically requires centralized VPN servers or risky port-forwarding.
 
-MESH Forensics solves this by creating an encrypted peer-to-peer overlay and assigning each node a CGNAT-range address via a virtual TUN interface. Devices appear as if they are on the same local subnet — even when geographically distant or behind multiple NAT layers.
+MESH solves this by creating an encrypted peer-to-peer overlay network and assigning each node a CGNAT-range address via a virtual TUN interface. Devices appear as if they are on the same local subnet — even when geographically distant or behind multiple NAT layers.
 
 This enables **remote mobile forensics** using ADB Wireless Debugging and [libimobiledevice](https://libimobiledevice.org/), allowing tools such as WARD, [MVT](https://github.com/mvt-project/), and [AndroidQF](https://github.com/mvt-project/androidqf) to operate remotely without exposing devices to the public internet.  
 
