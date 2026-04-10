@@ -177,6 +177,7 @@ func main() {
 
 	log.Println("Replacing upstream Tailscale DNS fallback servers with empty set...")
 	dnsFallbackPath := filepath.Join(tailscaleDir, "net", "dnsfallback", "dns-fallback-servers.json")
+	//nolint:gosec // G306 -- non-sensitive source file, must stay 0644 to match upstream tree
 	if err := os.WriteFile(dnsFallbackPath, []byte(`{"Regions": {}}`+"\n"), 0644); err != nil {
 		log.Fatalf("failed to write dns-fallback-servers.json: %v", err)
 	}
@@ -209,6 +210,7 @@ func main() {
 			return fmt.Errorf("parsing %s: %w", path, err)
 		}
 		if !bytes.Equal(replaced, content) {
+			//nolint:gosec // G306 -- non-sensitive source file, must stay 0644 to match upstream tree
 			if err := os.WriteFile(path, replaced, 0644); err != nil {
 				return fmt.Errorf("writing %s: %w", path, err)
 			}
@@ -350,7 +352,10 @@ func extractZipFile(f *zip.File, destPath string) error {
 	}
 	defer outFile.Close()
 
-	if _, err := io.Copy(outFile, rc); err != nil {
+	// Limit extraction size to guard against decompression bombs (gosec G110).
+	// 100 MB is well above any single file we expect from the Tailscale module zip.
+	const maxFileSize = 100 << 20 // 100 MB
+	if _, err := io.Copy(outFile, io.LimitReader(rc, maxFileSize)); err != nil {
 		return fmt.Errorf("writing %s: %w", destPath, err)
 	}
 
