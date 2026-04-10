@@ -50,6 +50,45 @@ MESH is designed specifically for civil society forensics & hardened for hostile
 
 Meshes are ephemeral and analyst-controlled: bring devices online, collect evidence, and tear the network down immediately afterward. No complicated hub-and-spoke configurations.
 
+## Quick start
+
+For full documentation:  
+https://docs.meshforensics.org/
+
+### 1. Clone the repository
+
+```
+git clone https://github.com/BARGHEST-ngo/mesh.git
+cd MESH
+```
+
+### 2. Start control plane and get an API key
+
+```
+task build
+task controlPlane
+task apiKey
+```
+
+### 4. Access web UI with API key
+
+```
+Local:  https://localhost
+Remote: https://your-domain:8443/login
+```
+
+The Web UI uses a self-signed certificate by default.
+
+
+> [!IMPORTANT]
+> The default ACL allows nodes in each network talk to each other.
+> Production deployments should use restrictive policies. Modify these via the ACL tab.
+
+<img width="1035" height="868" alt="image" src="https://github.com/user-attachments/assets/52bb4020-18fe-4b49-9b33-516250055278" />
+
+Your MESH network is now ready to accept nodes.  
+See the documentation for node enrollment and forensic workflows.
+
 ## Architecture summary
 
 MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require Tailscale infrastructure. 
@@ -105,45 +144,6 @@ MESH separates coordination from data transport:
 - Meshes are disposable and task-scoped  
 
 MESH is optimized for transient, high-risk environments rather than permanent enterprise networking.
-
-## Quick start
-
-For full documentation:  
-https://docs.meshforensics.org/
-
-### 1. Clone the repository
-
-```
-git clone https://github.com/BARGHEST-ngo/mesh.git
-cd MESH
-```
-
-### 2. Start control plane and get an API key
-
-```
-task build
-task controlPlane
-task apiKey
-```
-
-### 4. Access web UI with API key
-
-```
-Local:  https://localhost
-Remote: https://your-domain:8443/login
-```
-
-The Web UI uses a self-signed certificate by default.
-
-
-> [!IMPORTANT]
-> The default ACL allows nodes in each network talk to each other.
-> Production deployments should use restrictive policies. Modify these via the ACL tab.
-
-<img width="1035" height="868" alt="image" src="https://github.com/user-attachments/assets/52bb4020-18fe-4b49-9b33-516250055278" />
-
-Your MESH network is now ready to accept nodes.  
-See the documentation for node enrollment and forensic workflows.
 
 ### Repository structure
 
