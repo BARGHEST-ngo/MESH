@@ -29,7 +29,7 @@
     "@tanstack/react-router-devtools": "^1.132.0",
     "@tanstack/react-table": "^8.21.2",
     "@tanstack/router-plugin": "^1.132.0",
-    "axios": "^1.12.2",
+    "axios": "^1.15.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",
