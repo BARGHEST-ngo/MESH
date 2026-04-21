@@ -27,7 +27,6 @@ services:
     build:
       context: .
       dockerfile: analyst/Dockerfile
-    hostname: analyst-client
     cap_add:
       - NET_ADMIN
       - NET_RAW
