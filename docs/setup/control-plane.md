@@ -6,11 +6,14 @@ The control plane coordinates your MESH network. We use Docker for easy deployme
 
 Install Docker and Docker Compose if you haven't already. You can find the instructions for your specific operating system [here](https://docs.docker.com/get-docker/).
 
-The only other prerequisites are Git and Task. You can install Task by following the instructions [here](https://taskfile.dev/docs/installation). On Debian-based Linux systems such as Ubuntu you can install Task with:
+The only other prerequisites are Git and Task. Full install instructions for Task are [here](https://taskfile.dev/docs/installation). The short version:
 
 ```bash
-curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
-sudo apt update && sudo apt install -y task
+# Linux (Ubuntu/Debian)
+sudo snap install task --classic
+
+# macOS
+brew install go-task
 ```
 
 ## Step 2: Clone the Repository
