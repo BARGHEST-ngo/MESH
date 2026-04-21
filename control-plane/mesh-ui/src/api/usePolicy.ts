@@ -29,16 +29,11 @@ export function parseHuJSON(huJson: string): ACLPolicy {
         return {}
     }
     
-    try {
-        let cleaned = huJson.replace(/\/\/.*$/gm, '')
-        cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, '')
-        cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1')
-        
-        return JSON.parse(cleaned)
-    } catch (error) {
-        console.error('Failed to parse HuJSON policy:', error)
-        return {}
-    }
+    let cleaned = huJson.replace(/\/\/.*$/gm, '')
+    cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, '')
+    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1')
+
+    return JSON.parse(cleaned)
 }
 
 export function toHuJSON(policy: ACLPolicy): string {
@@ -52,9 +47,17 @@ export function usePolicy() {
         queryFn: async () => {
             const response = await apiClient.get<V1GetPolicyResponse>('/policy')
             const raw = response.data.policy || '{}'
+            let parsed: ACLPolicy | undefined
+            let parseError: Error | undefined
+            try {
+                parsed = parseHuJSON(raw)
+            } catch (err) {
+                parseError = err instanceof Error ? err : new Error(String(err))
+            }
             return {
                 raw,
-                parsed: parseHuJSON(raw),
+                parsed,
+                parseError,
                 updatedAt: response.data.updatedAt,
             }
         },
