@@ -10,7 +10,8 @@ if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
 fi
 
 HOSTNAME_LEN=$(( (RANDOM % 10) + 6 ))
-RANDOM_HOSTNAME=$(tr -dc 'a-z0-9' < /dev/urandom | head -c "${HOSTNAME_LEN}")
+RANDOM_HOSTNAME=$(LC_ALL=C head -c 512 /dev/urandom | tr -dc 'a-z0-9')
+RANDOM_HOSTNAME="${RANDOM_HOSTNAME:0:$HOSTNAME_LEN}"
 
 /usr/bin/mesh \
     --statedir="${MESH_STATE_DIR}" \
