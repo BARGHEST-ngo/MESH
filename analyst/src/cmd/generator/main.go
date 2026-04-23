@@ -346,6 +346,7 @@ func extractZipFile(f *zip.File, destPath string) error {
 	}
 	defer rc.Close()
 
+	//nolint:gosec // G306 -- non-sensitive source file, must stay 0644 to match upstream tree
 	outFile, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("creating %s: %w", destPath, err)
