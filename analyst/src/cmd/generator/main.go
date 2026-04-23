@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
+	"golang.org/x/mod/semver"
 )
 
 func main() {
@@ -65,11 +66,15 @@ func main() {
 	if tailscaleVersion == "" {
 		log.Fatalf("tailscale.com not found in go.mod")
 	}
+	if !semver.IsValid(tailscaleVersion) {
+		log.Fatalf("invalid tailscale.com version in go.mod: %q", tailscaleVersion)
+	}
 	log.Printf("Found tailscale.com version %q in go.mod", tailscaleVersion)
 
 	// Download the module and get the path to its verified zip file.
 	// go mod verify checksums the zip (not the extracted cache directory),
 	// so extracting directly from the zip avoids trusting the cache.
+	//nolint:gosec // G204 -- tailscaleVersion is validated as semver above
 	output, err = exec.Command("go", "mod", "download", "-json", "tailscale.com@"+tailscaleVersion).CombinedOutput()
 	if err != nil {
 		log.Fatalf("failed to download tailscale.com module: %v\nOutput: %s", err, output)
@@ -173,6 +178,7 @@ func main() {
 
 	log.Println("Replacing upstream Tailscale DNS fallback servers with empty set...")
 	dnsFallbackPath := filepath.Join(tailscaleDir, "net", "dnsfallback", "dns-fallback-servers.json")
+	//nolint:gosec // G306 -- non-sensitive source file, must stay 0644 to match upstream tree
 	if err := os.WriteFile(dnsFallbackPath, []byte(`{"Regions": {}}`+"\n"), 0644); err != nil {
 		log.Fatalf("failed to write dns-fallback-servers.json: %v", err)
 	}
@@ -205,6 +211,7 @@ func main() {
 			return fmt.Errorf("parsing %s: %w", path, err)
 		}
 		if !bytes.Equal(replaced, content) {
+			//nolint:gosec // G306 -- non-sensitive source file, must stay 0644 to match upstream tree
 			if err := os.WriteFile(path, replaced, 0644); err != nil {
 				return fmt.Errorf("writing %s: %w", path, err)
 			}
@@ -349,13 +356,17 @@ func extractZipFile(f *zip.File, destPath string) error {
 	}
 	defer rc.Close()
 
+	//nolint:gosec // G306 -- non-sensitive source file, must stay 0644 to match upstream tree
 	outFile, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("creating %s: %w", destPath, err)
 	}
 	defer outFile.Close()
 
-	if _, err := io.Copy(outFile, rc); err != nil {
+	// Limit extraction size to guard against decompression bombs (gosec G110).
+	// 100 MB is well above any single file we expect from the Tailscale module zip.
+	const maxFileSize = 100 << 20 // 100 MB
+	if _, err := io.Copy(outFile, io.LimitReader(rc, maxFileSize)); err != nil {
 		return fmt.Errorf("writing %s: %w", destPath, err)
 	}
 
@@ -443,6 +454,7 @@ func rewriteHelpStrings(dir string, replacements map[string]string) error {
 			prev = e.end
 		}
 		buf.Write(src[prev:])
+		//nolint:gosec // G306 -- non-sensitive source file, must stay 0644 to match upstream tree
 		if err := os.WriteFile(path, buf.Bytes(), 0644); err != nil {
 			return fmt.Errorf("writing %s: %w", path, err)
 		}

@@ -95,6 +95,11 @@ tasks:
     cmds:
       - cd fdroid && fdroid build -v -l com.barghest.mesh
 
+  pinGithubActions:
+    desc: Pin GitHub Actions to a hash
+    cmds:
+      - go tool github.com/stacklok/frizbee actions .github/workflows
+
 #################################
 # Internal tasks
 #################################
