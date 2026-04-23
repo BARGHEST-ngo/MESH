@@ -12,7 +12,7 @@ interface GenerateKeyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   networkName: string
-}	
+}
 
 function isLocalhost(url: string): boolean {
   if (!url) return false
@@ -29,13 +29,14 @@ function isLocalhost(url: string): boolean {
 export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateKeyDialogProps) {
   const [reusable, setReusable] = useState(false)
   const [ephemeral, setEphemeral] = useState(false)
-  const [expirationDays, setExpirationDays] = useState('1')
+  const [expirationDays, setExpirationDays] = useState('0')
+  const [expirationHours, setExpirationHours] = useState('1')
   const [deviceTag, setDeviceTag] = useState<'analyst' | 'mobile_node'>('analyst')
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
   const [intent, setIntent] = useState<string | null>(null)
   const [pin, setPin] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [controlPlaneURL, setControlPlaneURL] = useState('') 
+  const [controlPlaneURL, setControlPlaneURL] = useState('')
   const [urlError, setUrlError] = useState('')
   const [intentError, setIntentError] = useState('')
   const createKey = useCreatePreAuthKey()
@@ -44,11 +45,11 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
     try {
       setUrlError('')
       if (deviceTag === 'mobile_node') {
-	      const trimmedURL = controlPlaneURL.trim()
-	      if (!trimmedURL) {
-		      setUrlError('Control Plane URL is required for mobile nodes')
-		      console.error('Control Plane URL is required for mobile nodes')
-		      return
+        const trimmedURL = controlPlaneURL.trim()
+        if (!trimmedURL) {
+          setUrlError('Control Plane URL is required for mobile nodes')
+          console.error('Control Plane URL is required for mobile nodes')
+          return
         }
         try {
           const parsed = new URL(trimmedURL)
@@ -64,10 +65,12 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
         }
       }
 
-      const days = parseInt(expirationDays) || 1
+      const hours = parseInt(expirationHours) || 0
+      const days = parseInt(expirationDays) || 0 
       const expiration = new Date()
       expiration.setDate(expiration.getDate() + days)
-      
+      expiration.setHours(expiration.getHours() + hours)
+
       const result = await createKey.mutateAsync({
         user: networkName,
         reusable,
@@ -123,7 +126,8 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
     setGeneratedKey(null)
     setReusable(false)
     setEphemeral(false)
-    setExpirationDays('1')
+    setExpirationDays('0')
+    setExpirationHours('1')
     setDeviceTag('analyst')
     setCopied(false)
     setUrlError('')
@@ -171,8 +175,6 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                 />
               </div>
 
-
-
               <div>
                 <Label htmlFor="deviceTag">Device Tag</Label>
                 <div className="flex gap-2">
@@ -201,29 +203,41 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                 </div>
               </div>
 
-              
               {deviceTag === 'mobile_node' && (
-              <div>
-                <Label htmlFor="controlPlaneURL">ControlPlaneURL</Label>
-                <Input
-                  id="controlPlaneURL"
-                  type="text"
-                  value={controlPlaneURL}
-                  onChange={(e) => { setControlPlaneURL(e.target.value); setUrlError('') }}
-                  placeholder="https://publicControlplaneURL.example.com"
-                  className={`mt-2 ${urlError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                  required
+                <div>
+                  <Label htmlFor="controlPlaneURL">ControlPlaneURL</Label>
+                  <Input
+                    id="controlPlaneURL"
+                    type="text"
+                    value={controlPlaneURL}
+                    onChange={(e) => { setControlPlaneURL(e.target.value); setUrlError('') }}
+                    placeholder="https://publicControlplaneURL.example.com"
+                    className={`mt-2 ${urlError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                    required
                   />
-              <p className="text-xs text-muted-foreground mt-2">
-                  Public URL that field devices will use to connect to you
-              </p>
-              {isLocalhost(controlPlaneURL) && (
-                <p className="text-xs text-yellow-400 mt-1">
-                Warning: This appears to be a local URL. Field devices won't be able to reach it.
-                </p>
-              )} 
-              </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Public URL that field devices will use to connect to you
+                  </p>
+                  {isLocalhost(controlPlaneURL) && (
+                    <p className="text-xs text-yellow-400 mt-1">
+                      Warning: This appears to be a local URL. Field devices won't be able to reach it.
+                    </p>
+                  )}
+                </div>
               )}
+
+              <div>
+                <Label htmlFor="expirationHr">Expiration (hours)</Label>
+                <Input
+                  id="expirationHr"
+                  type="number"
+                  value={expirationHours}
+                  onChange={(e) => setExpirationHours(e.target.value)}
+                  min="1"
+                  max="23"
+                  className="mt-1"
+                />
+              </div>
 
               <div>
                 <Label htmlFor="expiration">Expiration (days)</Label>
@@ -232,7 +246,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
                   type="number"
                   value={expirationDays}
                   onChange={(e) => setExpirationDays(e.target.value)}
-                  min="1"
+                  min="0"
                   max="365"
                   className="mt-1"
                 />
@@ -319,4 +333,3 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
     </Dialog>
   )
 }
-
