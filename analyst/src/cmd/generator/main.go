@@ -454,6 +454,7 @@ func rewriteHelpStrings(dir string, replacements map[string]string) error {
 			prev = e.end
 		}
 		buf.Write(src[prev:])
+		//nolint:gosec // G306 -- non-sensitive source file, must stay 0644 to match upstream tree
 		if err := os.WriteFile(path, buf.Bytes(), 0644); err != nil {
 			return fmt.Errorf("writing %s: %w", path, err)
 		}
