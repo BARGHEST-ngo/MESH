@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go/ast"
 	"go/parser"
 	"go/token"
 	"io"
@@ -222,6 +223,15 @@ func main() {
 		log.Fatalf("failed to replace Tailscale hostnames: %v", err)
 	}
 
+	log.Println("Rebranding Tailscale references in CLI help text...")
+	helpReplacements := map[string]string{
+		"Tailscale":  "MESH",
+		"tailscale ": "meshcli ",
+	}
+	if err := rewriteHelpStrings(tailscaleCliDir, helpReplacements); err != nil {
+		log.Fatalf("failed to rewrite help strings: %v", err)
+	}
+
 	// Run go mod tidy in the build directory
 	log.Println("Running go mod tidy...")
 	cmd = exec.Command("go", "mod", "tidy")
@@ -361,4 +371,93 @@ func extractZipFile(f *zip.File, destPath string) error {
 	}
 
 	return nil
+}
+
+// rewriteHelpStrings applies substring replacements to the *contents* of
+// string literals assigned to ShortHelp, LongHelp, or ShortUsage fields in
+// Go source files under dir. The replacement is scoped to those three
+// field names so that import paths, code identifiers, and unrelated strings
+// (e.g. "tailscale.com/...", "tailscaled") are not touched.
+func rewriteHelpStrings(dir string, replacements map[string]string) error {
+	helpFields := map[string]bool{
+		"ShortHelp":  true,
+		"LongHelp":   true,
+		"ShortUsage": true,
+	}
+
+	type edit struct {
+		start, end int
+		repl       string
+	}
+
+	return filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.HasSuffix(d.Name(), ".go") || strings.HasSuffix(d.Name(), "_test.go") {
+			return nil
+		}
+		src, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+		fset := token.NewFileSet()
+		f, err := parser.ParseFile(fset, path, src, parser.ParseComments)
+		if err != nil {
+			return fmt.Errorf("parsing %s: %w", path, err)
+		}
+
+		var edits []edit
+		ast.Inspect(f, func(n ast.Node) bool {
+			kv, ok := n.(*ast.KeyValueExpr)
+			if !ok {
+				return true
+			}
+			id, ok := kv.Key.(*ast.Ident)
+			if !ok || !helpFields[id.Name] {
+				return true
+			}
+			ast.Inspect(kv.Value, func(x ast.Node) bool {
+				lit, ok := x.(*ast.BasicLit)
+				if !ok || lit.Kind != token.STRING {
+					return true
+				}
+				start := fset.Position(lit.Pos()).Offset
+				end := fset.Position(lit.End()).Offset
+				original := string(src[start:end])
+				if len(original) < 2 {
+					return true
+				}
+				quote := original[0]
+				inner := original[1 : len(original)-1]
+				replaced := inner
+				for old, new_ := range replacements {
+					replaced = strings.ReplaceAll(replaced, old, new_)
+				}
+				if replaced != inner {
+					edits = append(edits, edit{start, end, string(quote) + replaced + string(quote)})
+				}
+				return true
+			})
+			return true
+		})
+
+		if len(edits) == 0 {
+			return nil
+		}
+		sort.Slice(edits, func(i, j int) bool { return edits[i].start < edits[j].start })
+		var buf bytes.Buffer
+		prev := 0
+		for _, e := range edits {
+			buf.Write(src[prev:e.start])
+			buf.WriteString(e.repl)
+			prev = e.end
+		}
+		buf.Write(src[prev:])
+		if err := os.WriteFile(path, buf.Bytes(), 0644); err != nil {
+			return fmt.Errorf("writing %s: %w", path, err)
+		}
+		log.Printf("Rebranded help strings in %s", path)
+		return nil
+	})
 }

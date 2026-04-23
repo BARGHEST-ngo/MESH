@@ -37,6 +37,9 @@ function ACLPage() {
 
   const handleSave = async () => {
     try {
+      if (!editedPolicy || editedPolicy.trim() === '') {
+        throw new Error('Policy cannot be empty')
+      }
       const parsed = parseHuJSON(editedPolicy)
       //(Ovi) TODO: we should define a policy schema here to avoid arbitrary json inputs
       if (!parsed || typeof parsed !== 'object') {

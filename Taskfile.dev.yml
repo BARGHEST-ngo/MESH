@@ -66,6 +66,17 @@ tasks:
       - rm -f analyst/mesh
       - make -C android-client clean
 
+  tagRelease:
+    desc: >-
+      Prepare a release: bump versionCode/versionName, update fdroid metadata,
+      tag the main repo and tailscale submodule. Does NOT push — prints push
+      commands on success. Usage: task tagRelease VERSION=0.1.6-alpha
+    requires:
+      vars:
+        - VERSION
+    cmds:
+      - ./scripts/tag-release.sh "{{.VERSION}}"
+
   fdroidInit:
     desc: Initialize F-Droid repository for building Android client
     vars:

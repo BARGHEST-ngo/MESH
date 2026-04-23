@@ -30,13 +30,13 @@
 <br/></h3>
 
 > [!IMPORTANT]
-> **Public Alpha**: MESH is currently in **public alpha** and under active development. It is **not production-ready**. A full penetration test is in progress. Until it is complete, do **not** use this project in production environments. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues.
+> **Public Alpha**: Currently in **public alpha** and under active development. It is **not production-ready**. A full penetration test is in progress. Until it is complete, do **not** use this project in production environments. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues.
 
-**MESH Forensics enables remote mobile forensics & network monitoring over an encrypted, censorship-resistant peer-to-peer mesh network.**
+**MESH enables remote wireless debugging for mobile devices, providing mobile forensics & network monitoring over an encrypted, censorship-resistant peer-to-peer mesh network.**
 
-Mobile devices are often placed behind carrier-grade NAT (CGNAT), firewalls, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics typically requires centralized VPN servers or risky port-forwarding.
+Mobile devices are often placed behind NAT, firewalls, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics typically requires centralized VPN servers or risky port-forwarding.
 
-MESH Forensics solves this by creating an encrypted peer-to-peer overlay and assigning each node a CGNAT-range address via a virtual TUN interface. Devices appear as if they are on the same local subnet — even when geographically distant or behind multiple NAT layers.
+MESH solves this by creating an encrypted peer-to-peer overlay network and assigning each node a CGNAT-range address via a virtual TUN interface. Devices appear as if they are on the same local subnet — even when geographically distant or behind multiple NAT layers.
 
 This enables **remote mobile forensics** using ADB Wireless Debugging and [libimobiledevice](https://libimobiledevice.org/), allowing tools such as WARD, [MVT](https://github.com/mvt-project/), and [AndroidQF](https://github.com/mvt-project/androidqf) to operate remotely without exposing devices to the public internet.  
 
@@ -50,11 +50,50 @@ MESH is designed specifically for civil society forensics & hardened for hostile
 
 Meshes are ephemeral and analyst-controlled: bring devices online, collect evidence, and tear the network down immediately afterward. No complicated hub-and-spoke configurations.
 
+## Quick start
+
+For full documentation:  
+https://docs.meshforensics.org/
+
+### 1. Clone the repository
+
+```
+git clone https://github.com/BARGHEST-ngo/mesh.git
+cd MESH
+```
+
+### 2. Start control plane and get an API key
+
+```
+task build
+task controlPlane
+task apiKey
+```
+
+### 4. Access web UI with API key
+
+```
+Local:  https://localhost
+Remote: https://your-domain:8443/login
+```
+
+The Web UI uses a self-signed certificate by default.
+
+
+> [!IMPORTANT]
+> The default ACL allows nodes in each network talk to each other.
+> Production deployments should use restrictive policies. Modify these via the ACL tab.
+
+<img width="1035" height="868" alt="image" src="https://github.com/user-attachments/assets/52bb4020-18fe-4b49-9b33-516250055278" />
+
+Your MESH network is now ready to accept nodes.  
+See the documentation for node enrollment and forensic workflows.
+
 ## Architecture summary
 
 MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require Tailscale infrastructure. 
 
-To establish peer-2-peer, a end-to-end encrypted channel is created using UDP hole punching. If UDP is unavailable or blocked, it will fail over to E2EE HTTPs relays called DERP relays. In Tailscale, [DERP (Designated Encrypted Relay for Packets)](https://github.com/tailscale/tailscale/tree/main/derp) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
+To establish peer-to-peer, end-to-end encrypted channel is created using UDP hole punching. If UDP is unavailable or blocked, it will fail over to E2EE HTTPs relays called DERP relays. The DERP protocol [DERP (Designated Encrypted Relay for Packets)](https://github.com/tailscale/tailscale/tree/main/derp) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
  
 MESH follows the same model. By default, if an operator has not configured their own DERP infrastructure (which can be done using MESH's control plane), MESH uses Tailscale’s public DERP servers to ensure reliable connectivity, particularly in restrictive network environments. However, MESH does not require Tailscale infrastructure: operators can deploy and use their own DERP servers via the control plane, which includes an embedded DERP implementation. This makes MESH fully self-hostable when desired.
 
@@ -105,50 +144,6 @@ MESH separates coordination from data transport:
 - Meshes are disposable and task-scoped  
 
 MESH is optimized for transient, high-risk environments rather than permanent enterprise networking.
-
-## Getting started
-
-For full documentation:  
-https://docs.meshforensics.org/
-
-### 1. Clone the repository
-
-```
-git clone https://github.com/BARGHEST-ngo/mesh.git
-cd mesh/control-plane
-```
-
-### 2. Start control plane
-
-```
-docker-compose up -d
-```
-
-### 4. Access web UI
-
-```
-Local:  https://localhost:3000/login
-Remote: https://your-domain:8443/login
-```
-
-The Web UI uses a self-signed certificate by default.
-
-### 5. Create API key
-
-```
-docker exec headscale headscale apikeys create --expiration 90d
-```
-
-Use the generated key to authenticate in the Web UI.
-
-> [!IMPORTANT]
-> The default ACL allows nodes in each network talk to each other.
-> Production deployments should use restrictive policies. Modify these via the ACL tab.
-
-<img width="1035" height="868" alt="image" src="https://github.com/user-attachments/assets/52bb4020-18fe-4b49-9b33-516250055278" />
-
-Your MESH network is now ready to accept nodes.  
-See the documentation for node enrollment and forensic workflows.
 
 ### Repository structure
 

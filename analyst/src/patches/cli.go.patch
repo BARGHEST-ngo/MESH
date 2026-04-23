@@ -5,7 +5,7 @@ index 5ebc23a5b..862c1b1e6 100644
 @@ -20,6 +20,7 @@
  	"text/tabwriter"
  	"time"
- 
+
 +	"github.com/i582/cfmt/cmd/cfmt"
  	"github.com/mattn/go-colorable"
  	"github.com/mattn/go-isatty"
@@ -13,7 +13,7 @@ index 5ebc23a5b..862c1b1e6 100644
 @@ -120,6 +121,12 @@ func Run(args []string) (err error) {
  		})
  	})
- 
+
 +	cfmt.Print(`
 +	{{[ 𝗠𝗘𝗦𝗛 ]}}::blue
 +	{{[ 𝐀𝐍𝐀𝐋𝐘𝐒𝐓 𝐂𝐋𝐈𝐄𝐍𝐓 ]}}::blue
@@ -23,8 +23,8 @@ index 5ebc23a5b..862c1b1e6 100644
  	rootCmd := newRootCmd()
  	if err := rootCmd.Parse(args); err != nil {
  		if errors.Is(err, flag.ErrHelp) {
-@@ -233,16 +240,19 @@ func newRootCmd() *ffcli.Command {
- 
+@@ -233,51 +240,46 @@ func newRootCmd() *ffcli.Command {
+
  	var rootCmd *ffcli.Command
  	rootCmd = &ffcli.Command{
 -		Name:       "tailscale",
@@ -36,7 +36,7 @@ index 5ebc23a5b..862c1b1e6 100644
  		LongHelp: strings.TrimSpace(`
 -For help on subcommands, add --help after: "tailscale status --help".
 +For help on subcommands, add --help after: "meshcli status --help".
- 
+
  This CLI is still under active development. Commands and flags will
  change in the future.
  `),
@@ -44,10 +44,15 @@ index 5ebc23a5b..862c1b1e6 100644
 +			adbpairCmd,
 +			adbcollectCmd,
 +			adbdisableCmd,
++			adbcleanupCmd,
  			upCmd,
  			downCmd,
  			setCmd,
-@@ -254,7 +264,7 @@ func newRootCmd() *ffcli.Command {
+ 			loginCmd,
+ 			logoutCmd,
+ 			switchCmd,
+ 			configureCmd(),
+-			nilOrCall(sysPolicyCmd),
  			netcheckCmd,
  			ipCmd,
  			dnsCmd,
@@ -56,3 +61,26 @@ index 5ebc23a5b..862c1b1e6 100644
  			metricsCmd,
  			pingCmd,
  			ncCmd,
+ 			sshCmd,
+ 			nilOrCall(maybeFunnelCmd),
+ 			nilOrCall(maybeServeCmd),
+ 			versionCmd,
+-			nilOrCall(maybeWebCmd),
+ 			nilOrCall(fileCmd),
+ 			bugReportCmd,
+ 			nilOrCall(maybeCertCmd),
+ 			nilOrCall(maybeNetlockCmd),
+-			licensesCmd,
+ 			exitNodeCmd(),
+-			updateCmd,
+ 			whoisCmd,
+-			debugCmd(),
+ 			nilOrCall(maybeDriveCmd),
+-			idTokenCmd,
+-			configureHostCmd(),
+-			systrayCmd,
+-			appcRoutesCmd,
+ 		),
+ 		FlagSet: rootfs,
+ 		Exec: func(ctx context.Context, args []string) error {
+ 			if *jsonDocs {
