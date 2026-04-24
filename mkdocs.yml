@@ -104,3 +104,9 @@ nav:
       - Security: reference/security.md
       - CLI reference: reference/cli-reference.md
       - Troubleshooting: reference/troubleshooting.md
+      - Build and deploy:
+          - reference/build-deploy/index.md
+          - Runtime stack: reference/build-deploy/runtime-stack.md
+          - Build orchestration: reference/build-deploy/build-orchestration.md
+          - CI and release: reference/build-deploy/ci-and-release.md
+          - Build troubleshooting: reference/build-deploy/troubleshooting.md
