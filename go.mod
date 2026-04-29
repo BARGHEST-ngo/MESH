@@ -167,7 +167,7 @@ replace (
 	github.com/mvt-project/androidqf_ward => github.com/BARGHEST-ngo/androidqf_mesh v0.1.0
 	github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da => github.com/BARGHEST-ngo/amnezia-wireguard-go v0.1.1-alpha.1.0.20260217195927-fee73f569c4b
 	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
-	tailscale.com v1.94.1 => github.com/BARGHEST-ngo/mesh-tailscale v1.94.1-0.20260327174627-d9a5efd24f3f
+	tailscale.com v1.94.1 => github.com/BARGHEST-ngo/mesh-tailscale v1.94.1-0.20260429184552-26c56338c682
 )
 
 tool (
