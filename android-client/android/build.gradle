@@ -36,7 +36,7 @@ android {
     defaultConfig {
         minSdkVersion 26
         targetSdkVersion 35
-        versionCode 361
+        versionCode 362
         versionName getVersionProperty("VERSION_LONG")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
