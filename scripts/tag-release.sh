@@ -114,8 +114,8 @@ fi
 # ---- Reproducibility invariant checks ---------------------------------------
 
 echo "==> Running tidy + generate as reproducibility invariant checks..."
-task tidy
-task generate
+task -t Taskfile.dev.yml tidy
+task -t Taskfile.dev.yml generate
 if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
   echo "ERROR: working tree dirty after 'task tidy' + 'task generate'." >&2
   echo "  Either go.mod/go.sum drifted, or the tailscale submodule no longer" >&2
