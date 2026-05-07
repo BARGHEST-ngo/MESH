@@ -39,10 +39,10 @@ This section covers:
 
 ```bash
 #Connect and pair to an Android device over ADB-over-Wifi
-meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234
+meshcli adbpair --host 100.64.x.x --hostport 1234 --pairport 4321 --code 123456
 
-#Connect and pair BUT initate AndroidQF instantly on connection
-meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234 --qf
+#Connect and pair BUT initiate AndroidQF instantly on connection
+meshcli adbpair --host 100.64.x.x --hostport 1234 --pairport 4321 --code 123456 --qf
 
 #Initate ADB acquisition using AndroidQF and WARD libraries
 meshcli adbcollect
@@ -51,13 +51,7 @@ meshcli adbcollect
 meshcli status
 
 # Test connection and establish UDP hole punching
-meshcli ping 100.67.x.x
-
-# Connect to Android device
-adb connect 100.64.x.x:5555
-
-# Run AndroidQF scan
-androidqf --adb 100.64.x.x:5555 --output ./artifacts/
+meshcli ping 100.64.x.x
 
 # Capture network traffic
 sudo tcpdump -i mesh0 -w capture.pcap

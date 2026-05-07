@@ -294,7 +294,7 @@ If the network does not exist, it can be created by following the [Create a new 
    ```bash
    # On Android device (via USB)
    adb shell getprop service.adb.tcp.port
-   # Should return 5555
+   # Should return a valid port number
    ```
 
 3. **Enable ADB-over-WiFi**
