@@ -213,10 +213,10 @@ You can verify obfuscation by capturing packets:
 
 ```bash
 # Find WireGuard port
-sudo ss -unlp | grep tailscaled
+ss -unlp | grep mesh
 
 # Capture packets (replace PORT with actual port)
-sudo tcpdump -i any -n 'udp port PORT' -X -c 10
+tcpdump -i any -n 'udp port PORT' -X -c 10
 ```
 
 **Standard WireGuard packets** start with:

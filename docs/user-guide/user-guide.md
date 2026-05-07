@@ -78,21 +78,21 @@ Multiple analysts investigating multiple devices:
 
 1. **Set up ACLs**
 
-   ```yaml
-   groups:
-     group:analysts:
-       - analyst1
-       - analyst2
-     group:endpoints:
-       - device1
-       - device2
-   
-   acls:
-     - action: accept
-       src:
-         - group:analysts
-       dst:
-         - group:endpoints:*
+   ```json
+   {
+      "groups": {
+         "group:analysts": ["analyst1", "analyst2", "analyst3"],
+         "group:endpoints": ["phone1", "phone2", "phone3"]
+      },
+
+      "acls": [
+         {
+            "action": "accept",
+            "src": ["group:analysts"],
+            "dst": ["group:endpoints:*"]
+         }
+      ]
+   }
    ```
 
 2. **Assign devices**
@@ -149,20 +149,23 @@ Block all non-MESH traffic on endpoint:
 
 ### Exit nodes for Network Capture
 
-Route internet traffic through an endpoint:
+Route the endpoint's internet traffic through the analyst node so the analyst can capture it.
 
 **On analyst:**
 
 ```bash
-# Use endpoint as exit node
-meshcli up --exit-node=100.64.X.X
+# Advertise this node as an exit node
+meshcli up --advertise-exit-node
 
-# Verify
-curl ifconfig.me  # Should show endpoint's public IP
-
-# Stop using exit node
-meshcli up --exit-node=
+# Or, if already connected, toggle the setting
+meshcli set --advertise-exit-node
 ```
+
+**In the control plane Web UI:**
+
+1. Open the home page and expand the network containing the analyst node.
+2. Click the **APPROVE EXIT** button on the analyst node's row.
+3. Confirm the prompt.
 
 **On endpoint:**
 
@@ -170,11 +173,19 @@ meshcli up --exit-node=
 2. Settings > Use 100.64.x.x as exit node
 3. Enable
 
+**Verify on the endpoint:** outbound traffic should now route to the internet from the analyst's public IP.
+
+**Capture on the analyst:**
+
+```bash
+tcpdump -i tailscale0 -w capture.pcap
+```
+
 **Use cases:**
 
 - Monitor endpoint's internet traffic and capture traffic
-- Access geo-restricted content
 - Investigate network-level issues
+- Build a forensic record of network activity
 
 ### Operational
 
@@ -221,8 +232,8 @@ DEVICE_IP="100.64.X.X"
 OUTPUT_DIR="./artifacts/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$OUTPUT_DIR"
 
-# Connect
-adb connect $DEVICE_IP:5555
+# Pair and connect over the mesh
+meshcli adbpair $DEVICE_IP:5555
 
 # Bug report
 adb bugreport "$OUTPUT_DIR/bugreport.zip"
@@ -246,7 +257,7 @@ adb shell netstat > "$OUTPUT_DIR/netstat.txt"
 adb shell getprop > "$OUTPUT_DIR/properties.txt"
 
 # AndroidQF
-androidqf --adb $DEVICE_IP:5555 --output "$OUTPUT_DIR/androidqf/"
+meshcli adbcollect --output "$OUTPUT_DIR/androidqf/"
 
 # Disconnect
 adb disconnect
