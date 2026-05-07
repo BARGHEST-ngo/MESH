@@ -84,17 +84,6 @@ H4 = 4
 
 Minimal obfuscation for light censorship:
 
-    [Interface]
-    Jc = 3
-    Jmin = 10
-    Jmax = 50
-    S1 = 15
-    S2 = 20
-    H1 = 5
-    H2 = 6
-    H3 = 7
-    H4 = 8
-
 ```ini
 [Interface]
 Jc = 3
@@ -115,17 +104,6 @@ H4 = 8
 
 Good balance between obfuscation and performance:
 
-    [Interface]
-    Jc = 5
-    Jmin = 50
-    Jmax = 1000
-    S1 = 30
-    S2 = 40
-    H1 = 100
-    H2 = 200
-    H3 = 300
-    H4 = 400
-
 ```ini
 [Interface]
 Jc = 5
@@ -145,17 +123,6 @@ H4 = 400
 #### Heavy Obfuscation (Maximum DPI Evasion)
 
 Maximum obfuscation for aggressive censorship:
-
-    [Interface]
-    Jc = 10
-    Jmin = 50
-    Jmax = 1000
-    S1 = 100
-    S2 = 150
-    H1 = 1234567
-    H2 = 2345678
-    H3 = 3456789
-    H4 = 4567890
 
 ```ini
 [Interface]
