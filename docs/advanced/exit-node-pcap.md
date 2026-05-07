@@ -96,17 +96,14 @@ meshcli status
 
 ### Enable exit node on control plane
 
-On the control plane, approve the exit node:
+In the control plane Web UI, approve the analyst node as an exit node:
 
-```bash
-# List nodes
-docker compose exec headscale headscale nodes list
+1. Open the control plane Web UI and authenticate using a Headscale API key (`task apikey`).
+2. On the home page, expand the network section containing the analyst node.
+3. Find the analyst node in the node list and click the **APPROVE EXIT** button on its row.
+4. Confirm the prompt.
 
-# Find your analyst workstation node ID
-# Enable exit node for that node
-docker compose exec headscale headscale routes enable --node <NODE_ID> --route 0.0.0.0/0
-docker compose exec headscale headscale routes enable --node <NODE_ID> --route ::/0
-```
+Once approved, the analyst node will appear with an exit-node indicator and other peers can route through it.
 
 ### Configure endpoint to use exit node
 
@@ -505,8 +502,8 @@ find /var/captures -name "*.pcap" -mtime +90 -delete
 4. **Check control plane approved routes:**
 
    ```bash
-   docker compose exec headscale headscale routes list
-   # Should show 0.0.0.0/0 and ::/0 enabled
+   docker compose exec headscale headscale nodes list-routes
+   # Should show 0.0.0.0/0 and ::/0 approved on the analyst node
    ```
 
 ### Packet capture not capturing traffic
