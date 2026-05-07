@@ -5,12 +5,12 @@ go 1.26
 toolchain go1.26.2
 
 require (
+	github.com/BARGHEST-ngo/amnezia-wireguard-go v0.2.0-alpha.2
+	github.com/BARGHEST-ngo/androidqf_mesh v0.2.0
 	github.com/botherder/go-savetime v1.5.0
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-isatty v0.0.20
-	github.com/mvt-project/androidqf_ward v0.0.0-00010101000000-000000000000
 	github.com/peterbourgon/ff/v3 v3.4.0
-	github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da
 	github.com/toqueteos/webbrowser v1.2.1
 	golang.org/x/mobile v0.0.0-20260217195705-b56b3793a9c4
 	golang.org/x/mod v0.34.0
@@ -132,8 +132,8 @@ require (
 	github.com/tailscale/netlink v1.1.1-0.20240822203006-4d49adab4de7 // indirect
 	github.com/tailscale/peercred v0.0.0-20250107143737-35a0c7bd7edc // indirect
 	github.com/tailscale/web-client-prebuilt v0.0.0-20250124233751-d4cd19a26976 // indirect
+	github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da // indirect
 	github.com/tailscale/xnet v0.0.0-20240729143630-8497ac4dab2e // indirect
-	github.com/tevino/abool v1.2.0 // indirect
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
 	github.com/vbatts/tar-split v0.12.2 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
@@ -141,7 +141,6 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/zclconf/go-cty v1.18.0 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.3 // indirect
 	go4.org/mem v0.0.0-20240501181205-ae6ca9944745 // indirect
@@ -164,8 +163,6 @@ require (
 )
 
 replace (
-	github.com/mvt-project/androidqf_ward => github.com/BARGHEST-ngo/androidqf_mesh v0.1.0
-	github.com/tailscale/wireguard-go v0.0.0-20250716170648-1d0488a3d7da => github.com/BARGHEST-ngo/amnezia-wireguard-go v0.1.1-alpha.1.0.20260217195927-fee73f569c4b
 	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20250205023644-9414b50a5633
 	tailscale.com v1.94.1 => github.com/BARGHEST-ngo/mesh-tailscale v1.94.1-0.20260429184552-26c56338c682
 )

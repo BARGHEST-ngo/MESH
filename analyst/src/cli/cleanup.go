@@ -8,7 +8,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/mvt-project/androidqf_ward/adb"
+	"github.com/BARGHEST-ngo/androidqf_mesh/adb"
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
 
