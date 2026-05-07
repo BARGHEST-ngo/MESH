@@ -301,22 +301,6 @@ meshcli ip -4
 meshcli ip -1
 ```
 
-### routes
-
-Show and manage routes.
-
-**Synopsis:**
-
-```bash
-meshcli routes
-```
-
-**Examples:**
-
-```bash
-meshcli routes
-```
-
 ### version
 
 Show version information.

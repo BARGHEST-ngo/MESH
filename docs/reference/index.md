@@ -68,7 +68,7 @@ docker compose exec headscale headscale policy get
 
 ```bash
 # Connect to device
-meshcli adbpair --host 100.64.x.x --hostport 1234 --pairport 1234 --code 1234
+meshcli adbpair --host 100.64.x.x --hostport 1234 --pairport 4321 --code 123456
 
 # Run AndroidQF
 meshcli adbcollect
@@ -84,7 +84,7 @@ mvt-android check-adb --output ./mvt-output/
 | Can't connect to control plane | Check firewall, verify URL, check logs |
 | Nodes can't see each other | Check ACL policy, verify routes |
 | ADB connection fails | Enable ADB over network on device |
-| Web UI not accessible | Check port 8443, verify TLS certificate |
+| Web UI not accessible | Check port 80 on the host, verify reverse-proxy/tunnel for remote access |
 | High latency | Check if using DERP relay, prefer P2P |
 
 [:octicons-arrow-right-24: Full Troubleshooting guide](troubleshooting.md)
@@ -93,11 +93,8 @@ mvt-android check-adb --output ./mvt-output/
 
 | Port | Service | Protocol | Purpose |
 |------|---------|----------|---------|
-| 8080 | Headscale | HTTP | Control plane API |
-| 8443 | Headscale-UI | HTTPS | Web management interface |
+| 80 | MESH web UI | HTTP | Web management interface |
 | 3478 | DERP | UDP/TCP | STUN for NAT traversal |
-| 41641 | WireGuard | UDP | Encrypted mesh traffic |
-| 5555 | ADB | TCP | Android Debug Bridge |
 
 ### Network Ranges
 

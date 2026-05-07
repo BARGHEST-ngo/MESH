@@ -269,7 +269,7 @@ If the connection works with obfuscation but not without, DPI is likely blocking
 
 - [AmneziaWG Specification](https://github.com/amnezia-vpn/amneziawg-go)
 - [WireGuard Protocol](https://www.wireguard.com/protocol/)
-- [MESH Project](https://github.com/barghest-ngo/mesh)
+- [MESH Project](https://github.com/BARGHEST-ngo/MESH)
 
 ## Next steps
 

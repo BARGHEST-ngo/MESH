@@ -19,8 +19,7 @@ This guide covers common forensic workflows and best practices for using MESH in
 3. **Establish ADB connection**
 
    ```bash
-   adb connect 100.64.X.X:5555
-   adb devices
+   meshcli adbpair --host 100.64.X.X --hostport 1234 --pairport 4321 --code 123456
    ```
 
 4. **Collect artifacts & run analysis**
@@ -30,7 +29,6 @@ This guide covers common forensic workflows and best practices for using MESH in
 5. **Tear down**
 
    ```bash
-   adb disconnect
    meshcli down
    ```
 
@@ -43,7 +41,7 @@ For operations in censored environments:
    **Analyst:**
 
    ```bash
-   sudo cat > /etc/mesh/amneziawg.conf << 'EOF'
+   docker compose exec analyst tee /etc/mesh/amneziawg.conf >/dev/null << 'EOF'
    [Interface]
    Jc = 10
    Jmin = 50

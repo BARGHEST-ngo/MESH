@@ -18,7 +18,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    curl https://mesh.yourdomain.com/health
-   # Should return: {"status":"ok"}
+   # Should return: {"status":"pass"}
    ```
 
 2. **Check DNS resolution**
@@ -116,7 +116,7 @@ Common issues and solutions for MESH deployments.
    docker compose exec headscale headscale users list
    ```
 
-If the network does not exist, it can be created by following the [Create a new network](../setup/control-plane.md#step-5-create-a-new-network) instructions.
+   If the network does not exist, it can be created by following the [Create a new network](../setup/control-plane.md#step-5-create-a-new-network) instructions.
 
 4. **Try reconnecting**
 
@@ -553,7 +553,8 @@ If the network does not exist, it can be created by following the [Create a new 
 
    ```bash
    adb uninstall com.barghest.mesh
-   adb install mesh-android.apk
+   # Replace with the version you have, e.g. mesh-0.1.6-alpha.apk
+   adb install mesh-<version>.apk
    ```
 
 3. **Check logs**
@@ -640,7 +641,7 @@ for peer in $(meshcli status --json | jq -r '.Peer[].TailscaleIPs[0]'); do
 done
 
 # Monitor connection changes
-watch -n 1 'meshcli status --peers'
+watch -n 1 'meshcli status'
 ```
 
 ## Getting Help

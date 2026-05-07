@@ -99,11 +99,11 @@ MESH works seamlessly with industry-standard forensic tools:
 
 !!! example "Example: Remote AndroidQF collection"
     ```bash
-    # Connect to device over mesh
-    adb connect 100.64.2.1:5555
+    # Connect and pair to device over mesh
+    meshcli adbpair --host 100.64.2.1 --hostport 1234 --pairport 4321 --code 123456
 
     # Run AndroidQF spyware scan
-    androidqf --adb 100.64.2.1:5555 --output ./artifacts/
+    meshcli adbcollect
     ```
 
 ## Forensic workflows

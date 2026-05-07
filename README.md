@@ -73,11 +73,11 @@ task apikey
 ### 3. Access web UI with API key
 
 ```
-Local:  https://localhost
-Remote: https://your-domain:8443/login
+Local:  http://localhost/login
+Remote: https://<your-tunnel-or-proxy-host>/login
 ```
 
-The Web UI uses a self-signed certificate by default.
+The control plane container exposes nginx on `127.0.0.1:80` (plain HTTP). For remote access, be sure to run a reverse proxy or tunneling service (Caddy, traefik, ngrok, Cloudflare Tunnel, etc.) with TLS termination.
 
 
 > [!IMPORTANT]

@@ -19,7 +19,7 @@ prefixes:
 
 derp:
   server:
-    enabled: false
+    enabled: true
     region_id: 999
     region_code: "headscale"
     region_name: "Headscale Embedded DERP"
@@ -30,8 +30,7 @@ derp:
     ipv4: 198.51.100.1
     ipv6: 2001:db8::1
 
-  urls:
-   - https://controlplane.tailscale.com/derpmap/default
+  urls: []
 
   paths: []
   auto_update_enabled: false
@@ -175,7 +174,9 @@ dns:
   nameservers:
     global:
       - 1.1.1.1
-      - 8.8.8.8
+      - 1.0.0.1
+      - 2606:4700:4700::1111
+      - 2606:4700:4700::1001
 ```
 
 DNS settings for mesh nodes.
@@ -227,14 +228,14 @@ DERP is an encrypted relay protocol that acts as a fallback when direct peer-to-
 ```yaml
 derp:
   server:
-    enabled: false
+    enabled: true
     region_id: 999
-    region_code: "MESH"
-    region_name: "PEOPLES_REPUBLIC_OF_BARGHEST"
+    region_code: "headscale"
+    region_name: "Headscale Embedded DERP"
     stun_listen_addr: "0.0.0.0:3478"
 ```
 
-MESH includes a built-in DERP server for convenience. By default, the control plane acting as the DERP relay is set to false. This is because it automatically uses the [Tailscale DERP relays](https://login.tailscale.com/derpmap/default).
+MESH includes a built-in DERP server and runs it by default (`enabled: true`). The example Headscale config sets `derp.urls: []`, so the control plane only uses its own embedded DERP relay. It does not include the [Tailscale DERP relays](https://login.tailscale.com/derpmap/default).
 
 !!! danger "Is DERP safe?"
     MESH'sarchitecture is end-to-end encrypted using WireGuard between your devices. That holds whether traffic is direct or relayed through DERP. Because of that DERP can see:

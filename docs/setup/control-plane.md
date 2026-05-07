@@ -72,7 +72,7 @@ You're now connected to the control plane.
 
 Before creating pre-authentication keys for nodes, you need to create a network (or namespace). This should be the network that you'll join nodes to for a forensics mesh.
 
-- Navigate to the **[ NEW NETWORK ]** tab in the sidebar
+- Click the **[ NEW NETWORK ]** button on the home page
 
 ![alt text](image-1.png)
 
@@ -92,7 +92,7 @@ For production deployments, see the [ACL documentation](../reference/policies.md
 
 Pre-auth keys allow nodes to join the mesh without interactive authentication. You'll need this key to connect clients.
 
-1. Click the **[ GENERATE KEY TO ADD CLIENTS ]** tab
+1. Click the **[ GENERATE KEY TO ADD CLIENTS ]** button on a network
 2. Select which type of node you want to create
 
     ![alt text](image-4.png)
@@ -120,6 +120,7 @@ docker compose logs
 
 # Test control plane API endpoint
 curl https://your-domain.com/health
+# Returns: {"status":"pass"}
 ```
 
 ## Next steps
