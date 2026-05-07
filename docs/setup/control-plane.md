@@ -34,6 +34,7 @@ When first run, you will be prompted for the type of control plane you want to d
 Verify the containers are running:
 
 ```bash
+docker compose ps
 docker compose logs
 ```
 

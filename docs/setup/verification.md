@@ -169,7 +169,7 @@ If you have AndroidQF installed, you can run automated spyware detection:
 
 ```bash
 # Run AndroidQF against the mesh-connected device
-androidqf --adb 100.64.2.1:5555 --output ./artifacts/
+meshcli adbcollect
 ```
 
 AndroidQF will:
@@ -178,9 +178,6 @@ AndroidQF will:
 - Check for known spyware indicators
 - Extract system information
 - Generate a report
-
-!!! tip "Installing AndroidQF"
-    If you don't have AndroidQF installed, see the [AndroidQF documentation](https://github.com/mvt-project/androidqf) for installation instructions.
 
 ## Verification Checklist
 
@@ -251,8 +248,7 @@ ps aux | grep mesh
 meshcli status
 
 # Try reconnecting
-meshcli down
-meshcli up --login-server=https://your-domain.com --authkey=YOUR_KEY
+docker compose restart analyst
 ```
 
 **On control plane:**

@@ -41,8 +41,8 @@ Common issues and solutions for MESH deployments.
 4. **Verify control plane is running**
 
    ```bash
-   docker ps | grep headscale
-   docker logs headscale
+   docker compose ps | grep headscale
+   docker compose logs headscale
    ```
 
 5. **Check reverse proxy**
@@ -79,21 +79,11 @@ Common issues and solutions for MESH deployments.
 
 2. **Generate new key**
 
-   ```bash
-   docker compose exec headscale headscale preauthkeys create --expiration 24h --reusable
-   ```
+   Pre-auth keys allow nodes to join the mesh without interactive authentication. See the [Create a Pre-authentication key](../setup/control-plane.md#step-6-create-a-pre-authentication-key) instructions for details.
 
 3. **Check key expiration**
    - Pre-auth keys expire after the specified time
    - Generate a new key if expired
-
-4. **Try interactive authentication**
-
-   ```bash
-   # Without --authkey
-   meshcli up --login-server=https://mesh.yourdomain.com
-   # Follow the URL to authenticate
-   ```
 
 ### No Mesh IP Assigned
 
@@ -115,25 +105,23 @@ Common issues and solutions for MESH deployments.
 2. **Check control plane logs**
 
    ```bash
-   docker logs headscale
+   docker compose logs headscale
    # Look for registration errors
    ```
 
-3. **Ensure user exists**
+3. **Ensure MESH network exists**
 
    ```bash
-   # List users
+   # List networks
    docker compose exec headscale headscale users list
-
-   # Create user if missing
-   docker compose exec headscale headscale users create default
    ```
+
+If the network does not exist, it can be created by following the [Create a new network](../setup/control-plane.md#step-5-create-a-new-network) instructions.
 
 4. **Try reconnecting**
 
    ```bash
-   meshcli down
-   meshcli up --login-server=https://mesh.yourdomain.com --authkey=YOUR_KEY
+   docker compose restart analyst
    ```
 
 5. **Check node registration**
@@ -199,7 +187,7 @@ Common issues and solutions for MESH deployments.
 
 **Symptoms:**
 
-- `meshcli status --peers` shows no peers
+- `meshcli status` shows no peers
 - Devices don't appear in mesh
 - Can't ping peers
 
@@ -217,8 +205,12 @@ Common issues and solutions for MESH deployments.
    ```bash
    # On control plane
    docker compose exec headscale headscale nodes list
-   cat config/acl.yaml
+
+   # Print the active policy
+   docker compose exec headscale headscale policy get
    ```
+
+   The policy can also be inspected and edited from the CUSTOMIZE ACL page in the control plane web UI.
 
 3. **Verify same control plane**
    - Ensure all devices connect to the same control plane URL
@@ -274,7 +266,7 @@ Common issues and solutions for MESH deployments.
 5. **Monitor logs**
 
    ```bash
-   sudo journalctl -u mesh -f
+   docker compose logs -f analyst
    # Look for errors or warnings
    ```
 
@@ -284,7 +276,7 @@ Common issues and solutions for MESH deployments.
 
 **Symptoms:**
 
-- `adb connect` fails
+- `meshcli adbpair` fails
 - "Connection refused" error
 - "Unable to connect" error
 
@@ -293,7 +285,7 @@ Common issues and solutions for MESH deployments.
 1. **Verify device is online**
 
    ```bash
-   meshcli status --peers
+   meshcli status
    ping 100.64.X.X
    ```
 
@@ -372,7 +364,7 @@ Common issues and solutions for MESH deployments.
 1. **Check connection type**
 
    ```bash
-   meshcli status --json | jq '.Peer[] | {name: .HostName, addr: .CurAddr}'
+   meshcli status
    # Direct connection is faster than DERP relay
    ```
 
@@ -380,8 +372,8 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    # If not needed for censorship resistance
-   sudo rm /etc/mesh/amneziawg.conf
-   sudo systemctl restart mesh
+   docker compose exec analyst rm -f /etc/mesh/amneziawg.conf
+   docker compose restart analyst
    ```
 
 3. **Use lighter obfuscation**
@@ -418,23 +410,9 @@ Common issues and solutions for MESH deployments.
    - AmneziaWG adds CPU overhead
    - Disable if not needed
 
-2. **Reduce connection checks**
-
-   ```bash
-   # Increase check interval
-   meshcli set --netcheck-interval=10m
-   ```
-
-3. **Limit peer count**
+2. **Limit peer count**
    - Use ACLs to limit visible peers
    - Only connect to necessary devices
-
-4. **Check for loops**
-
-   ```bash
-   # Look for routing loops
-   meshcli routes
-   ```
 
 ## Control plane Issues
 
@@ -451,7 +429,7 @@ Common issues and solutions for MESH deployments.
 1. **Check logs**
 
    ```bash
-   docker logs headscale
+   docker compose logs headscale
    ```
 
 2. **Check port conflicts**
@@ -465,23 +443,16 @@ Common issues and solutions for MESH deployments.
 3. **Verify config syntax**
 
    ```bash
-   cat config/config.yaml
+   cat control-plane/headscale/config.yaml
    # Check for YAML syntax errors
    ```
 
-4. **Check database**
+4. **Reset database (WARNING: deletes all data)**
 
    ```bash
-   ls -la data/db.sqlite
-   sudo chown -R 1000:1000 data/
-   ```
-
-5. **Reset database (WARNING: deletes all data)**
-
-   ```bash
-   docker-compose down
-   rm data/db.sqlite
-   docker-compose up -d
+   task down
+   docker volume rm mesh_headscale-data
+   task controlPlane
    ```
 
 ### Nodes Not Registering
@@ -500,30 +471,21 @@ Common issues and solutions for MESH deployments.
    docker compose exec headscale headscale nodes list
    ```
 
-2. **Check user exists**
+2. **Check network exists**
 
    ```bash
    docker compose exec headscale headscale users list
    ```
 
-3. **Create user if missing**
+3. **Create network if missing**
 
-   ```bash
-   docker compose exec headscale headscale users create analyst1
-   ```
+   If the network does not exist, it can be created by following the [Create a new network](../setup/control-plane.md#step-5-create-a-new-network) instructions.
 
 4. **Check ACLs**
 
    ```bash
-   cat config/acl.yaml
+   docker compose exec headscale headscale policy get
    # Verify ACLs allow the connection
-   ```
-
-5. **Register manually**
-
-   ```bash
-   # Get node key from client logs
-   docker compose exec headscale headscale nodes register --user analyst1 --key nodekey:abc123
    ```
 
 ### DERP Relay Not Working
@@ -540,7 +502,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    sudo netstat -ulnp | grep 3478
-   docker logs headscale | grep STUN
+   docker compose logs headscale | grep STUN
    ```
 
 2. **Test STUN**
@@ -553,7 +515,7 @@ Common issues and solutions for MESH deployments.
 3. **Check DERP config**
 
    ```bash
-   cat config/config.yaml | grep -A 20 "derp:"
+   cat control-plane/headscale/config.yaml | grep -A 20 "derp:"
    ```
 
 4. **Verify DERP is enabled**
@@ -632,10 +594,10 @@ Common issues and solutions for MESH deployments.
 
 ```bash
 # Analyst client logs
-sudo journalctl -u mesh --since "1 hour ago" > mesh-logs.txt
+docker compose logs --since 1h analyst > mesh-logs.txt
 
 # Control plane logs
-docker logs headscale > headscale-logs.txt
+docker compose logs --since 1h headscale > headscale-logs.txt
 
 # Android logs
 adb logcat -d > android-logs.txt
@@ -669,7 +631,7 @@ sudo wg show
 
 ```bash
 # Detailed status
-meshcli status --json | jq
+meshcli status --json
 
 # Check peer connectivity
 for peer in $(meshcli status --json | jq -r '.Peer[].TailscaleIPs[0]'); do

@@ -10,7 +10,7 @@ meshcli [global-options] <command> [command-options]
 
 ## Global Options
 
-- `--socket <path>`: Path to tailscaled socket (default: `/var/run/mesh/tailscaled.sock`)
+- `--socket <path>`: Path to tailscaled socket (default: `/tmp/tailscaled.sock`)
 - `--help`, `-h`: Show help message
 - `--version`, `-v`: Show version information
 
@@ -362,7 +362,7 @@ sudo -E meshcli up --login-server=https://mesh.example.com
 
 ### State File
 
-Location: `/var/lib/mesh/tailscaled.state`
+Location: `/root/.tailscale/tailscaled.state` inside the analyst container, persisted via the `analyst-data` volume.
 
 Contains:
 
@@ -373,7 +373,7 @@ Contains:
 **Backup:**
 
 ```bash
-sudo cp /var/lib/mesh/tailscaled.state /var/lib/mesh/tailscaled.state.backup
+docker compose exec analyst cp /root/.tailscale/tailscaled.state /root/.tailscale/tailscaled.state.backup
 ```
 
 ### AmneziaWG Config

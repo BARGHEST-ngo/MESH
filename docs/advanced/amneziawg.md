@@ -146,12 +146,11 @@ H4 = 4567890
 
 #### 1. Create Configuration File
 
-```bash
-# Create config directory
-sudo mkdir -p /etc/mesh
+The config file lives inside the analyst container at `/etc/mesh/amneziawg.conf`. Write it with `docker compose exec`:
 
+```bash
 # Create config file with balanced preset
-sudo cat > /etc/mesh/amneziawg.conf << 'EOF'
+docker compose exec analyst tee /etc/mesh/amneziawg.conf >/dev/null << 'EOF'
 [Interface]
 Jc = 5
 Jmin = 50
@@ -238,15 +237,14 @@ Test if obfuscation helps bypass restrictions:
 
 ```bash
 # Disable obfuscation
-sudo rm /etc/mesh/amneziawg.conf
-sudo systemctl restart mesh
-meshcli up --login-server=https://mesh.yourdomain.com
+docker compose exec analyst rm /etc/mesh/amneziawg.conf
+docker compose restart analyst
 
 # Test connection
-ping 100.64.X.X
+docker compose exec analyst ping 100.64.X.X
 
 # Enable obfuscation
-sudo cat > /etc/mesh/amneziawg.conf << 'EOF'
+docker compose exec analyst tee /etc/mesh/amneziawg.conf >/dev/null << 'EOF'
 [Interface]
 Jc = 5
 Jmin = 50
@@ -259,11 +257,10 @@ H3 = 300
 H4 = 400
 EOF
 
-sudo systemctl restart mesh
-meshcli up --login-server=https://mesh.yourdomain.com
+docker compose restart analyst
 
 # Test connection again
-ping 100.64.X.X
+docker compose exec analyst ping 100.64.X.X
 ```
 
 If the connection works with obfuscation but not without, DPI is likely blocking standard WireGuard.

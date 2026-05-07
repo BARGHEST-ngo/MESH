@@ -57,24 +57,21 @@ meshcli down
 # List nodes
 docker compose exec headscale headscale nodes list
 
-# Create pre-auth key
-docker compose exec headscale headscale preauthkeys create --user default --expiration 24h
-
-# List users
+# List networks
 docker compose exec headscale headscale users list
 
 # Check ACL policy
-docker compose exec headscale headscale policy check
+docker compose exec headscale headscale policy get
 ```
 
 #### Android Forensics
 
 ```bash
 # Connect to device
-adb connect 100.64.x.x:5555
+meshcli adbpair --host 100.64.x.x --hostport 1234 --pairport 1234 --code 1234
 
 # Run AndroidQF
-androidqf --adb 100.64.x.x:5555 --output ./artifacts/
+meshcli adbcollect
 
 # Run MVT
 mvt-android check-adb --output ./mvt-output/

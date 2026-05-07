@@ -14,7 +14,7 @@ This guide covers common forensic workflows and best practices for using MESH in
 2. **Connect devices**
    - Start MESH daemon on analyst workstation
    - Connect endpoint device to mesh
-   - Verify connectivity with `meshcli status --peers`
+   - Verify connectivity with `meshcli status`
 
 3. **Establish ADB connection**
 
@@ -55,7 +55,7 @@ For operations in censored environments:
    H3 = 3456789
    H4 = 4567890
    EOF
-   sudo systemctl restart mesh
+   docker compose restart analyst
    ```
 
    **Endpoint:**
@@ -203,11 +203,8 @@ meshcli up --exit-node=
 ### Checking Connection Status
 
 ```bash
-# Basic status
+# Basic peer status
 meshcli status
-
-# Detailed peer information
-meshcli status --peers
 
 # JSON output for scripting
 meshcli status --json | jq
@@ -263,10 +260,10 @@ echo "Collection complete: $OUTPUT_DIR"
 
 ```bash
 # List all connected devices
-meshcli status --peers | grep -E "100\.64\."
+meshcli status | grep -E "100\.64\."
 
 # Connect to all devices
-for ip in $(meshcli status --peers | grep -oE "100\.64\.[0-9]+\.[0-9]+"); do
+for ip in $(meshcli status | grep -oE "100\.64\.[0-9]+\.[0-9]+"); do
     adb connect $ip:5555
 done
 
@@ -279,27 +276,23 @@ adb disconnect
 
 ### Automating investigations
 
+The analyst container's entrypoint reads `LOGIN_URL` and `AUTH_KEY` from `.env` and starts the MESH daemon for you. From the analyst workstation, run meshcli subcommands via `docker compose exec`.
+
 ```bash
 #!/bin/bash
 # auto-investigate.sh
 
-CONTROL_PLANE="https://mesh.yourdomain.com"
-PREAUTH_KEY="your-key-here"
-
-# Start daemon
-sudo systemctl start mesh
-
-# Connect to control plane
-meshcli up --login-server=$CONTROL_PLANE --authkey=$PREAUTH_KEY --accept-dns=false
+# Make sure LOGIN_URL and AUTH_KEY are set in .env before running, then start the analyst container:
+task analyst
 
 # Wait for peers
 echo "Waiting for devices..."
-while [ $(meshcli status --peers | grep -c "100.64") -eq 0 ]; do
+while [ $(docker compose exec analyst mesh cli status | grep -c "100.64") -eq 0 ]; do
     sleep 5
 done
 
 # Get device IPs
-DEVICES=$(meshcli status --peers | grep -oE "100\.64\.[0-9]+\.[0-9]+")
+DEVICES=$(docker compose exec analyst mesh cli status | grep -oE "100\.64\.[0-9]+\.[0-9]+")
 
 # Investigate each device
 for device in $DEVICES; do
@@ -308,7 +301,7 @@ for device in $DEVICES; do
 done
 
 # Disconnect
-meshcli down
+docker compose down analyst
 
 echo "Investigation complete"
 ```
