@@ -5,6 +5,12 @@ ACLs are the **most critical security component** of your MESH deployment. They 
 !!! danger "Critical security warning"
     **Never use permissive ACLs (`"*"` rules) in production.** This allows any compromised endpoint to access all other devices in your mesh, including other forensic targets and analyst workstations. Always implement the principle of least privilege.
 
+## Where the ACLs are stored
+
+MESH uses `policy.mode: database` in the Headscale config. Therefore the active policy is stored in Headscale's SQLite database, not in a YAML file you edit on disk.
+
+To read or change the policy, open the control plane Web UI and click CUSTOMIZE ACL in the sidebar. Save Changes writes straight to the database and applies the updated ACLs immediately.
+
 ## Why ACLs are critical for MESH
 
 In a forensic mesh network, security isolation is paramount:
@@ -26,22 +32,27 @@ In a forensic mesh network, security isolation is paramount:
 
 ## ACL syntax and structure
 
-ACLs are defined in YAML format with the following structure:
+ACLs are defined in JSON format (technically HuJSON which can include comments) with the following structure:
 
-```yaml
-# Define groups of users/nodes
-groups:
-  group:name:
-    - user1
-    - user2
+```json
+{
+  // Define groups of users/nodes
+  "groups": {
+    "group:name": [
+      "user1",
+      "user2"
+    ]
+  },
 
-# Define access control rules
-acls:
-  - action: accept  # or deny
-    src:
-      - source_group_or_user
-    dst:
-      - destination_group_or_user:port
+  // Define access control rules
+  "acls": [
+    {
+      "action": "accept",  // or "deny"
+      "src": ["source_group_or_user"],
+      "dst": ["destination_group_or_user:port"]
+    }
+  ]
+}
 ```
 
 **Components:**
@@ -78,15 +89,18 @@ acls:
 
 ### Testing ACL (permissive - DO NOT USE IN PRODUCTION)
 
-```yaml
-# WARNING: This is for testing only!
-# Allows all traffic between all nodes
-acls:
-  - action: accept
-    src:
-      - "*"
-    dst:
-      - "*:*"
+```json
+{
+  // WARNING: This is for testing only.
+  // Allows all traffic between all nodes.
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["*"],
+      "dst": ["*:*"]
+    }
+  ]
+}
 ```
 
 !!! warning "Testing only"
@@ -106,208 +120,202 @@ acls:
 
 ### Production ACL (restrictive - RECOMMENDED)
 
-```yaml
-# Production ACL - Principle of least privilege
-groups:
-  group:analysts:
-    - analyst1
-    - analyst2
-  group:endpoints:
-    - android-device-1
-    - android-device-2
+```json
+{
+  // Production ACL - Principle of least privilege
+  "groups": {
+    "group:analysts": ["analyst1", "analyst2"],
+    "group:endpoints": ["android-device-1", "android-device-2"]
+  },
 
-acls:
-  # Analysts can access all endpoints on ADB port
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:5555  # ADB port only
+  "acls": [
+    // Analysts can access all endpoints on ADB port
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:5555"]  // ADB port only
+    },
 
-  # Analysts can access all endpoints on all ports (for full forensics)
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
+    // Analysts can access all endpoints on all ports (for full forensics)
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    },
 
-  # Endpoints CANNOT access each other (critical for isolation)
-  - action: deny
-    src:
-      - group:endpoints
-    dst:
-      - group:endpoints:*
+    // Endpoints CANNOT access each other (critical for isolation)
+    {
+      "action": "deny",
+      "src": ["group:endpoints"],
+      "dst": ["group:endpoints:*"]
+    },
 
-  # Endpoints CANNOT access analysts (prevent reverse connections)
-  - action: deny
-    src:
-      - group:endpoints
-    dst:
-      - group:analysts:*
+    // Endpoints CANNOT access analysts (prevent reverse connections)
+    {
+      "action": "deny",
+      "src": ["group:endpoints"],
+      "dst": ["group:analysts:*"]
+    },
 
-  # Analysts can access each other (for collaboration)
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:analysts:*
+    // Analysts can access each other (for collaboration)
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:analysts:*"]
+    },
 
-  # Deny all other traffic (default deny)
-  - action: deny
-    src:
-      - "*"
-    dst:
-      - "*:*"
+    // Deny all other traffic (default deny)
+    {
+      "action": "deny",
+      "src": ["*"],
+      "dst": ["*:*"]
+    }
+  ]
+}
 ```
 
 ## Real-world ACL examples
 
 ### Example 1: Single analyst, multiple endpoints
 
-```yaml
-# Simple forensic setup
-groups:
-  group:analysts:
-    - forensic-workstation
+```json
+{
+  // Simple forensic setup
+  "groups": {
+    "group:analysts": ["forensic-workstation"],
+    "group:endpoints": [
+      "suspect-phone-1",
+      "suspect-phone-2",
+      "suspect-phone-3"
+    ]
+  },
 
-  group:endpoints:
-    - suspect-phone-1
-    - suspect-phone-2
-    - suspect-phone-3
+  "acls": [
+    // Analyst can access all endpoints
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    },
 
-acls:
-  # Analyst can access all endpoints
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
-
-  # Endpoints are completely isolated
-  - action: deny
-    src:
-      - group:endpoints
-    dst:
-      - "*:*"
+    // Endpoints are completely isolated
+    {
+      "action": "deny",
+      "src": ["group:endpoints"],
+      "dst": ["*:*"]
+    }
+  ]
+}
 ```
 
 ### Example 2: Multi-team deployment
 
-```yaml
-# Multiple analyst teams with separate endpoints
-groups:
-  group:team-alpha-analysts:
-    - analyst-alice
-    - analyst-bob
+```json
+{
+  // Multiple analyst teams with separate endpoints
+  "groups": {
+    "group:team-alpha-analysts": ["analyst-alice", "analyst-bob"],
+    "group:team-alpha-endpoints": ["case-123-phone-1", "case-123-phone-2"],
+    "group:team-bravo-analysts": ["analyst-charlie", "analyst-diana"],
+    "group:team-bravo-endpoints": ["case-456-phone-1", "case-456-phone-2"]
+  },
 
-  group:team-alpha-endpoints:
-    - case-123-phone-1
-    - case-123-phone-2
+  "acls": [
+    // Team Alpha: analysts can access their endpoints
+    {
+      "action": "accept",
+      "src": ["group:team-alpha-analysts"],
+      "dst": ["group:team-alpha-endpoints:*"]
+    },
 
-  group:team-bravo-analysts:
-    - analyst-charlie
-    - analyst-diana
+    // Team Bravo: analysts can access their endpoints
+    {
+      "action": "accept",
+      "src": ["group:team-bravo-analysts"],
+      "dst": ["group:team-bravo-endpoints:*"]
+    },
 
-  group:team-bravo-endpoints:
-    - case-456-phone-1
-    - case-456-phone-2
+    // Team Alpha: analysts can collaborate
+    {
+      "action": "accept",
+      "src": ["group:team-alpha-analysts"],
+      "dst": ["group:team-alpha-analysts:*"]
+    },
 
-acls:
-  # Team Alpha: analysts can access their endpoints
-  - action: accept
-    src:
-      - group:team-alpha-analysts
-    dst:
-      - group:team-alpha-endpoints:*
+    // Team Bravo: analysts can collaborate
+    {
+      "action": "accept",
+      "src": ["group:team-bravo-analysts"],
+      "dst": ["group:team-bravo-analysts:*"]
+    },
 
-  # Team Bravo: analysts can access their endpoints
-  - action: accept
-    src:
-      - group:team-bravo-analysts
-    dst:
-      - group:team-bravo-endpoints:*
+    // Teams CANNOT access each other's endpoints
+    {
+      "action": "deny",
+      "src": ["group:team-alpha-analysts"],
+      "dst": ["group:team-bravo-endpoints:*"]
+    },
+    {
+      "action": "deny",
+      "src": ["group:team-bravo-analysts"],
+      "dst": ["group:team-alpha-endpoints:*"]
+    },
 
-  # Team Alpha: analysts can collaborate
-  - action: accept
-    src:
-      - group:team-alpha-analysts
-    dst:
-      - group:team-alpha-analysts:*
+    // Endpoints are completely isolated
+    {
+      "action": "deny",
+      "src": ["group:team-alpha-endpoints"],
+      "dst": ["*:*"]
+    },
+    {
+      "action": "deny",
+      "src": ["group:team-bravo-endpoints"],
+      "dst": ["*:*"]
+    },
 
-  # Team Bravo: analysts can collaborate
-  - action: accept
-    src:
-      - group:team-bravo-analysts
-    dst:
-      - group:team-bravo-analysts:*
-
-  # Teams CANNOT access each other's endpoints
-  - action: deny
-    src:
-      - group:team-alpha-analysts
-    dst:
-      - group:team-bravo-endpoints:*
-
-  - action: deny
-    src:
-      - group:team-bravo-analysts
-    dst:
-      - group:team-alpha-endpoints:*
-
-  # Endpoints are completely isolated
-  - action: deny
-    src:
-      - group:team-alpha-endpoints
-    dst:
-      - "*:*"
-
-  - action: deny
-    src:
-      - group:team-bravo-endpoints
-    dst:
-      - "*:*"
-
-  # Default deny
-  - action: deny
-    src:
-      - "*"
-    dst:
-      - "*:*"
+    // Default deny
+    {
+      "action": "deny",
+      "src": ["*"],
+      "dst": ["*:*"]
+    }
+  ]
+}
 ```
 
 ### Example 3: Port-specific access (ADB only)
 
-```yaml
-# Restrict analysts to only ADB access
-groups:
-  group:analysts:
-    - forensic-workstation
+```json
+{
+  // Restrict analysts to only ADB access
+  "groups": {
+    "group:analysts": ["forensic-workstation"],
+    "group:endpoints": ["android-device-1", "android-device-2"]
+  },
 
-  group:endpoints:
-    - android-device-1
-    - android-device-2
+  "acls": [
+    // Analysts can ONLY access ADB port (5555)
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:5555"]
+    },
 
-acls:
-  # Analysts can ONLY access ADB port (5555)
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:5555
+    // Deny all other ports
+    {
+      "action": "deny",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    },
 
-  # Deny all other ports
-  - action: deny
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
-
-  # Endpoints completely isolated
-  - action: deny
-    src:
-      - group:endpoints
-    dst:
-      - "*:*"
+    // Endpoints completely isolated
+    {
+      "action": "deny",
+      "src": ["group:endpoints"],
+      "dst": ["*:*"]
+    }
+  ]
+}
 ```
 
 ## ACL best practices for forensic deployments
@@ -324,13 +332,13 @@ acls:
 
 **Endpoints must never access each other:**
 
-```yaml
-# CRITICAL: Always include this rule
-- action: deny
-  src:
-    - group:endpoints
-  dst:
-    - group:endpoints:*
+```json
+// CRITICAL: Always include this rule
+{
+  "action": "deny",
+  "src": ["group:endpoints"],
+  "dst": ["group:endpoints:*"]
+}
 ```
 
 **Why this matters:**
@@ -343,13 +351,13 @@ acls:
 
 **Endpoints should not initiate connections to analysts:**
 
-```yaml
-# Prevent endpoints from connecting to analysts
-- action: deny
-  src:
-    - group:endpoints
-  dst:
-    - group:analysts:*
+```json
+// Prevent endpoints from connecting to analysts
+{
+  "action": "deny",
+  "src": ["group:endpoints"],
+  "dst": ["group:analysts:*"]
+}
 ```
 
 **Why this matters:**
@@ -362,59 +370,59 @@ acls:
 
 **Bad (hard to maintain):**
 
-```yaml
-acls:
-  - action: accept
-    src:
-      - analyst1
-      - analyst2
-      - analyst3
-    dst:
-      - phone1:*
-      - phone2:*
-      - phone3:*
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["analyst1", "analyst2", "analyst3"],
+      "dst": ["phone1:*", "phone2:*", "phone3:*"]
+    }
+  ]
+}
 ```
 
 **Good (easy to maintain):**
 
-```yaml
-groups:
-  group:analysts:
-    - analyst1
-    - analyst2
-    - analyst3
-  group:endpoints:
-    - phone1
-    - phone2
-    - phone3
+```json
+{
+  "groups": {
+    "group:analysts": ["analyst1", "analyst2", "analyst3"],
+    "group:endpoints": ["phone1", "phone2", "phone3"]
+  },
 
-acls:
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    }
+  ]
+}
 ```
 
 ### 5. Default deny at the end
 
 **Always end with a default deny rule:**
 
-```yaml
-acls:
-  # ... your specific rules ...
+```json
+{
+  "acls": [
+    // ... your specific rules ...
 
-  # Default deny (catches anything not explicitly allowed)
-  - action: deny
-    src:
-      - "*"
-    dst:
-      - "*:*"
+    // Default deny (catches anything not explicitly allowed)
+    {
+      "action": "deny",
+      "src": ["*"],
+      "dst": ["*:*"]
+    }
+  ]
+}
 ```
 
 ## Testing and validating ACLs
 
-After creating or modifying ACLs in the MESH control plane web UI, always test them:
+After creating or modifying ACLs in the CUSTOMIZE ACL page, always test them:
 
 ### 1. Test from analyst workstation
 
@@ -429,8 +437,8 @@ meshcli adbpair 100.64.2.1:5555
 ### 2. Test endpoint isolation
 
 ```bash
-# On endpoint device (via ADB shell)
-meshcli adbshell
+# On endpoint device (via ADB shell, after pairing with `meshcli adbpair`)
+adb shell
 
 # Should FAIL: Endpoint trying to access another endpoint
 ping 100.64.2.2  # Another endpoint's mesh IP
@@ -455,114 +463,136 @@ docker compose logs headscale | grep -i denied
 
 **Wrong:**
 
-```yaml
-acls:
-  - action: accept
-    src:
-      - "*"
-    dst:
-      - "*:*"
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["*"],
+      "dst": ["*:*"]
+    }
+  ]
+}
 ```
 
 **Right:**
 
-```yaml
-acls:
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    }
+  ]
+}
 ```
 
 ### Mistake 2: Forgetting endpoint isolation
 
 **Wrong (endpoints can access each other):**
 
-```yaml
-acls:
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    }
+  ]
+}
 ```
 
 **Right (endpoints explicitly denied):**
 
-```yaml
-acls:
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
-
-  - action: deny
-    src:
-      - group:endpoints
-    dst:
-      - group:endpoints:*
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    },
+    {
+      "action": "deny",
+      "src": ["group:endpoints"],
+      "dst": ["group:endpoints:*"]
+    }
+  ]
+}
 ```
 
 ### Mistake 3: Allowing reverse connections
 
 **Wrong (endpoints can connect to analysts):**
 
-```yaml
-acls:
-  - action: accept
-    src:
-      - "*"
-    dst:
-      - "*:*"
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["*"],
+      "dst": ["*:*"]
+    }
+  ]
+}
 ```
 
 **Right (only analysts initiate connections):**
 
-```yaml
-acls:
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
-
-  - action: deny
-    src:
-      - group:endpoints
-    dst:
-      - group:analysts:*
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    },
+    {
+      "action": "deny",
+      "src": ["group:endpoints"],
+      "dst": ["group:analysts:*"]
+    }
+  ]
+}
 ```
 
 ### Mistake 4: Overly broad port access
 
 **Wrong (all ports open):**
 
-```yaml
-acls:
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:*
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:*"]
+    }
+  ]
+}
 ```
 
 **Better (specific ports only):**
 
-```yaml
-acls:
-  # ADB access only
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:5555
+```json
+{
+  "acls": [
+    // ADB access only
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:5555"]
+    },
 
-  # SSH access only (if needed)
-  - action: accept
-    src:
-      - group:analysts
-    dst:
-      - group:endpoints:22
+    // SSH access only (if needed)
+    {
+      "action": "accept",
+      "src": ["group:analysts"],
+      "dst": ["group:endpoints:22"]
+    }
+  ]
+}
 ```
