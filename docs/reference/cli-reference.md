@@ -29,7 +29,7 @@ meshcli up [options]
 **Options:**
 
 - `--login-server <url>`: Control plane URL (required)
-- `--authkey <key>`: Pre-authentication key
+- `--auth-key <key>`: Pre-authentication key
 - `--accept-dns <bool>`: Accept DNS configuration (default: true)
 - `--accept-routes <bool>`: Accept subnet routes from peers (default: false)
 - `--advertise-routes <routes>`: Advertise subnet routes (comma-separated CIDRs)
@@ -53,7 +53,7 @@ meshcli up --login-server=https://mesh.example.com
 # Connect with pre-auth key
 meshcli up \
   --login-server=https://mesh.example.com \
-  --authkey=abc123def456
+  --auth-key=abc123def456
 
 # Advertise subnet routes
 meshcli up \
@@ -417,7 +417,7 @@ meshcli status --json | jq -r '.Peer[] | select(.Online == true) | .HostName'
 while true; do
     if ! meshcli status | grep -q "Running"; then
         echo "Disconnected, reconnecting..."
-        meshcli up --login-server=https://mesh.example.com --authkey=abc123
+        meshcli up --login-server=https://mesh.example.com --auth-key=abc123
     fi
     sleep 60
 done
