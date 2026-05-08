@@ -39,7 +39,7 @@ Before configuring exit node functionality:
 
 ### Advertise exit node to MESH network
 
-From an interactie shell in the analyst container, advertise the analyst node as an exit node:
+From an interactive shell in the analyst container, advertise the analyst node as an exit node:
 
 ```bash
 # Advertise on connect (first time)
@@ -49,7 +49,7 @@ meshcli up --advertise-exit-node
 meshcli set --advertise-exit-node
 ```
 
-Once the Tailescale daemon advertises the exit-node routes, the analyst node will show up in the control plane Web UI with an APPROVE EXIT button.
+Once the Tailscale daemon advertises the exit-node routes, the analyst node will show up in the control plane Web UI with an APPROVE EXIT button.
 
 ### Enable exit node on control plane
 

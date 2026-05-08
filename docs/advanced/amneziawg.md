@@ -1,9 +1,6 @@
 # AmneziaWG configuration
 
-!!! danger
-    AmneziaWG configuration only works on the analyst client right now. Android integration is planned for February 2026.
-
-    This guide explains how to configure AmneziaWG obfuscation in MESH for censorship resistance and Deep packet inspection (DPI) evasion.
+This guide explains how to configure AmneziaWG obfuscation in MESH for censorship resistance and Deep packet inspection (DPI) evasion.
 
 ## Overview
 
