@@ -35,17 +35,17 @@ You should see:
 Test basic network connectivity to the Android device:
 
 ```bash
-ping 100.64.2.1
+ping 100.64.0.2
 ```
 
-Replace `100.64.2.1` with your Android device's actual mesh IP address.
+Replace `100.64.0.2` with your Android device's actual mesh IP address.
 
 **Example output:**
 
 ```
-PING 100.64.2.1 (100.64.2.1) 56(84) bytes of data.
-64 bytes from 100.64.2.1: icmp_seq=1 ttl=64 time=45.2 ms
-64 bytes from 100.64.2.1: icmp_seq=2 ttl=64 time=42.8 ms
+PING 100.64.0.2 (100.64.0.2) 56(84) bytes of data.
+64 bytes from 100.64.0.2: icmp_seq=1 ttl=64 time=45.2 ms
+64 bytes from 100.64.0.2: icmp_seq=2 ttl=64 time=42.8 ms
 ```
 
 !!! tip "High Latency?"
@@ -71,15 +71,19 @@ The Android device should automatically enable ADB-over-WiFi on its mesh IP. Let
 ### Connect to the Device
 
 ```bash
-adb connect 100.64.2.1:5555
+meshcli adbpair --host 100.64.0.2 --hostport 1234 --pairport 4321 --code 123456
 ```
 
-Replace `100.64.2.1` with your Android device's mesh IP.
+Replace `100.64.0.2` with your Android device's mesh IP.
 
 **Example output:**
 
 ```
-connected to 100.64.2.1:5555
+ADB pair successful, now connecting...
+ADB connect successful:
+connected to 100.64.0.2:1234
+Validating ADB session...
+Success! Device connected
 ```
 
 ### Verify ADB Connection
@@ -92,7 +96,7 @@ adb devices
 
 ```
 List of devices attached
-100.64.2.1:5555    device
+100.64.0.2:1234    device
 ```
 
 !!! success "ADB Connected"
@@ -169,7 +173,7 @@ If you have AndroidQF installed, you can run automated spyware detection:
 
 ```bash
 # Run AndroidQF against the mesh-connected device
-androidqf --adb 100.64.2.1:5555 --output ./artifacts/
+meshcli adbcollect
 ```
 
 AndroidQF will:
@@ -178,9 +182,6 @@ AndroidQF will:
 - Check for known spyware indicators
 - Extract system information
 - Generate a report
-
-!!! tip "Installing AndroidQF"
-    If you don't have AndroidQF installed, see the [AndroidQF documentation](https://github.com/mvt-project/androidqf) for installation instructions.
 
 ## Verification Checklist
 
@@ -223,20 +224,20 @@ docker compose logs headscale | grep DERP
 
 1. Verify ADB is enabled in the MESH app on Android
 2. Check the mesh IP address is correct
-3. Ensure port 5555 is not blocked
+3. Ensure wireless debugging port is not blocked
 
 **Error: "Connection timed out"**
 
 1. Verify the Android device is online in the mesh
 2. Try pinging the device first
-3. Check if the device's firewall is blocking port 5555
+3. Check if the device's firewall is blocking wireless debugging port
 
 **Fix: Restart ADB**
 
 ```bash
 adb kill-server
 adb start-server
-adb connect 100.64.2.1:5555
+adb connect 100.64.0.2:1234
 ```
 
 ### No Devices Showing in Mesh
@@ -251,8 +252,7 @@ ps aux | grep mesh
 meshcli status
 
 # Try reconnecting
-meshcli down
-meshcli up --login-server=https://your-domain.com --authkey=YOUR_KEY
+docker compose restart analyst
 ```
 
 **On control plane:**

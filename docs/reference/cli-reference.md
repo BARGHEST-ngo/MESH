@@ -10,7 +10,7 @@ meshcli [global-options] <command> [command-options]
 
 ## Global Options
 
-- `--socket <path>`: Path to tailscaled socket (default: `/var/run/mesh/tailscaled.sock`)
+- `--socket <path>`: Path to tailscaled socket (default: `/tmp/tailscaled.sock`)
 - `--help`, `-h`: Show help message
 - `--version`, `-v`: Show version information
 
@@ -29,7 +29,7 @@ meshcli up [options]
 **Options:**
 
 - `--login-server <url>`: Control plane URL (required)
-- `--authkey <key>`: Pre-authentication key
+- `--auth-key <key>`: Pre-authentication key
 - `--accept-dns <bool>`: Accept DNS configuration (default: true)
 - `--accept-routes <bool>`: Accept subnet routes from peers (default: false)
 - `--advertise-routes <routes>`: Advertise subnet routes (comma-separated CIDRs)
@@ -53,7 +53,7 @@ meshcli up --login-server=https://mesh.example.com
 # Connect with pre-auth key
 meshcli up \
   --login-server=https://mesh.example.com \
-  --authkey=abc123def456
+  --auth-key=abc123def456
 
 # Advertise subnet routes
 meshcli up \
@@ -104,7 +104,6 @@ meshcli status [options]
 
 **Options:**
 
-- `--peers`: Show detailed peer information
 - `--json`: Output in JSON format
 - `--self <bool>`: Show self information (default: true)
 - `--active`: Only show active peers
@@ -301,22 +300,6 @@ meshcli ip -4
 meshcli ip -1
 ```
 
-### routes
-
-Show and manage routes.
-
-**Synopsis:**
-
-```bash
-meshcli routes
-```
-
-**Examples:**
-
-```bash
-meshcli routes
-```
-
 ### version
 
 Show version information.
@@ -344,11 +327,11 @@ meshcli version
 ```bash
 # Prevent peer trimming
 export TS_DEBUG_TRIM_WIREGUARD=false
-sudo -E meshcli up --login-server=https://mesh.example.com
+meshcli up --login-server=https://mesh.example.com
 
 # Force DERP relay
 export TS_DEBUG_ALWAYS_USE_DERP=true
-sudo -E meshcli up --login-server=https://mesh.example.com
+meshcli up --login-server=https://mesh.example.com
 ```
 
 ## Exit Codes
@@ -362,7 +345,7 @@ sudo -E meshcli up --login-server=https://mesh.example.com
 
 ### State File
 
-Location: `/var/lib/mesh/tailscaled.state`
+Location: `/root/.tailscale/tailscaled.state` inside the analyst container, persisted via the `analyst-data` volume.
 
 Contains:
 
@@ -373,7 +356,7 @@ Contains:
 **Backup:**
 
 ```bash
-sudo cp /var/lib/mesh/tailscaled.state /var/lib/mesh/tailscaled.state.backup
+docker compose exec analyst cp /root/.tailscale/tailscaled.state /root/.tailscale/tailscaled.state.backup
 ```
 
 ### AmneziaWG Config
@@ -417,7 +400,7 @@ meshcli status --json | jq -r '.Peer[] | select(.Online == true) | .HostName'
 while true; do
     if ! meshcli status | grep -q "Running"; then
         echo "Disconnected, reconnecting..."
-        meshcli up --login-server=https://mesh.example.com --authkey=abc123
+        meshcli up --login-server=https://mesh.example.com --auth-key=abc123
     fi
     sleep 60
 done

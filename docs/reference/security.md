@@ -19,11 +19,10 @@ Pre-auth keys should be rotated regularly:
 # List existing keys
 docker compose exec headscale headscale preauthkeys list
 
-# Expire old keys
-docker compose exec headscale headscale preauthkeys expire --user default KEY_ID
+# Expire old keys (KEY_ID is the numeric ID from `preauthkeys list`)
+docker compose exec headscale headscale preauthkeys expire -i KEY_ID
 
-# Create new key
-docker compose exec headscale headscale preauthkeys create --user default --reusable --expiration 24h
+Then follow the instructions in [Create a Pre-authentication key](../setup/control-plane.md#step-6-create-a-pre-authentication-key) for creating a new key.
 ```
 
 **Best practices:**

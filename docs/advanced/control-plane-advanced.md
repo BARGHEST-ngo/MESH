@@ -44,7 +44,7 @@ Deploy your own DERP relay servers for maximum privacy, geographic distribution,
 First, configure Headscale to use only your custom DERP servers:
 
 ```yaml
-# config/config.yaml
+# control-plane/headscale/config.yaml
 derp:
   server:
     enabled: false  # Disable built-in DERP server

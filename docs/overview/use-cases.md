@@ -52,16 +52,16 @@ An incident response team needs to monitor network traffic from a compromised de
 
 !!! example "Workflow"
     ```bash
-    # Enable exit node on analyst node
+    # Enable exit node in analyst container
     meshcli up --advertise-exit-node
+
+    # In the control plane Web UI, click APPROVE EXIT on the analyst's node.
 
     # On endpoint, route all traffic through analyst
     # (configured in MESH app)
-    
-    # Enable port forwarding on analyst 
 
-    # Capture traffic on analyst workstation
-    tcpdump -i mesh0 -w capture.pcap
+    # Capture traffic in the analyst container:
+    tcpdump -i tailscale0 -w capture.pcap
     ```
 
 ## Human rights investigations

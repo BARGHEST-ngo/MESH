@@ -14,13 +14,12 @@ This guide covers common forensic workflows and best practices for using MESH in
 2. **Connect devices**
    - Start MESH daemon on analyst workstation
    - Connect endpoint device to mesh
-   - Verify connectivity with `meshcli status --peers`
+   - Verify connectivity with `meshcli status`
 
 3. **Establish ADB connection**
 
    ```bash
-   adb connect 100.64.X.X:5555
-   adb devices
+   meshcli adbpair --host 100.64.X.X --hostport 1234 --pairport 4321 --code 123456
    ```
 
 4. **Collect artifacts & run analysis**
@@ -30,7 +29,6 @@ This guide covers common forensic workflows and best practices for using MESH in
 5. **Tear down**
 
    ```bash
-   adb disconnect
    meshcli down
    ```
 
@@ -43,7 +41,7 @@ For operations in censored environments:
    **Analyst:**
 
    ```bash
-   sudo cat > /etc/mesh/amneziawg.conf << 'EOF'
+   docker compose exec analyst tee /etc/mesh/amneziawg.conf >/dev/null << 'EOF'
    [Interface]
    Jc = 10
    Jmin = 50
@@ -55,7 +53,7 @@ For operations in censored environments:
    H3 = 3456789
    H4 = 4567890
    EOF
-   sudo systemctl restart mesh
+   docker compose restart analyst
    ```
 
    **Endpoint:**
@@ -80,21 +78,21 @@ Multiple analysts investigating multiple devices:
 
 1. **Set up ACLs**
 
-   ```yaml
-   groups:
-     group:analysts:
-       - analyst1
-       - analyst2
-     group:endpoints:
-       - device1
-       - device2
-   
-   acls:
-     - action: accept
-       src:
-         - group:analysts
-       dst:
-         - group:endpoints:*
+   ```json
+   {
+      "groups": {
+         "group:analysts": ["analyst1", "analyst2", "analyst3"],
+         "group:endpoints": ["phone1", "phone2", "phone3"]
+      },
+
+      "acls": [
+         {
+            "action": "accept",
+            "src": ["group:analysts"],
+            "dst": ["group:endpoints:*"]
+         }
+      ]
+   }
    ```
 
 2. **Assign devices**
@@ -151,20 +149,23 @@ Block all non-MESH traffic on endpoint:
 
 ### Exit nodes for Network Capture
 
-Route internet traffic through an endpoint:
+Route the endpoint's internet traffic through the analyst node so the analyst can capture it.
 
 **On analyst:**
 
 ```bash
-# Use endpoint as exit node
-meshcli up --exit-node=100.64.X.X
+# Advertise this node as an exit node
+meshcli up --advertise-exit-node
 
-# Verify
-curl ifconfig.me  # Should show endpoint's public IP
-
-# Stop using exit node
-meshcli up --exit-node=
+# Or, if already connected, toggle the setting
+meshcli set --advertise-exit-node
 ```
+
+**In the control plane Web UI:**
+
+1. Open the home page and expand the network containing the analyst node.
+2. Click the **APPROVE EXIT** button on the analyst node's row.
+3. Confirm the prompt.
 
 **On endpoint:**
 
@@ -172,11 +173,19 @@ meshcli up --exit-node=
 2. Settings > Use 100.64.x.x as exit node
 3. Enable
 
+**Verify on the endpoint:** outbound traffic should now route to the internet from the analyst's public IP.
+
+**Capture on the analyst:**
+
+```bash
+tcpdump -i tailscale0 -w capture.pcap
+```
+
 **Use cases:**
 
 - Monitor endpoint's internet traffic and capture traffic
-- Access geo-restricted content
 - Investigate network-level issues
+- Build a forensic record of network activity
 
 ### Operational
 
@@ -203,11 +212,8 @@ meshcli up --exit-node=
 ### Checking Connection Status
 
 ```bash
-# Basic status
+# Basic peer status
 meshcli status
-
-# Detailed peer information
-meshcli status --peers
 
 # JSON output for scripting
 meshcli status --json | jq
@@ -226,8 +232,8 @@ DEVICE_IP="100.64.X.X"
 OUTPUT_DIR="./artifacts/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$OUTPUT_DIR"
 
-# Connect
-adb connect $DEVICE_IP:5555
+# Pair and connect over the mesh
+meshcli adbpair $DEVICE_IP:5555
 
 # Bug report
 adb bugreport "$OUTPUT_DIR/bugreport.zip"
@@ -251,7 +257,7 @@ adb shell netstat > "$OUTPUT_DIR/netstat.txt"
 adb shell getprop > "$OUTPUT_DIR/properties.txt"
 
 # AndroidQF
-androidqf --adb $DEVICE_IP:5555 --output "$OUTPUT_DIR/androidqf/"
+meshcli adbcollect --output "$OUTPUT_DIR/androidqf/"
 
 # Disconnect
 adb disconnect
@@ -263,10 +269,10 @@ echo "Collection complete: $OUTPUT_DIR"
 
 ```bash
 # List all connected devices
-meshcli status --peers | grep -E "100\.64\."
+meshcli status | grep -E "100\.64\."
 
 # Connect to all devices
-for ip in $(meshcli status --peers | grep -oE "100\.64\.[0-9]+\.[0-9]+"); do
+for ip in $(meshcli status | grep -oE "100\.64\.[0-9]+\.[0-9]+"); do
     adb connect $ip:5555
 done
 
@@ -279,27 +285,23 @@ adb disconnect
 
 ### Automating investigations
 
+The analyst container's entrypoint reads `LOGIN_URL` and `AUTH_KEY` from `.env` and starts the MESH daemon for you. From the analyst workstation, run meshcli subcommands via `docker compose exec`.
+
 ```bash
 #!/bin/bash
 # auto-investigate.sh
 
-CONTROL_PLANE="https://mesh.yourdomain.com"
-PREAUTH_KEY="your-key-here"
-
-# Start daemon
-sudo systemctl start mesh
-
-# Connect to control plane
-meshcli up --login-server=$CONTROL_PLANE --authkey=$PREAUTH_KEY --accept-dns=false
+# Make sure LOGIN_URL and AUTH_KEY are set in .env before running, then start the analyst container:
+task analyst
 
 # Wait for peers
 echo "Waiting for devices..."
-while [ $(meshcli status --peers | grep -c "100.64") -eq 0 ]; do
+while [ $(docker compose exec analyst mesh cli status | grep -c "100.64") -eq 0 ]; do
     sleep 5
 done
 
 # Get device IPs
-DEVICES=$(meshcli status --peers | grep -oE "100\.64\.[0-9]+\.[0-9]+")
+DEVICES=$(docker compose exec analyst mesh cli status | grep -oE "100\.64\.[0-9]+\.[0-9]+")
 
 # Investigate each device
 for device in $DEVICES; do
@@ -308,7 +310,7 @@ for device in $DEVICES; do
 done
 
 # Disconnect
-meshcli down
+docker compose down analyst
 
 echo "Investigation complete"
 ```

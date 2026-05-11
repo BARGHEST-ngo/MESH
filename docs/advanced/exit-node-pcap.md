@@ -31,82 +31,36 @@ An exit node routes all internet traffic from endpoint devices through the analy
 Before configuring exit node functionality:
 
 1. **Working MESH deployment** - Complete the [Getting started guide](../setup/index.md)
-2. **Analyst node** - A locked down, virutal linux node with sufficient storage for packet captures
-3. **Root access** - Required for configuring routing and packet capture
-4. **Technical skills** - Familiar with networking, iptables, and packet analysis
+2. **Analyst node** - A locked down, virtual linux node with sufficient storage for packet captures
+3. **Root access** - Required to run docker and capture packets
+4. **Technical skills** - Familiar with networking and packet analysis
 
 ## Configure analyst node as exit node
 
-### Enable IP forwarding
-
-Enable IP forwarding on the analyst node:
-
-```bash
-# Enable IP forwarding temporarily
-sudo sysctl -w net.ipv4.ip_forward=1
-sudo sysctl -w net.ipv6.conf.all.forwarding=1
-
-# Make permanent (survives reboot)
-echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-```
-
-### Configure NAT for exit node traffic (optional)
-
-Set up NAT (Network Address Translation) to route endpoint traffic:
-
-```bash
-# Get your primary network interface
-PRIMARY_INTERFACE=$(ip route | grep default | awk '{print $5}')
-echo "Primary interface: $PRIMARY_INTERFACE"
-
-# Get MESH interface (usually mesh0 or tailscale0)
-MESH_INTERFACE=$(ip link | grep -E 'mesh0|tailscale0' | awk -F: '{print $2}' | tr -d ' ')
-echo "MESH interface: $MESH_INTERFACE"
-
-# Configure NAT for MESH traffic
-sudo iptables -t nat -A POSTROUTING -o $PRIMARY_INTERFACE -j MASQUERADE
-sudo iptables -A FORWARD -i $MESH_INTERFACE -o $PRIMARY_INTERFACE -j ACCEPT
-sudo iptables -A FORWARD -i $PRIMARY_INTERFACE -o $MESH_INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
-
-# Save iptables rules (Ubuntu/Debian)
-sudo apt install -y iptables-persistent
-sudo netfilter-persistent save
-
-# Save iptables rules (RHEL/CentOS)
-# sudo service iptables save
-```
-
 ### Advertise exit node to MESH network
 
-Configure the analyst workstation to advertise as an exit node using this sub command:
+From an interactive shell in the analyst container, advertise the analyst node as an exit node:
 
 ```bash
-# Advertise as exit node
+# Advertise on connect (first time)
 meshcli up --advertise-exit-node
 
-# Advertise as exit node when already connected
+# Or if already connected, toggle the setting
 meshcli set --advertise-exit-node
-
-# Verify exit node is advertised
-meshcli status
-# Should show: "Exit node: advertising"
 ```
+
+Once the Tailscale daemon advertises the exit-node routes, the analyst node will show up in the control plane Web UI with an APPROVE EXIT button.
 
 ### Enable exit node on control plane
 
-On the control plane, approve the exit node:
+In the control plane Web UI, approve the analyst node as an exit node:
 
-```bash
-# List nodes
-docker compose exec headscale headscale nodes list
+1. Open the control plane Web UI and authenticate using a Headscale API key (`task apikey`).
+2. On the home page, expand the network section containing the analyst node.
+3. Find the analyst node in the node list and click the **APPROVE EXIT** button on its row.
+4. Confirm the prompt.
 
-# Find your analyst workstation node ID
-# Enable exit node for that node
-docker compose exec headscale headscale routes enable --node <NODE_ID> --route 0.0.0.0/0
-docker compose exec headscale headscale routes enable --node <NODE_ID> --route ::/0
-```
+Once approved, the analyst node will appear with an exit-node indicator and other peers can route through it.
 
 ### Configure endpoint to use exit node
 
@@ -122,16 +76,6 @@ On the endpoint device (Android), configure it to use the exit node:
 !!! warning "You should instruct the user to disable Magic DNS in the settings"
     Using MESH's Magic DNS (which supports connectivity between nodes) will make DNS queries on the device fail since the device needs to use it's own DNS configuration. Thus disabling Magic DNS in the setting tap will make regular DNS queries allowable.
 
-**Via meshcli (if available on endpoint):**
-
-```bash
-# Use specific exit node
-meshcli up --exit-node=<ANALYST_MESH_IP>
-
-# Use any available exit node
-meshcli up --exit-node-allow-lan-access
-```
-
 ## Packet capture (PCAP)
 
 Capture network traffic from endpoint devices for forensic analysis.
@@ -142,18 +86,10 @@ Capture network traffic from endpoint devices for forensic analysis.
 **Wireshark** - GUI packet analyser (recommended for analysis)
 **tshark** - Command-line Wireshark (good for scripting)
 
-### Install packet capture tools
+### Install packet capture tools in analyst container
 
 ```bash
-# Ubuntu/Debian
-sudo apt install -y tcpdump wireshark tshark
-
-# RHEL/CentOS
-sudo yum install -y tcpdump wireshark
-
-# Allow non-root users to capture packets (optional)
-sudo usermod -aG wireshark $USER
-# Log out and back in for group membership to take effect
+apt install -y tcpdump wireshark tshark
 ```
 
 ### Capture all traffic from specific endpoint
@@ -165,11 +101,11 @@ Capture all traffic from a specific endpoint device:
 ENDPOINT_IP="100.64.2.1"  # Replace with actual endpoint mesh IP
 
 # Capture all traffic to/from endpoint
-sudo tcpdump -i any -w endpoint-capture.pcap \
+tcpdump -i any -w endpoint-capture.pcap \
   "host $ENDPOINT_IP"
 
 # Capture with rotation (new file every 100MB, keep 10 files)
-sudo tcpdump -i any -w endpoint-capture.pcap -C 100 -W 10 \
+tcpdump -i any -w endpoint-capture.pcap -C 100 -W 10 \
   "host $ENDPOINT_IP"
 ```
 
@@ -178,11 +114,8 @@ sudo tcpdump -i any -w endpoint-capture.pcap -C 100 -W 10 \
 Capture only traffic that's being routed through the exit node (not MESH internal traffic):
 
 ```bash
-# Get primary network interface
-PRIMARY_INTERFACE=$(ip route | grep default | awk '{print $5}')
-
 # Capture only exit node traffic (traffic leaving to internet)
-sudo tcpdump -i $PRIMARY_INTERFACE -w exit-node-traffic.pcap \
+tcpdump -i eth0 -w exit-node-traffic.pcap \
   "src $ENDPOINT_IP or dst $ENDPOINT_IP"
 ```
 
@@ -192,19 +125,19 @@ Capture only specific types of traffic:
 
 ```bash
 # Capture only HTTP/HTTPS traffic
-sudo tcpdump -i any -w http-traffic.pcap \
+tcpdump -i any -w http-traffic.pcap \
   "host $ENDPOINT_IP and (port 80 or port 443)"
 
 # Capture only DNS queries
-sudo tcpdump -i any -w dns-traffic.pcap \
+tcpdump -i any -w dns-traffic.pcap \
   "host $ENDPOINT_IP and port 53"
 
 # Capture only TLS/SSL traffic
-sudo tcpdump -i any -w tls-traffic.pcap \
+tcpdump -i any -w tls-traffic.pcap \
   "host $ENDPOINT_IP and tcp port 443"
 
 # Capture only non-encrypted HTTP
-sudo tcpdump -i any -w http-plain.pcap \
+tcpdump -i any -w http-plain.pcap \
   "host $ENDPOINT_IP and tcp port 80"
 ```
 
@@ -218,7 +151,7 @@ CAPTURE_DIR="captures/$(date +%Y%m%d_%H%M%S)_endpoint_$ENDPOINT_IP"
 mkdir -p "$CAPTURE_DIR"
 
 # Capture with detailed logging
-sudo tcpdump -i any -w "$CAPTURE_DIR/capture.pcap" \
+tcpdump -i any -w "$CAPTURE_DIR/capture.pcap" \
   -v -tttt \
   "host $ENDPOINT_IP" \
   2>&1 | tee "$CAPTURE_DIR/capture.log"
@@ -241,23 +174,23 @@ Common capture filters for forensic scenarios:
 
 ```bash
 # Capture all traffic except MESH internal (only exit node traffic)
-sudo tcpdump -i any -w forensic.pcap \
+tcpdump -i any -w forensic.pcap \
   "host $ENDPOINT_IP and not (dst net 100.64.0.0/10)"
 
 # Capture potential C2 traffic (non-standard ports)
-sudo tcpdump -i any -w c2-traffic.pcap \
+tcpdump -i any -w c2-traffic.pcap \
   "host $ENDPOINT_IP and not (port 80 or port 443 or port 53)"
 
 # Capture potential data exfiltration (large uploads)
-sudo tcpdump -i any -w uploads.pcap \
+tcpdump -i any -w uploads.pcap \
   "host $ENDPOINT_IP and tcp[tcpflags] & tcp-push != 0"
 
 # Capture DNS queries (identify contacted domains)
-sudo tcpdump -i any -w dns.pcap -v \
+tcpdump -i any -w dns.pcap -v \
   "host $ENDPOINT_IP and port 53"
 
 # Capture TLS SNI (Server Name Indication) for HTTPS domains
-sudo tcpdump -i any -w tls-sni.pcap -v \
+tcpdump -i any -w tls-sni.pcap -v \
   "host $ENDPOINT_IP and tcp port 443"
 ```
 
@@ -481,32 +414,32 @@ find /var/captures -name "*.pcap" -mtime +90 -delete
 
 **Solutions:**
 
-1. **Verify IP forwarding is enabled:**
+1. **Verify IP forwarding is enabled inside the analyst container:**
 
    ```bash
-   sysctl net.ipv4.ip_forward
-   # Should show: net.ipv4.ip_forward = 1
+   docker compose exec analyst cat /proc/sys/net/ipv4/ip_forward
+   # Should show: 1
    ```
 
 2. **Check iptables rules:**
 
    ```bash
-   sudo iptables -t nat -L -n -v
-   # Should show MASQUERADE rule
+   docker compose exec analyst iptables -t nat -L ts-postrouting -n
+   # Should show a MASQUERADE rule
    ```
 
 3. **Verify exit node is advertised:**
 
    ```bash
-   meshcli status
-   # Should show: "Exit node: advertising"
+   docker compose exec analyst mesh cli status --json | grep -E 'AllowedIPs|ExitNodeOption'
+   # AllowedIPs should include 0.0.0.0/0 and ::/0
    ```
 
 4. **Check control plane approved routes:**
 
    ```bash
-   docker compose exec headscale headscale routes list
-   # Should show 0.0.0.0/0 and ::/0 enabled
+   docker compose exec headscale headscale nodes list-routes
+   # Should show 0.0.0.0/0 and ::/0 approved on the analyst node
    ```
 
 ### Packet capture not capturing traffic
@@ -525,14 +458,14 @@ find /var/captures -name "*.pcap" -mtime +90 -delete
    ip link show
 
    # Capture on all interfaces
-   sudo tcpdump -i any -w test.pcap
+   tcpdump -i any -w test.pcap
    ```
 
 2. **Check capture filter:**
 
    ```bash
    # Test filter syntax
-   sudo tcpdump -i any "host $ENDPOINT_IP" -c 10
+   tcpdump -i any "host $ENDPOINT_IP" -c 10
    ```
 
 3. **Verify endpoint is using exit node:**
@@ -547,7 +480,7 @@ find /var/captures -name "*.pcap" -mtime +90 -delete
 
    ```bash
    # Ensure running as root or with CAP_NET_RAW capability
-   sudo tcpdump -i any -w test.pcap
+   tcpdump -i any -w test.pcap
    ```
 
 ### High disk usage from captures
@@ -563,14 +496,14 @@ find /var/captures -name "*.pcap" -mtime +90 -delete
 
    ```bash
    # Limit to 10 files of 100MB each (1GB total)
-   sudo tcpdump -i any -w capture.pcap -C 100 -W 10 "host $ENDPOINT_IP"
+   tcpdump -i any -w capture.pcap -C 100 -W 10 "host $ENDPOINT_IP"
    ```
 
 2. **Use more specific filters:**
 
    ```bash
    # Only capture specific protocols
-   sudo tcpdump -i any -w capture.pcap "host $ENDPOINT_IP and (port 80 or port 443)"
+   tcpdump -i any -w capture.pcap "host $ENDPOINT_IP and (port 80 or port 443)"
    ```
 
 3. **Compress old captures:**
@@ -632,11 +565,11 @@ find /var/captures -name "*.pcap" -mtime +90 -delete
 
 ```bash
 # Increase kernel buffer size
-sudo sysctl -w net.core.rmem_max=134217728
-sudo sysctl -w net.core.rmem_default=134217728
+echo 134217728 > /proc/sys/net/core/rmem_max
+echo 134217728 > /proc/sys/net/core/rmem_default
 
 # Use larger tcpdump buffer
-sudo tcpdump -i any -w capture.pcap -B 65536 "host $ENDPOINT_IP"
+tcpdump -i any -w capture.pcap -B 65536 "host $ENDPOINT_IP"
 ```
 
 **For long-term captures:**
@@ -648,22 +581,14 @@ sudo tcpdump -i any -w capture.pcap -B 65536 "host $ENDPOINT_IP"
 
 ### Security hardening
 
-**Restrict access to capture tools:**
-
-```bash
-# Only allow specific users to capture
-sudo chmod 750 /usr/sbin/tcpdump
-sudo chgrp forensics /usr/sbin/tcpdump
-```
-
 **Audit capture activity:**
 
 ```bash
 # Log all tcpdump usage
-sudo auditctl -w /usr/sbin/tcpdump -p x -k packet_capture
+auditctl -w /usr/sbin/tcpdump -p x -k packet_capture
 
 # View audit logs
-sudo ausearch -k packet_capture
+ausearch -k packet_capture
 ```
 
 ## Next steps

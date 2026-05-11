@@ -15,7 +15,7 @@ Download the APK from [GitHub Releases](https://github.com/BARGHEST-ngo/mesh/rel
 
 ```bash
 # Build the release APK
-task buildAndroidRelease
+task -t Taskfile.dev.yml buildAndroidRelease
 ```
 
 The APK will be created at:
@@ -62,8 +62,8 @@ You should see your device listed. If prompted on the device, tap **"Allow"** to
 # Install the APK using ADB
 adb install mesh-release-unsigned.apk
 
-# Or if you downloaded from GitHub
-adb install mesh-0.1.1-alpha.apk
+# Or if you downloaded from GitHub (replace with the version you downloaded)
+adb install mesh-0.1.6-alpha.apk
 ```
 
 **4. Verify installation:**
@@ -264,7 +264,7 @@ You should see your Android device listed with its mesh IP address.
 The APK may be corrupted. Try rebuilding:
 
 ```bash
-task clean && task buildAndroidRelease
+task -t Taskfile.dev.yml clean && task -t Taskfile.dev.yml buildAndroidRelease
 ```
 
 ### Can't connect to control plane
