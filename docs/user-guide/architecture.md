@@ -110,7 +110,7 @@ The endpoint client runs on the target device being analysed. Currently supports
 **Key features:**
 
 - One-tap connection to mesh
-- ADB-over-WiFi guiudance
+- ADB-over-WiFi guidance
 - Ephemeral mode (disconnect on app close)
 - Battery optimization
 - Network usage monitoring

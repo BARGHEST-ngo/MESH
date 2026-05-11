@@ -104,7 +104,6 @@ meshcli status [options]
 
 **Options:**
 
-- `--peers`: Show detailed peer information
 - `--json`: Output in JSON format
 - `--self <bool>`: Show self information (default: true)
 - `--active`: Only show active peers
@@ -328,11 +327,11 @@ meshcli version
 ```bash
 # Prevent peer trimming
 export TS_DEBUG_TRIM_WIREGUARD=false
-sudo -E meshcli up --login-server=https://mesh.example.com
+meshcli up --login-server=https://mesh.example.com
 
 # Force DERP relay
 export TS_DEBUG_ALWAYS_USE_DERP=true
-sudo -E meshcli up --login-server=https://mesh.example.com
+meshcli up --login-server=https://mesh.example.com
 ```
 
 ## Exit Codes

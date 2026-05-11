@@ -180,7 +180,7 @@ Common issues and solutions for MESH deployments.
 
    ```bash
    export TS_DEBUG_ALWAYS_USE_DERP=false
-   sudo -E meshcli up --login-server=https://mesh.yourdomain.com
+   meshcli up --login-server=https://mesh.yourdomain.com
    ```
 
 ### Peers Not Visible
@@ -622,10 +622,6 @@ meshcli netcheck
 
 # Trace route to peer
 meshcli ping 100.64.X.X --verbose
-
-# Check WireGuard interface
-ip addr show tun0
-sudo wg show
 ```
 
 ### Connection Diagnostics

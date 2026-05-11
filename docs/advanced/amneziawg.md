@@ -1,9 +1,6 @@
 # AmneziaWG configuration
 
-!!! danger
-    AmneziaWG configuration only works on the analyst client right now. Android integration is planned for February 2026.
-
-    This guide explains how to configure AmneziaWG obfuscation in MESH for censorship resistance and Deep packet inspection (DPI) evasion.
+This guide explains how to configure AmneziaWG obfuscation in MESH for censorship resistance and Deep packet inspection (DPI) evasion.
 
 ## Overview
 
@@ -213,10 +210,10 @@ You can verify obfuscation by capturing packets:
 
 ```bash
 # Find WireGuard port
-sudo ss -unlp | grep tailscaled
+ss -unlp | grep mesh
 
 # Capture packets (replace PORT with actual port)
-sudo tcpdump -i any -n 'udp port PORT' -X -c 10
+tcpdump -i any -n 'udp port PORT' -X -c 10
 ```
 
 **Standard WireGuard packets** start with:

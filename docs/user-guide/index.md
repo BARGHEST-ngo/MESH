@@ -54,7 +54,7 @@ meshcli status
 meshcli ping 100.64.x.x
 
 # Capture network traffic
-sudo tcpdump -i mesh0 -w capture.pcap
+tcpdump -i tailscale0 -w capture.pcap
 ```
 
 ## Getting Help
