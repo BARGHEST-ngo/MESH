@@ -1,3 +1,4 @@
 [submodule "tailscale"]
 	path = tailscale
 	url = https://github.com/BARGHEST-ngo/mesh-tailscale.git
+	branch = mesh

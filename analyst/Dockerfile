@@ -8,7 +8,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY analyst/src ./analyst/src
-RUN go generate ./...
+COPY tailscale ./tailscale
 RUN ./analyst/src/build.sh
 
 FROM eclipse-temurin:25-jre AS android-sdk
