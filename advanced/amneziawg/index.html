@@ -1850,7 +1850,7 @@
 <h1 id="amneziawg-configuration">AmneziaWG configuration</h1>
 <div class="admonition danger">
 <p class="admonition-title">Danger</p>
-<p>AmneziaWG configuration only works on the analyst client right now. Android intergration is planned for February 2026.</p>
+<p>AmneziaWG configuration only works on the analyst client right now. Android integration is planned for February 2026.</p>
 <p>This guide explains how to configure AmneziaWG obfuscation in MESH for censorship resistance and Deep packet inspection (DPI) evasion.</p>
 </div>
 <h2 id="overview">Overview</h2>
@@ -1915,17 +1915,6 @@
 </code></pre></div>
 <h4 id="light-obfuscation-minimal-overhead">Light Obfuscation (Minimal Overhead)</h4>
 <p>Minimal obfuscation for light censorship:</p>
-<div class="highlight"><pre><span></span><code>[Interface]
-Jc = 3
-Jmin = 10
-Jmax = 50
-S1 = 15
-S2 = 20
-H1 = 5
-H2 = 6
-H3 = 7
-H4 = 8
-</code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[Interface]</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="na">Jc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="na">Jmin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">10</span>
@@ -1941,17 +1930,6 @@ H4 = 8
 <strong>Use case</strong>: Corporate firewalls, light ISP throttling</p>
 <h4 id="balanced-configuration-recommended">Balanced Configuration (Recommended)</h4>
 <p>Good balance between obfuscation and performance:</p>
-<div class="highlight"><pre><span></span><code>[Interface]
-Jc = 5
-Jmin = 50
-Jmax = 1000
-S1 = 30
-S2 = 40
-H1 = 100
-H2 = 200
-H3 = 300
-H4 = 400
-</code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[Interface]</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="na">Jc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">5</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="na">Jmin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">50</span>
@@ -1967,17 +1945,6 @@ H4 = 400
 <strong>Use case</strong>: Most censored networks, recommended default</p>
 <h4 id="heavy-obfuscation-maximum-dpi-evasion">Heavy Obfuscation (Maximum DPI Evasion)</h4>
 <p>Maximum obfuscation for aggressive censorship:</p>
-<div class="highlight"><pre><span></span><code>[Interface]
-Jc = 10
-Jmin = 50
-Jmax = 1000
-S1 = 100
-S2 = 150
-H1 = 1234567
-H2 = 2345678
-H3 = 3456789
-H4 = 4567890
-</code></pre></div>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[Interface]</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="na">Jc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">10</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="na">Jmin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">50</span>
