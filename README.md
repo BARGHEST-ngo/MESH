@@ -67,10 +67,10 @@ cd MESH
 ```
 task build
 task controlPlane
-task apiKey
+task apikey
 ```
 
-### 4. Access web UI with API key
+### 3. Access web UI with API key
 
 ```
 Local:  https://localhost

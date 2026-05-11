@@ -66,7 +66,7 @@ MESH is purpose-built for remote mobile device forensics, providing seamless acc
 
 ### Android device access
 
-- **ADB-over-WiFi** automatically acheivable on the MESH network due to CGNAT assignment
+- **ADB-over-WiFi** automatically achievable on the MESH network due to CGNAT assignment
 - Direct access to device shell, logcat, and system services and bugreports
 - Supported APK for victim's to install and connect to the MESH
 - No USB cable required for forensic collection

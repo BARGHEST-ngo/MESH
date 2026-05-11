@@ -44,8 +44,8 @@ meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234
 #Connect and pair BUT initate AndroidQF instantly on connection
 meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234 --qf
 
-#Initate ADB acquision using AndroidQF and WARD libraries
-meshcli abdcollect 
+#Initate ADB acquisition using AndroidQF and WARD libraries
+meshcli adbcollect
 
 # Check mesh status
 meshcli status

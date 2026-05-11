@@ -80,12 +80,12 @@ Advanced configuration can be complex. Resources:
 ## Safety first
 
 !!! danger
-     Advanced configurations can impact security and stability.
+    Advanced configurations can impact security and stability.
 
-     **Best practices:**
-     
-     **Test in development** - Never test in production
-     **Backup configurations** - Save working configs before changes
+    **Best practices:**
+
+    - **Test in development** - Never test in production
+    - **Backup configurations** - Save working configs before changes
     - **Document changes** - Keep detailed records
     - **Have rollback plan** - Know how to revert changes
 

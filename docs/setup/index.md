@@ -11,7 +11,7 @@ By the end, you'll have a working mesh network connecting an analyst workstation
 The setup process involves four main steps:
 
 1. **[Deploy the Control plane](control-plane.md)** - Set up the MESH coordination server
-2. **[Install the Analyst client](analyst-client.md)** - Build and configure the MESH CLI on your acquision Linux/MacOS node
+2. **[Install the Analyst client](analyst-client.md)** - Build and configure the MESH CLI on your acquisition Linux/MacOS node
 3. **[Install the Endpoint client](endpoint-client.md)** - Deploy the MESH app on a client Android device
 4. **[Connect and Verify](verification.md)** - Establish the mesh and test connectivity
 

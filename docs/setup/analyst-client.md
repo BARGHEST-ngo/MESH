@@ -1,6 +1,6 @@
 # Analyst client setup
 
-Now let's set up the MESH analyst client on your acquision workstation. This will allow you to connect to the mesh network and conduct forensic collections.
+Now let's set up the MESH analyst client on your acquisition workstation. This will allow you to connect to the mesh network and conduct forensic collections.
 
 ## Step 1: Clone and build
 

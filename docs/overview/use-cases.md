@@ -101,7 +101,7 @@ Operate forensic investigations in countries with aggressive internet censorship
 
 ### Scenario
 
-A security researcher needs to investigate devices in China, Russia, or Iran where VPN protocols are actively blocked by state-level firewalls.c
+A security researcher needs to investigate devices in China, Russia, or Iran where VPN protocols are actively blocked by state-level firewalls.
 
 ### How MESH Helps
 
