@@ -8,31 +8,31 @@
       
       
       
-        <link rel="canonical" href="https://barghest-ngo.github.io/docs.meshforensics.org/overview/">
+        <link rel="canonical" href="https://barghest-ngo.github.io/docs.meshforensics.org/reference/build-deploy/build-orchestration/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../runtime-stack/">
       
       
-        <link rel="next" href="features/">
+        <link rel="next" href="../ci-and-release/">
       
       
         
       
       
-      <link rel="icon" href="../assets/images/White.png">
+      <link rel="icon" href="../../../assets/images/White.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Overview - MESH Docs</title>
+        <title>Build orchestration - MESH Docs</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#overview" class="md-skip">
+        <a href="#build-orchestration" class="md-skip">
           Skip to content
         </a>
       
@@ -94,9 +94,9 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="MESH Docs" class="md-header__button md-logo" aria-label="MESH Docs" data-md-component="logo">
+    <a href="../../.." title="MESH Docs" class="md-header__button md-logo" aria-label="MESH Docs" data-md-component="logo">
       
-  <img src="../assets/images/White.png" alt="logo">
+  <img src="../../../assets/images/White.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Build orchestration
             
           </span>
         </div>
@@ -222,7 +222,7 @@
     
     
       <li class="md-tabs__item">
-        <a href=".." class="md-tabs__link">
+        <a href="../../.." class="md-tabs__link">
           
   
   
@@ -240,13 +240,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../../overview/" class="md-tabs__link">
           
   
   
@@ -268,7 +266,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../setup/" class="md-tabs__link">
+        <a href="../../../setup/" class="md-tabs__link">
           
   
   
@@ -290,7 +288,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../user-guide/" class="md-tabs__link">
+        <a href="../../../user-guide/" class="md-tabs__link">
           
   
   
@@ -312,7 +310,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../advanced/" class="md-tabs__link">
+        <a href="../../../advanced/" class="md-tabs__link">
           
   
   
@@ -330,11 +328,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../reference/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
           
   
   
@@ -378,9 +378,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="MESH Docs" class="md-nav__button md-logo" aria-label="MESH Docs" data-md-component="logo">
+    <a href="../../.." title="MESH Docs" class="md-nav__button md-logo" aria-label="MESH Docs" data-md-component="logo">
       
-  <img src="../assets/images/White.png" alt="logo">
+  <img src="../../../assets/images/White.png" alt="logo">
 
     </a>
     MESH Docs
@@ -432,7 +432,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href=".." class="md-nav__link ">
+            <a href="../../.." class="md-nav__link ">
               
   
   
@@ -475,8 +475,6 @@
       
   
   
-    
-  
   
   
     
@@ -500,23 +498,22 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../../../overview/" class="md-nav__link ">
               
   
   
@@ -534,13 +531,13 @@
             </a>
             
               
-              <label class="md-nav__link md-nav__link--active" for="__nav_2" id="__nav_2_label" tabindex="">
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -560,7 +557,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/" class="md-nav__link">
+      <a href="../../../overview/features/" class="md-nav__link">
         
   
   
@@ -588,7 +585,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/" class="md-nav__link">
+      <a href="../../../overview/architecture/" class="md-nav__link">
         
   
   
@@ -616,7 +613,7 @@
   
   
     <li class="md-nav__item">
-      <a href="use-cases/" class="md-nav__link">
+      <a href="../../../overview/use-cases/" class="md-nav__link">
         
   
   
@@ -644,7 +641,7 @@
   
   
     <li class="md-nav__item">
-      <a href="platform-support/" class="md-nav__link">
+      <a href="../../../overview/platform-support/" class="md-nav__link">
         
   
   
@@ -672,7 +669,7 @@
   
   
     <li class="md-nav__item">
-      <a href="about/" class="md-nav__link">
+      <a href="../../../overview/about/" class="md-nav__link">
         
   
   
@@ -740,7 +737,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../setup/" class="md-nav__link ">
+            <a href="../../../setup/" class="md-nav__link ">
               
   
   
@@ -784,7 +781,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/control-plane/" class="md-nav__link">
+      <a href="../../../setup/control-plane/" class="md-nav__link">
         
   
   
@@ -812,7 +809,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/analyst-client/" class="md-nav__link">
+      <a href="../../../setup/analyst-client/" class="md-nav__link">
         
   
   
@@ -840,7 +837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/endpoint-client/" class="md-nav__link">
+      <a href="../../../setup/endpoint-client/" class="md-nav__link">
         
   
   
@@ -868,7 +865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../setup/verification/" class="md-nav__link">
+      <a href="../../../setup/verification/" class="md-nav__link">
         
   
   
@@ -932,7 +929,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../user-guide/" class="md-nav__link ">
+            <a href="../../../user-guide/" class="md-nav__link ">
               
   
   
@@ -976,7 +973,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/user-guide/" class="md-nav__link">
+      <a href="../../../user-guide/user-guide/" class="md-nav__link">
         
   
   
@@ -1004,7 +1001,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/architecture/" class="md-nav__link">
+      <a href="../../../user-guide/architecture/" class="md-nav__link">
         
   
   
@@ -1070,7 +1067,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../advanced/" class="md-nav__link ">
+            <a href="../../../advanced/" class="md-nav__link ">
               
   
   
@@ -1114,7 +1111,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/amneziawg/" class="md-nav__link">
+      <a href="../../../advanced/amneziawg/" class="md-nav__link">
         
   
   
@@ -1142,7 +1139,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/control-plane-advanced/" class="md-nav__link">
+      <a href="../../../advanced/control-plane-advanced/" class="md-nav__link">
         
   
   
@@ -1170,7 +1167,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../advanced/exit-node-pcap/" class="md-nav__link">
+      <a href="../../../advanced/exit-node-pcap/" class="md-nav__link">
         
   
   
@@ -1202,6 +1199,8 @@
       
   
   
+    
+  
   
   
     
@@ -1227,22 +1226,23 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../reference/" class="md-nav__link ">
+            <a href="../../" class="md-nav__link ">
               
   
   
@@ -1260,13 +1260,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1286,7 +1286,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/configuration/" class="md-nav__link">
+      <a href="../../configuration/" class="md-nav__link">
         
   
   
@@ -1314,7 +1314,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/policies/" class="md-nav__link">
+      <a href="../../policies/" class="md-nav__link">
         
   
   
@@ -1342,7 +1342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/security/" class="md-nav__link">
+      <a href="../../security/" class="md-nav__link">
         
   
   
@@ -1370,7 +1370,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/cli-reference/" class="md-nav__link">
+      <a href="../../cli-reference/" class="md-nav__link">
         
   
   
@@ -1398,7 +1398,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/troubleshooting/" class="md-nav__link">
+      <a href="../../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1423,6 +1423,8 @@
                 
   
   
+    
+  
   
   
     
@@ -1446,20 +1448,21 @@
       
       
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
+          
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_7" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_7" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../reference/build-deploy/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -1477,13 +1480,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6_7" id="__nav_6_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_6_7" id="__nav_6_7_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1503,7 +1506,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/build-deploy/runtime-stack/" class="md-nav__link">
+      <a href="../runtime-stack/" class="md-nav__link">
         
   
   
@@ -1528,10 +1531,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../reference/build-deploy/build-orchestration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build orchestration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1547,6 +1577,226 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Task?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#taskfileyml-user-facing-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Taskfile.yml: user-facing tasks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Taskfile.yml: user-facing tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-configuration-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The configuration flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headscale-config-templating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headscale config templating
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-rotation-setauthkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key rotation: setAuthKey
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#taskfiledevyml-developer-facing-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Taskfile.dev.yml: developer-facing tasks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Taskfile.dev.yml: developer-facing tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-reference_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analyst-build-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analyst build script
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Analyst build script">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-a-separate-script-rather-than-inline-in-the-dockerfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why a separate script rather than inline in the Dockerfile?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-the-image-installs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the image installs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devcontainerjson-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        devcontainer.json features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mounts-and-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mounts and environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-and-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies and assumptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1559,7 +1809,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/build-deploy/ci-and-release/" class="md-nav__link">
+      <a href="../ci-and-release/" class="md-nav__link">
         
   
   
@@ -1587,7 +1837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/build-deploy/troubleshooting/" class="md-nav__link">
+      <a href="../troubleshooting/" class="md-nav__link">
         
   
   
@@ -1643,80 +1893,207 @@
   
 
 
-<h1 id="overview">Overview</h1>
-<p>Learn about MESH - what it is, how it works, and why it's the right tool for secure remote mobile forensic investigations.</p>
-<h2 id="what-youll-learn">What you'll learn</h2>
-<p>This section provides a comprehensive overview of MESH, covering:</p>
+<h1 id="build-orchestration">Build orchestration</h1>
+<p>MESH uses <a href="https://taskfile.dev">go-task</a> for build orchestration and task running. Two Taskfiles split responsibilities:</p>
 <ul>
-<li><strong>Core features</strong> and capabilities</li>
-<li><strong>Architecture</strong> and system components</li>
-<li><strong>Real-world use cases</strong> and scenarios</li>
-<li><strong>Platform support</strong> and compatibility</li>
-<li><strong>About the project</strong> and the team behind it</li>
+<li><code>Taskfile.yml</code> is user-facing (deploy-time).</li>
+<li><code>Taskfile.dev.yml</code> is developer-facing (build-time).</li>
 </ul>
-<h2 id="quick-navigation">Quick Navigation</h2>
-<div class="grid cards">
+<p>Both auto-load <code>.env</code> and run silently by default.</p>
+<h2 id="why-task">Why Task?</h2>
+<p>Three constraints shaped the choice:</p>
 <ul>
-<li>
-<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 9 9l-8 3 8 3 3 8 3-8 8-3-8-3z"/></svg></span> <strong>Features</strong></p>
-<hr />
-<p>Explore MESH's powerful capabilities including end-to-end encryption, censorship resistance, mobile forensics, and rapid deployment.</p>
-<p><a href="features/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> View features</a></p>
-</li>
-<li>
-<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 2v6h2v3H5c-1.11 0-2 .89-2 2v3H1v6h6v-6H5v-3h6v3H9v6h6v-6h-2v-3h6v3h-2v6h6v-6h-2v-3c0-1.11-.89-2-2-2h-6V8h2V2z"/></svg></span> <strong>Architecture</strong></p>
-<hr />
-<p>Understand how MESH works with its three main components: Control plane, Analyst client, and Endpoint client.</p>
-<p><a href="architecture/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> View Architecture</a></p>
-</li>
-<li>
-<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm6-10h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12z"/></svg></span> <strong>Use cases</strong></p>
-<hr />
-<p>Discover real-world scenarios where MESH provides critical capabilities for forensic investigations.</p>
-<p><a href="use-cases/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> View Use cases</a></p>
-</li>
-<li>
-<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18V4H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v-2H3zm10 6H9v1.78c-.61.55-1 1.33-1 2.22s.39 1.67 1 2.22V20h4v-1.78c.61-.55 1-1.34 1-2.22s-.39-1.67-1-2.22zm-2 5.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5M22 8h-6c-.5 0-1 .5-1 1v10c0 .5.5 1 1 1h6c.5 0 1-.5 1-1V9c0-.5-.5-1-1-1m-1 10h-4v-8h4z"/></svg></span> <strong>Platform support</strong></p>
-<hr />
-<p>Check which platforms are currently supported and what's planned for future releases.</p>
-<p><a href="platform-support/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> View platforms</a></p>
-</li>
-<li>
-<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 9h-2V7h2m0 10h-2v-6h2m-1-9A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> <strong>About</strong></p>
-<hr />
-<p>Learn about BARGHEST, the team behind MESH, licensing, and how to get help.</p>
-<p><a href="about/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> About MESH</a></p>
-</li>
+<li><strong>Interactive prompts that work cross-platform.</strong> The setup flow asks for the control plane type, domain, and auth key, then writes them to <code>.env</code>. Task's <code>prompt:</code> and <code>requires.vars.enum:</code> directives make this declarative. <code>make</code> would need a custom shell wrapper per platform.</li>
+<li><strong>Embedded platform-specific tasks.</strong> Several tasks branch on OS (sed vs PowerShell, Linux sed vs macOS sed). Task exposes <code>platforms: [linux, darwin, windows]</code> on individual commands, so one Taskfile serves all three.</li>
+<li><strong>Dotenv loading.</strong> <code>dotenv: [.env]</code> means every task sees configuration variables without sourcing scripts.</li>
 </ul>
-</div>
-<h2 id="why-mesh">Why MESH?</h2>
-<p>MESH is designed specifically for <strong>digital forensics and mobile device analysis</strong> in challenging environments:</p>
-<h3 id="problem">Problem</h3>
+<h2 id="taskfileyml-user-facing-tasks"><code>Taskfile.yml</code>: user-facing tasks</h2>
+<p>Path: <code>Taskfile.yml</code>. Default invocation target. All user-facing tasks live here.</p>
+<h3 id="task-reference">Task reference</h3>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Purpose</th>
+<th>Depends on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build</code></td>
+<td><code>docker compose build</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>controlPlane</code></td>
+<td><code>docker compose up -d headscale ui</code></td>
+<td><code>configureControlPlane</code></td>
+</tr>
+<tr>
+<td><code>down</code></td>
+<td><code>docker compose down</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>apikey</code></td>
+<td>Calls <code>headscale apikeys create --expiration 3h</code> inside the running container. Prints a help message if the container isn't running locally.</td>
+<td></td>
+</tr>
+<tr>
+<td><code>analyst</code></td>
+<td>Brings up the analyst service and opens an interactive bash shell via <code>docker compose exec analyst /bin/bash</code>.</td>
+<td><code>configureAnalyst</code></td>
+</tr>
+<tr>
+<td><code>setAuthKey</code></td>
+<td>Stops the analyst, removes its volume, and re-prompts for a new <code>AUTH_KEY</code>. Use when rotating keys or starting a fresh session.</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-configuration-flow">The configuration flow</h3>
+<p><code>configureControlPlane</code> and <code>configureAnalyst</code> are high-level tasks that run the interactive setup prompts. Each prompt task is guarded by an <code>if:</code> so it only runs when the relevant <code>.env</code> variable is empty. Rerunning <code>task controlPlane</code> on a configured checkout skips the prompts.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>controlPlane
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  └── configureControlPlane
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        ├── controlPlaneType      (prompts Ephemeral vs Persistent)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        ├── controlPlaneDomain    (prompts domain name)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        ├── headscaleConfig       (sed-substitutes config.example.yaml if config.yaml missing)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        └── confirmDotEnv         (cat .env, prompt &quot;looks correct?&quot;)
+</code></pre></div>
+<h3 id="headscale-config-templating">Headscale config templating</h3>
+<p><code>headscaleConfig</code> (internal) substitutes <code>CONTROL_PLANE_DOMAIN</code> in <code>config.example.yaml</code> and writes <code>config.yaml</code>, but only if the latter doesn't exist:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">headscaleConfig</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[</span><span class="nv"> </span><span class="s">!</span><span class="nv"> </span><span class="s">-f</span><span class="nv"> </span><span class="s">control-plane/headscale/config.yaml</span><span class="nv"> </span><span class="s">]&#39;</span>
+</code></pre></div>
+<p>The task declares <code>sources:</code> and <code>generates:</code> so Task skips it if the source hasn't changed since the generate target's mtime. On Windows, a PowerShell <code>-replace</code> command does the same thing.</p>
+<h3 id="key-rotation-setauthkey">Key rotation: <code>setAuthKey</code></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">cmds</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker compose down analyst &amp;&amp; docker volume rm $(docker compose volumes -q | grep analyst-data) || true</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;prompt&gt;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">promptAnalystAuthKey</span>
+</code></pre></div>
+<p>Stopping the analyst and deleting its volume before asking for the new key ensures the container can't come up with stale state between the prompt and the restart.</p>
+<hr />
+<h2 id="taskfiledevyml-developer-facing-tasks"><code>Taskfile.dev.yml</code>: developer-facing tasks</h2>
+<p>Path: <code>Taskfile.dev.yml</code>. Invoked via <code>task -t Taskfile.dev.yml &lt;task&gt;</code>. Holds every task that a contributor runs and an end-user should not.</p>
+<h3 id="task-reference_1">Task reference</h3>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tidy</code></td>
+<td><code>go mod tidy</code>. Kept separate because it mutates <code>go.sum</code> and affects reproducibility.</td>
+</tr>
+<tr>
+<td><code>generate</code></td>
+<td><code>go generate ./...</code>. Depends on <code>submoduleInit</code>.</td>
+</tr>
+<tr>
+<td><code>docs</code></td>
+<td><code>mkdocs build</code>.</td>
+</tr>
+<tr>
+<td><code>serveDocs</code></td>
+<td><code>mkdocs serve</code> with live reload on <code>:8000</code>.</td>
+</tr>
+<tr>
+<td><code>buildAnalyst</code></td>
+<td>Runs <code>analyst/src/build.sh</code>. Produces <code>analyst/mesh</code>. Depends on <code>submoduleInit</code>.</td>
+</tr>
+<tr>
+<td><code>buildAndroid</code></td>
+<td><code>make -C android-client apk</code>.</td>
+</tr>
+<tr>
+<td><code>buildAndroidRelease</code></td>
+<td><code>make -C android-client release-apk</code>. Unsigned.</td>
+</tr>
+<tr>
+<td><code>buildAndroidSigned</code></td>
+<td><code>make -C android-client release-apk-signed</code>. Requires <code>JKS_PATH</code>, <code>JKS_PASSWORD</code>, <code>JKS_ALIAS</code> env vars.</td>
+</tr>
+<tr>
+<td><code>clean</code></td>
+<td><code>rm -f analyst/mesh</code> and <code>make -C android-client clean</code>.</td>
+</tr>
+<tr>
+<td><code>tagRelease</code></td>
+<td>Calls <code>scripts/tag-release.sh $VERSION</code>. See <a href="../ci-and-release/#release-script">CI and release</a>.</td>
+</tr>
+<tr>
+<td><code>fdroidInit</code></td>
+<td>Initialise a local F-Droid repo for reproducibility testing.</td>
+</tr>
+<tr>
+<td><code>fdroidBuild</code></td>
+<td><code>cd fdroid &amp;&amp; fdroid build -v -l com.barghest.mesh</code>.</td>
+</tr>
+<tr>
+<td><code>pinGithubActions</code></td>
+<td><code>go tool github.com/stacklok/frizbee actions .github/workflows</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="analyst-build-script">Analyst build script</h2>
+<p>Path: <code>analyst/src/build.sh</code>. Called by the Dockerfile (stage 1) and by <code>task buildAnalyst</code>. Single source of truth for the mesh binary build.</p>
+<h3 id="what-it-does">What it does</h3>
+<ol>
+<li>Locates the Go module directory via <code>go env GOMOD</code>.</li>
+<li>Assembles build tags, always adding <code>ts_omit_logtail</code> (omits Tailscale telemetry) and any extra tags supplied through <code>$TAGS</code>.</li>
+<li><code>cd</code> into <code>$GO_MOD_DIR/tailscale</code> (the submodule).</li>
+<li>
+<p>Runs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>go<span class="w"> </span>build<span class="w"> </span>-tags<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$tags</span><span class="s2">&quot;</span><span class="w"> </span>-trimpath<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$GO_MOD_DIR</span><span class="s2">/analyst/mesh&quot;</span><span class="w"> </span>./cmd/tailscaled
+</code></pre></div>
+</li>
+</ol>
+<h3 id="why-a-separate-script-rather-than-inline-in-the-dockerfile">Why a separate script rather than inline in the Dockerfile?</h3>
+<p>Two reasons:</p>
 <ul>
-<li><strong>Spyware targeting</strong> - Activists and journalists face sophisticated surveillance</li>
-<li><strong>Censorship</strong> - Activists face restricted internet enviornments, that often block UDP protocols.</li>
-<li><strong>Remote access</strong> - Physical device access is often impossible or impractical</li>
-<li><strong>Scale</strong> - Hub-and-spoke topologies create high friction for high response enviornments.</li>
-</ul>
-<h3 id="solution">Solution</h3>
-<ul>
-<li><strong>Self-hosted</strong> - Full control over your infrastructure</li>
-<li><strong>Censorship-resistant</strong> - AmneziaWG obfuscation bypasses DPI</li>
-<li><strong>Secure</strong> - End-to-end encrypted with WireGuard</li>
-<li><strong>CGNAT Assignment</strong> - Making devices reachable from anywhere in the mesh (for ADB-over-Wifi or Libimobile usages)</li>
-<li><strong>Rapid</strong> - Deploy in minutes, tear down instantly</li>
-</ul>
-<h2 id="getting-started">Getting started</h2>
-<p>Ready to deploy MESH? Head to the <a href="../setup/">Getting started Guide</a> for step-by-step setup instructions.</p>
-<p>Already familiar with MESH? Jump to:</p>
-<ul>
-<li><a href="../setup/">Installation</a> - Detailed component installation</li>
-<li><a href="../user-guide/">User guide</a> - Forensic workflows and usage</li>
-<li><a href="../advanced/">Advanced</a> - Advanced configuration topics</li>
-<li><a href="../reference/">Reference</a> - CLI reference and troubleshooting</li>
+<li><code>task buildAnalyst</code> runs it for local dev without Docker. Contributors iterating on CLI changes rebuild in seconds instead of rebuilding the whole container.</li>
+<li>Build flags live in one place. A change to build tags updates both the container image and local dev builds without drift.</li>
 </ul>
 <hr />
-<p><strong>Next:</strong> Explore <a href="features/">Features</a> to see what MESH can do →</p>
+<h2 id="development-container">Development container</h2>
+<p>Path: <code>.devcontainer/Dockerfile</code>, <code>.devcontainer/devcontainer.json</code>. Defines an ephemeral development environment compatible with VS Code's Remote Containers and GitHub Codespaces.</p>
+<h3 id="what-the-image-installs">What the image installs</h3>
+<p>The image is built from a devcontainers Debian base image. It installs:</p>
+<ul>
+<li>Microsoft OpenJDK, Go, Node.js, and pnpm.</li>
+<li>The Android command-line tools and the SDK components needed for Android builds.</li>
+<li>Task CLI.</li>
+</ul>
+<p>Java and the Android command-line tools are checksum-verified in the Dockerfile. Go is version-pinned via the <code>GO_VERSION</code> build arg. Android SDK licenses are auto-accepted with <code>yes | sdkmanager --licenses</code>.</p>
+<h3 id="devcontainerjson-features"><code>devcontainer.json</code> features</h3>
+<ul>
+<li>Docker-outside-of-Docker so <code>docker compose</code> inside the devcontainer drives the host Docker daemon.</li>
+<li>MkDocs tooling so <code>task docs</code> and <code>task serveDocs</code> work without extra setup.</li>
+<li>Gradle on <code>PATH</code> for Android builds.</li>
+<li>Python plus <code>fdroidserver</code> for local F-Droid reproducibility work.</li>
+</ul>
+<h3 id="mounts-and-environment">Mounts and environment</h3>
+<ul>
+<li>Binds <code>~/.android</code> from the host to <code>/root/.android</code> to persist the Android debug keystore across rebuilds.</li>
+<li>Sets <code>LOCAL_WORKSPACE_FOLDER=${localWorkspaceFolder}</code> so bind mounts in <code>compose.yml</code> resolve to the host's repo path, not a path inside the devcontainer.</li>
+<li>Forwards port <code>80</code> so the UI is reachable from the host browser.</li>
+</ul>
+<hr />
+<h2 id="dependencies-and-assumptions">Dependencies and assumptions</h2>
+<ul>
+<li><strong>A <code>task</code> release with <code>prompt:</code> and <code>requires.vars.enum:</code> support</strong>.</li>
+<li><strong><code>go</code> on PATH</strong> for <code>task tidy</code>, <code>task generate</code>, <code>task buildAnalyst</code>. The CI workflow sets this up via <code>actions/setup-go</code> reading <code>go-version-file: go.mod</code>.</li>
+<li><strong><code>git submodule</code> initialised</strong> before running any build task. <code>submoduleInit</code> handles this but requires network access on first run.</li>
+<li><strong>F-Droid work</strong> requires <code>fdroidserver</code>, which requires Python, gradle, JDK, and the Android SDK. The devcontainer has all of this.</li>
+<li><strong>Signed releases</strong> require <code>JKS_PATH</code>, <code>JKS_PASSWORD</code>, and <code>JKS_ALIAS</code> environment variables and an existing <code>.jks</code> keystore. <code>task buildAndroidSigned</code> fails if these are missing.</li>
+</ul>
+<hr />
+<p>← <a href="../runtime-stack/">Runtime stack</a> | <a href="../ci-and-release/">CI and release</a> →</p>
 
 
 
@@ -1780,10 +2157,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
