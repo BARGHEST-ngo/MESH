@@ -25,12 +25,6 @@ tasks:
     cmds:
       - go mod tidy
 
-  generate:
-    desc: Generate code
-    cmd: go generate ./...
-    deps:
-      - submoduleInit
-
   docs:
     desc: Build documentation
     cmd: mkdocs build
