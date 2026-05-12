@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          submodules: recursive
 
       - name: Set up Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
@@ -43,12 +45,6 @@ jobs:
 
       - name: Scan MESH module
         run: govulncheck ./analyst/src/cmd/... ./android-client/cmd/...
-
-      - name: Remove empty submodule directory
-        run: rm -rf tailscale
-
-      - name: Generate tailscale build directory
-        run: go generate ./analyst/src/...
 
       - name: Scan tailscale module with MESH code
         working-directory: tailscale
