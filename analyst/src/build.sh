@@ -21,22 +21,30 @@ echo "        by Barghest.asia. No rights reserved."
 echo "${NC}"
 echo ""
 
-GO_MOD_DIR="$(dirname "$(go env GOMOD)")"
-if [ -z "$GO_MOD_DIR" ] || [ ! -d "$GO_MOD_DIR" ]; then
-	echo "${RED}Error: Could not determine Go module directory${NC}" >&2
-	exit 1
-fi
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-tags="${TAGS:+$TAGS,}ts_omit_logtail" # ts_omit_aws,ts_omit_cloud,ts_omit_kube,ts_omit_synology,ts_omit_appconnectors,ts_omit_cli,ts_omit_completion,ts_omit_cliconndiag,ts_omit_clientupdate,ts_omit_c2n,ts_omit_oauthkey,ts_omit_outboundproxy,ts_omit_peerapiclient,ts_omit_peerapiserver,ts_omit_portlist,ts_omit_relayserver,ts_omit_wakeonlan,ts_omit_tap,ts_omit_bird"
+BUILD_DIR="$ROOT_DIR/tailscale"
 
-BUILD_DIR="$GO_MOD_DIR/tailscale"
+echo "ROOT_DIR=$ROOT_DIR"
+echo "BUILD_DIR=$BUILD_DIR"
+
 if [ ! -d "$BUILD_DIR" ]; then
-	echo "${RED}Error: Build directory does not exist: $BUILD_DIR${NC}" >&2
+	echo "${RED}Error: tailscale submodule missing${NC}" >&2
+	echo "Run: git submodule update --init --recursive" >&2
 	exit 1
 fi
+
+tags="${TAGS:+$TAGS,}ts_omit_logtail"
+
+echo "${GREEN}Building MESH daemon from tailscale submodule...${NC}"
+
 cd "$BUILD_DIR"
 
-echo "${GREEN}Building mesh binary...${NC}"
-go build -tags "$tags" -trimpath -o "$GO_MOD_DIR/analyst/mesh" ./cmd/tailscaled
+go build \
+	-tags "$tags" \
+	-trimpath \
+	-o "$ROOT_DIR/analyst/mesh" \
+	./cmd/tailscaled
 
 echo "${GREEN}Build complete!${NC}"
