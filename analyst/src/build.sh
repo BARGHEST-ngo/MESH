@@ -37,14 +37,27 @@ fi
 
 tags="${TAGS:+$TAGS,}ts_omit_logtail"
 
-echo "${GREEN}Building MESH daemon from tailscale submodule...${NC}"
-
 cd "$BUILD_DIR"
 
+echo "${GREEN}Building tailscaled daemon...${NC}"
 go build \
 	-tags "$tags" \
 	-trimpath \
-	-o "$ROOT_DIR/analyst/mesh" \
+	-o "$ROOT_DIR/analyst/tailscaled" \
 	./cmd/tailscaled
+
+echo "${GREEN}Building tailscale CLI...${NC}"
+go build \
+	-tags "$tags" \
+	-trimpath \
+	-o "$ROOT_DIR/analyst/tailscale" \
+	./cmd/tailscale
+
+echo "${GREEN}Building mesh CLI...${NC}"
+cd "$ROOT_DIR/analyst"
+go build \
+	-trimpath \
+	-o "$ROOT_DIR/analyst/mesh-analyst" \
+	.
 
 echo "${GREEN}Build complete!${NC}"

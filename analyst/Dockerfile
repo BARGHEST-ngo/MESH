@@ -4,10 +4,18 @@ RUN apk add --no-cache git patch
 
 WORKDIR /usr/src/app
 
+# Disable workspace so each module resolves independently
+ENV GOWORK=off
+
+# Cache root module deps (used by tailscale submodule build)
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY analyst/src ./analyst/src
+# Cache analyst module deps separately
+COPY analyst/go.mod analyst/go.sum ./analyst/
+RUN cd analyst && go mod download
+
+COPY analyst ./analyst
 COPY tailscale ./tailscale
 RUN ./analyst/src/build.sh
 
@@ -47,16 +55,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=android-sdk /opt/java/openjdk              $JAVA_HOME
 COPY --from=android-sdk /usr/local/android-sdk         $ANDROID_SDK_ROOT
-COPY --from=build       /usr/src/app/analyst/mesh      /usr/bin/mesh
+COPY --from=build       /usr/src/app/analyst/tailscaled  /usr/bin/tailscaled
+COPY --from=build       /usr/src/app/analyst/tailscale   /usr/bin/tailscale
+COPY --from=build       /usr/src/app/analyst/mesh-analyst /usr/bin/mesh-analyst
 COPY --chmod=755        analyst/entrypoint.sh          /usr/bin/entrypoint.sh
 COPY                    analyst/amneziawg.conf.example /etc/mesh/amneziawg.conf.example
 
 USER root
 
-# Configure .bashrc: meshcli alias and interactive welcome message
+# Configure .bashrc: mesh-analyst alias and interactive welcome message
 RUN printf '%s\n' \
     '' \
-    'alias meshcli="/usr/bin/mesh cli"' \
+    'alias mesh="/usr/bin/mesh-analyst"' \
     '' \
     '# Display welcome message for interactive shells only' \
     'if [[ $- == *i* ]]; then' \
@@ -64,14 +74,14 @@ RUN printf '%s\n' \
     '  printf "\033[1;36m║\033[0m\033[1;37m          MESH Analyst Container              \033[0m\033[1;36m║\033[0m\n"' \
     '  printf "\033[1;36m╚══════════════════════════════════════════════╝\033[0m\n\n"' \
     '  printf "  \033[1;33mForensic Tools:\033[0m\n\n"' \
-    '  printf "    \033[1;32mmeshcli\033[0m    MESH CLI — manage MESH network connections\n"' \
-    '  printf "               Usage: meshcli <subcommand> [command flags]\n\n"' \
+    '  printf "    \033[1;32mmesh\033[0m           MESH CLI — manage MESH network connections\n"' \
+    '  printf "               Usage: mesh <subcommand> [command flags]\n\n"' \
     '  printf "               SUBCOMMANDS\n"' \
     '  printf "                 status       Show state of tailscaled and its connections\n"' \
     '  printf "                 adbpair      Pair & connect to a device on the MESH network via ADB\n"' \
     '  printf "                 adbcollect   Collects ADB data, using AndroidQF and WARD\n"' \
     '  printf "                 adbdisable   The ADB disable utility disables the developer mode on the Android node\n\n"' \
-    '  printf "               For help on subcommands, add --help after: \"meshcli status --help\".\n\n"' \
+    '  printf "               For help on subcommands, add --help after: \"mesh status --help\".\n\n"' \
     '  printf "  \033[1;33mLogs:\033[0m\n"' \
     '  printf "    ~/.tailscale/mesh.log     MESH daemon log\n"' \
     '  printf "    ~/.tailscale/meshcli.log  MESH CLI log\n\n"' \

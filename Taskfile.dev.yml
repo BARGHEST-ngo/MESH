@@ -57,7 +57,7 @@ tasks:
   clean:
     desc: Clean up build artifacts
     cmds:
-      - rm -f analyst/mesh
+      - rm -f analyst/mesh-analyst analyst/tailscale analyst/tailscaled
       - make -C android-client clean
 
   tagRelease:
