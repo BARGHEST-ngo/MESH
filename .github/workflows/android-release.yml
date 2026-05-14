@@ -262,31 +262,11 @@ jobs:
         if: always()
         run: rm -f "$RUNNER_TEMP/mesh-release.jks"
 
-  # Create a GitHub release only after signing succeeds and only for tag pushes.
-  create-release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-    needs: [build-release, sign-release]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download signed APK artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: mesh-${{ needs.build-release.outputs.version }}
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v2
-        with:
-          files: mesh-${{ needs.build-release.outputs.version }}.apk
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   # Generate SLSA Level 3 provenance for the signed APK artifact.
   # This runs on an isolated runner via the slsa-github-generator reusable workflow,
   # producing non-falsifiable provenance over the signed bytes.
+  # upload-assets is false so create-release can attach both the APK and the
+  # provenance file in a single immutable-release-compatible call.
   provenance:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     needs: [sign-release]
@@ -297,4 +277,35 @@ jobs:
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: ${{ needs.sign-release.outputs.hashes }}
-      upload-assets: true
+      upload-assets: false
+
+  # Create the GitHub release once, with both the signed APK and the provenance
+  # file. Runs after both sign-release and provenance so the release is created
+  # complete in a single step (compatible with immutable releases).
+  create-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: [build-release, sign-release, provenance]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download signed APK artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: mesh-${{ needs.build-release.outputs.version }}
+
+      - name: Download provenance artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: ${{ needs.provenance.outputs.provenance-download-name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v2
+        with:
+          files: |
+            mesh-${{ needs.build-release.outputs.version }}.apk
+            ${{ needs.provenance.outputs.provenance-name }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
