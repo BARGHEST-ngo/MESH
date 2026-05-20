@@ -42,16 +42,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         iptables \
         iproute2 \
         iputils-ping \
+        libcap2-bin \
+        tcpdump \
+        util-linux \
     && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /root/.tailscale
+    && groupadd --system --gid 1000 mesh \
+    && useradd  --system --uid 1000 --gid 1000 \
+                --create-home --home-dir /home/mesh \
+                --shell /bin/bash mesh \
+    && mkdir -p /home/mesh/.tailscale \
+    && chown -R mesh:mesh /home/mesh \
+    && setcap cap_net_admin,cap_net_raw+eip /usr/bin/tcpdump
 
 COPY --from=android-sdk /opt/java/openjdk              $JAVA_HOME
 COPY --from=android-sdk /usr/local/android-sdk         $ANDROID_SDK_ROOT
 COPY --from=build       /usr/src/app/analyst/mesh      /usr/bin/mesh
 COPY --chmod=755        analyst/entrypoint.sh          /usr/bin/entrypoint.sh
 COPY                    analyst/amneziawg.conf.example /etc/mesh/amneziawg.conf.example
-
-USER root
 
 # Configure .bashrc: meshcli alias and interactive welcome message
 RUN printf '%s\n' \
@@ -76,6 +83,10 @@ RUN printf '%s\n' \
     '  printf "    ~/.tailscale/mesh.log     MESH daemon log\n"' \
     '  printf "    ~/.tailscale/meshcli.log  MESH CLI log\n\n"' \
     'fi' \
-    >> /root/.bashrc
+    >> /home/mesh/.bashrc \
+    && chown mesh:mesh /home/mesh/.bashrc
+
+# No USER directive. The entrypoint drops to mesh after fixing volume perms.
+WORKDIR /home/mesh
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
