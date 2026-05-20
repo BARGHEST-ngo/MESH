@@ -20,8 +20,8 @@ services:
     depends_on:
       - headscale
     ports:
-      - "127.0.0.1:80:80"
-    entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+      - "127.0.0.1:80:8080"
+    entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE' < /etc/nginx/nginx.conf.template > /tmp/nginx.conf && nginx -c /tmp/nginx.conf -g 'daemon off;'"
 
   analyst:
     build:
@@ -32,11 +32,9 @@ services:
       - NET_RAW
     devices:
       - /dev/net/tun:/dev/net/tun
-    sysctls:
-      net.ipv4.ip_forward: "1"
-      net.ipv6.conf.all.forwarding: "1"
+    # The daemon sets ip_forward itself when needed (exit node or subnet router).
     volumes:
-      - analyst-data:/root/.tailscale
+      - analyst-data:/home/mesh/.tailscale
     environment:
       - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
       - AUTH_KEY=${AUTH_KEY}
