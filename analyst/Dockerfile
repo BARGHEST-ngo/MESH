@@ -1,4 +1,4 @@
-FROM golang:1.26-alpine AS build
+FROM golang:1.26-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS build
 
 RUN apk add --no-cache git patch
 
@@ -11,7 +11,7 @@ COPY analyst/src ./analyst/src
 COPY tailscale ./tailscale
 RUN ./analyst/src/build.sh
 
-FROM eclipse-temurin:25-jre AS android-sdk
+FROM eclipse-temurin:25-jre@sha256:04262e8782d6b034ee5d7c1c5d4e8938fcf2063a76b4bfcd84e5d994d09c27bc AS android-sdk
 
 ARG ANDROID_TOOLS_VERSION=14742923
 ARG ANDROID_TOOLS_SUM=04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7
@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget unzip \
     && yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --licenses || true \
     && "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" "platform-tools"
 
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb
 
 ENV ANDROID_SDK_ROOT=/usr/local/android-sdk
 ENV PATH="${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
