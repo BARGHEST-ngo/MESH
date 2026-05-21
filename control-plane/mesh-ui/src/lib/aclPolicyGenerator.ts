@@ -10,11 +10,18 @@ function sanitizeTagComponent(input: unknown): string {
         .replace(/^-|-$/g, '')
 }
 
+export const networkName = /^[a-z0-9]+(-[a-z0-9]+)*$/
+export function isValidNetworkName(name: unknown): boolean {
+	return typeof name === 'string' && networkName.test(name)
+}
+
+export const networkNameText = 'Lowercase letters, digits and hypens only. Cannot start or end with hypen. No consecutive hyphens.'
+
 export function networkTagForNetwork(network: Pick<V1User, 'id' | 'name'>): string | null {
     const namePart = sanitizeTagComponent(network.name)
-    if (namePart) return `tag:net-${namePart}`
 
     const idPart = sanitizeTagComponent(network.id)
+    if (namePart && idPart) return `tag:net-${namePart}-${idPart}`
     if (idPart) return `tag:net-${idPart}`
 
     return null
