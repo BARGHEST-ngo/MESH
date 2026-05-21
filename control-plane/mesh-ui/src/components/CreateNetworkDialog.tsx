@@ -20,11 +20,11 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
 	const [error, setError] = useState('')
 
 	const createNetwork = useCreateNetwork()
+	const trimmedName = name.trim()
+	const isInvalid = trimmedName.length > 0 && !isValidNetworkName(trimmedName)
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
-
-		const trimmedName = name.trim()
 		if (!trimmedName) return
 		if (!isValidNetworkName(trimmedName)) {
 			setError(networkNameText)
@@ -82,14 +82,14 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
 								}}
 								placeholder="network-1"
 								required
-								className={`mt-1 ${error ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+								className={`mt-1 ${error || isInvalid ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
 							/>
 							{error ? (
 								<p className="text-xs text-red-500 mt-1 font-semibold">
 									{error}
 								</p>
 							) : (
-								<p className="text-xs text-muted-foreground mt-1">
+								<p className={`text-xs mt-1 ${isInvalid ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
 									{networkNameText}
 								</p>
 							)}
@@ -141,7 +141,7 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
 						>
 							[ CANCEL ]
 						</Button>
-						<Button type="submit" disabled={createNetwork.isPending || !name.trim()}>
+						<Button type="submit" disabled={createNetwork.isPending || !trimmedName || isInvalid}>
 							{createNetwork.isPending ? '[ CREATING... ]' : '[ CREATE ]'}
 						</Button>
 					</DialogFooter>
