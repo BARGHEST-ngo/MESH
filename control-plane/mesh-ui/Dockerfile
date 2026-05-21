@@ -16,4 +16,6 @@ FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+USER nginx
+
+EXPOSE 8080
