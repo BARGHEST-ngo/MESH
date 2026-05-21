@@ -17,13 +17,11 @@ ARG ANDROID_TOOLS_VERSION=14742923
 ARG ANDROID_TOOLS_SUM=04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7
 ENV ANDROID_SDK_ROOT=/usr/local/android-sdk
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        wget \
-		unzip \
+RUN apt-get update && apt-get install -y --no-install-recommends wget unzip \
     && rm -rf /var/lib/apt/lists/* \
-    && ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_TOOLS_VERSION}_latest.zip" \
     && mkdir -p "${ANDROID_SDK_ROOT}/tmp" \
-    && wget --progress=dot:giga -O "${ANDROID_SDK_ROOT}/tmp/commandlinetools.zip" "${ANDROID_TOOLS_URL}" \
+    && wget --progress=dot:giga -O "${ANDROID_SDK_ROOT}/tmp/commandlinetools.zip" \
+        "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_TOOLS_VERSION}_latest.zip" \
     && echo "${ANDROID_TOOLS_SUM}  ${ANDROID_SDK_ROOT}/tmp/commandlinetools.zip" | sha256sum --strict --check - \
     && unzip -q "${ANDROID_SDK_ROOT}/tmp/commandlinetools.zip" -d "${ANDROID_SDK_ROOT}/tmp" \
     && mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools" \
@@ -34,9 +32,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM debian:bookworm-slim
 
-ENV JAVA_HOME=/opt/java/openjdk
 ENV ANDROID_SDK_ROOT=/usr/local/android-sdk
-ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
+ENV PATH="${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         iptables \
@@ -54,37 +51,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && chown -R mesh:mesh /home/mesh \
     && setcap cap_net_admin,cap_net_raw+eip /usr/bin/tcpdump
 
-COPY --from=android-sdk /opt/java/openjdk              $JAVA_HOME
-COPY --from=android-sdk /usr/local/android-sdk         $ANDROID_SDK_ROOT
-COPY --from=build       /usr/src/app/analyst/mesh      /usr/bin/mesh
-COPY --chmod=755        analyst/entrypoint.sh          /usr/bin/entrypoint.sh
-COPY                    analyst/amneziawg.conf.example /etc/mesh/amneziawg.conf.example
-
-# Configure .bashrc: meshcli alias and interactive welcome message
-RUN printf '%s\n' \
-    '' \
-    'alias meshcli="/usr/bin/mesh cli"' \
-    '' \
-    '# Display welcome message for interactive shells only' \
-    'if [[ $- == *i* ]]; then' \
-    '  printf "\n\033[1;36m╔══════════════════════════════════════════════╗\033[0m\n"' \
-    '  printf "\033[1;36m║\033[0m\033[1;37m          MESH Analyst Container              \033[0m\033[1;36m║\033[0m\n"' \
-    '  printf "\033[1;36m╚══════════════════════════════════════════════╝\033[0m\n\n"' \
-    '  printf "  \033[1;33mForensic Tools:\033[0m\n\n"' \
-    '  printf "    \033[1;32mmeshcli\033[0m    MESH CLI — manage MESH network connections\n"' \
-    '  printf "               Usage: meshcli <subcommand> [command flags]\n\n"' \
-    '  printf "               SUBCOMMANDS\n"' \
-    '  printf "                 status       Show state of tailscaled and its connections\n"' \
-    '  printf "                 adbpair      Pair & connect to a device on the MESH network via ADB\n"' \
-    '  printf "                 adbcollect   Collects ADB data, using AndroidQF and WARD\n"' \
-    '  printf "                 adbdisable   The ADB disable utility disables the developer mode on the Android node\n\n"' \
-    '  printf "               For help on subcommands, add --help after: \"meshcli status --help\".\n\n"' \
-    '  printf "  \033[1;33mLogs:\033[0m\n"' \
-    '  printf "    ~/.tailscale/mesh.log     MESH daemon log\n"' \
-    '  printf "    ~/.tailscale/meshcli.log  MESH CLI log\n\n"' \
-    'fi' \
-    >> /home/mesh/.bashrc \
-    && chown mesh:mesh /home/mesh/.bashrc
+COPY --from=android-sdk /usr/local/android-sdk/platform-tools ${ANDROID_SDK_ROOT}/platform-tools
+COPY --from=build       /usr/src/app/analyst/mesh             /usr/bin/mesh
+COPY --chmod=755        analyst/entrypoint.sh                 /usr/bin/entrypoint.sh
+COPY --chown=mesh:mesh  analyst/bashrc                        /home/mesh/.bashrc
+COPY                    analyst/amneziawg.conf.example        /etc/mesh/amneziawg.conf.example
 
 # No USER directive. The entrypoint drops to mesh after fixing volume perms.
 WORKDIR /home/mesh
