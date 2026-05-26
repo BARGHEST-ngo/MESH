@@ -13,6 +13,9 @@
     <a href="https://discord.com/invite/">
       <img src="https://img.shields.io/discord/1161119546170687619?logo=discord&style=flat-square" alt="Chat" />
     </a>
+    <a href="https://deepwiki.com/BARGHEST-ngo/MESH">
+      <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" />
+    </a>
   </p>
 </div>
 
