@@ -21,6 +21,10 @@ func main() {
 		Subcommands: []*ffcli.Command{
 			cmd.HelloCmd(),
 			cmd.StatusCmd(),
+			cmd.AdbpairCmd(),
+			cmd.AdbcollectCmd(),
+			cmd.AdbdisableCmd(),
+			cmd.AdbcleanCmd(),
 		},
 		FlagSet: flag.NewFlagSet("mesh", flag.ContinueOnError),
 		Exec: func(ctx context.Context, args []string) error {
