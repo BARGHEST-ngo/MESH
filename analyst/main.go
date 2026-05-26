@@ -19,7 +19,12 @@ func main() {
 		ShortUsage: "meshcli <command> [flags]",
 		ShortHelp:  "MESH analyst CLI",
 		Subcommands: []*ffcli.Command{
+			// Commands inherited from tailscale
+			cmd.UpCmd(),
+			cmd.DownCmd(),
 			cmd.StatusCmd(),
+
+			// Analyst commands
 			cmd.AdbpairCmd(),
 			cmd.AdbcollectCmd(),
 			cmd.AdbdisableCmd(),
