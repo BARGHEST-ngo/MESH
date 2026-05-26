@@ -16,6 +16,15 @@
     <a href="https://deepwiki.com/BARGHEST-ngo/MESH">
       <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" />
     </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/github/license/BARGHEST-ngo/MESH?style=flat-square" alt="License" />
+    </a>
+    <a href="https://github.com/BARGHEST-ngo/MESH/releases">
+      <img src="https://img.shields.io/github/v/release/BARGHEST-ngo/MESH?include_prereleases&style=flat-square" alt="Latest Release" />
+    </a>
+    <a href="https://github.com/BARGHEST-ngo/MESH/actions/workflows/govulncheck.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/BARGHEST-ngo/MESH/govulncheck.yml?label=govulncheck&style=flat-square" alt="govulncheck" />
+    </a>
   </p>
 </div>
 
