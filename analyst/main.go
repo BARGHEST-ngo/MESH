@@ -19,7 +19,6 @@ func main() {
 		ShortUsage: "meshcli <command> [flags]",
 		ShortHelp:  "MESH analyst CLI",
 		Subcommands: []*ffcli.Command{
-			cmd.HelloCmd(),
 			cmd.StatusCmd(),
 			cmd.AdbpairCmd(),
 			cmd.AdbcollectCmd(),
