@@ -15,8 +15,8 @@ import (
 
 func main() {
 	root := &ffcli.Command{
-		Name:       "mesh-analyst",
-		ShortUsage: "mesh-analyst <command> [flags]",
+		Name:       "meshcli",
+		ShortUsage: "meshcli <command> [flags]",
 		ShortHelp:  "MESH analyst CLI",
 		Subcommands: []*ffcli.Command{
 			cmd.HelloCmd(),
@@ -26,9 +26,9 @@ func main() {
 			cmd.AdbdisableCmd(),
 			cmd.AdbcleanCmd(),
 		},
-		FlagSet: flag.NewFlagSet("mesh", flag.ContinueOnError),
+		FlagSet: flag.NewFlagSet("meshcli", flag.ContinueOnError),
 		Exec: func(ctx context.Context, args []string) error {
-			fmt.Fprintf(os.Stderr, "Run 'mesh-analyst help' for usage.\n")
+			fmt.Fprintf(os.Stderr, "Run 'meshcli help' for usage.\n")
 			return flag.ErrHelp
 		},
 	}
