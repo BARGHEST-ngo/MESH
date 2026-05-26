@@ -4,32 +4,16 @@
 
 <div align="center">
   <p>
-    <a href="https://docs.meshforensics.org/">
-      <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square" alt="Documentation" />
-    </a>
-    <a href="#">
-      <img src="https://img.shields.io/badge/status-public%20alpha-orange?style=flat-square" alt="Public Alpha Status" />
-    </a>
-    <a href="https://discord.com/invite/">
-      <img src="https://img.shields.io/discord/1161119546170687619?logo=discord&style=flat-square" alt="Chat" />
-    </a>
-    <a href="https://deepwiki.com/BARGHEST-ngo/MESH">
-      <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" />
-    </a>
-    <a href="LICENSE">
-      <img src="https://img.shields.io/github/license/BARGHEST-ngo/MESH?style=flat-square" alt="License" />
-    </a>
-    <a href="https://github.com/BARGHEST-ngo/MESH/releases">
-      <img src="https://img.shields.io/github/v/release/BARGHEST-ngo/MESH?include_prereleases&style=flat-square" alt="Latest Release" />
-    </a>
+    <a href="https://docs.meshforensics.org/"><img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square" alt="Documentation" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/status-public%20alpha-orange?style=flat-square" alt="Public Alpha Status" /></a>
+    <a href="https://discord.com/invite/"><img src="https://img.shields.io/discord/1161119546170687619?logo=discord&style=flat-square" alt="Chat" /></a>
+    <a href="https://deepwiki.com/BARGHEST-ngo/MESH"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/BARGHEST-ngo/MESH?style=flat-square" alt="License" /></a>
+    <a href="https://github.com/BARGHEST-ngo/MESH/releases"><img src="https://img.shields.io/github/v/release/BARGHEST-ngo/MESH?include_prereleases&style=flat-square" alt="Latest Release" /></a>
   </p>
   <p>
-    <a href="https://play.google.com/store/apps/details?id=com.barghest.mesh">
-      <img height="60" alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" />
-    </a>
-    <a href="https://f-droid.org/en/packages/com.barghest.mesh/">
-      <img height="60" alt="Get it on F-Droid" src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" />
-    </a>
+    <a href="https://play.google.com/store/apps/details?id=com.barghest.mesh"><img height="60" alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" /></a>
+    <a href="https://f-droid.org/en/packages/com.barghest.mesh/"><img height="60" alt="Get it on F-Droid" src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" /></a>
   </p>
 </div>
 
