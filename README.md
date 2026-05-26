@@ -23,6 +23,14 @@
       <img src="https://img.shields.io/github/v/release/BARGHEST-ngo/MESH?include_prereleases&style=flat-square" alt="Latest Release" />
     </a>
   </p>
+  <p>
+    <a href="https://play.google.com/store/apps/details?id=com.barghest.mesh">
+      <img height="60" alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" />
+    </a>
+    <a href="https://f-droid.org/en/packages/com.barghest.mesh/">
+      <img height="60" alt="Get it on F-Droid" src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" />
+    </a>
+  </p>
 </div>
 
 <h3><div align="center">
