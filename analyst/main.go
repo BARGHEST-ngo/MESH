@@ -19,16 +19,27 @@ func main() {
 		ShortUsage: "meshcli <command> [flags]",
 		ShortHelp:  "MESH analyst CLI",
 		Subcommands: []*ffcli.Command{
-			// Commands inherited from tailscale
-			cmd.UpCmd(),
-			cmd.DownCmd(),
-			cmd.StatusCmd(),
-
 			// Analyst commands
 			cmd.AdbpairCmd(),
 			cmd.AdbcollectCmd(),
 			cmd.AdbdisableCmd(),
 			cmd.AdbcleanCmd(),
+			// Commands inherited from tailscale
+			cmd.UpCmd(),
+			cmd.DownCmd(),
+			cmd.SetCmd(),
+			cmd.StatusCmd(),
+
+			//set — configure settings
+			//login / logout — authentication
+			//switch — switch accounts
+			//ip — get mesh IP
+			//ping — ping a peer
+			//netcheck — network diagnostics
+			//whois — look up a peer
+			//version — version info
+			//bugreport — collect diagnostics
+			//exit-node — manage exit nodes
 		},
 		FlagSet: flag.NewFlagSet("meshcli", flag.ContinueOnError),
 		Exec: func(ctx context.Context, args []string) error {
