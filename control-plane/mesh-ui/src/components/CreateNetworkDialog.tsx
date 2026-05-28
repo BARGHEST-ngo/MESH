@@ -5,6 +5,8 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { useCreateNetwork } from '../api/useNetworks'
 import { Shield } from 'lucide-react'
+import { isValidNetworkName, networkNameText } from '../lib/aclPolicyGenerator'
+
 
 interface CreateNetworkDialogProps {
   open: boolean
@@ -18,17 +20,22 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
   const [error, setError] = useState('')
 
   const createNetwork = useCreateNetwork()
+  const trimmedName = name.trim()
+  const isInvalid = trimmedName.length > 0 && !isValidNetworkName(trimmedName)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!name.trim()) return
+    if (!trimmedName) return
+    if (!isValidNetworkName(trimmedName)) {
+      setError(networkNameText)
+      return
+    }
 
     setError('')
 
     try {
       await createNetwork.mutateAsync({
-        name: name.trim(),
+        name: trimmedName,
         displayName: displayName.trim() || undefined,
         email: email.trim() || undefined,
       })
@@ -75,15 +82,15 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
                 }}
                 placeholder="network-1"
                 required
-                className={`mt-1 ${error ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                className={`mt-1 ${error || isInvalid ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
               />
               {error ? (
                 <p className="text-xs text-red-500 mt-1 font-semibold">
                   {error}
                 </p>
               ) : (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Lowercase, no spaces (use hyphens or underscores)
+                <p className={`text-xs mt-1 ${isInvalid ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
+                  {networkNameText}
                 </p>
               )}
             </div>
@@ -113,8 +120,8 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
               />
             </div>
 
-	            <div className="flex items-start gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-	              <Shield aria-hidden className="mt-0.5 h-4 w-4 text-primary" />
+            <div className="flex items-start gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <Shield aria-hidden className="mt-0.5 h-4 w-4 text-primary" />
               <div className="text-sm">
                 <p className="font-medium text-foreground">Network isolation enabled</p>
                 <p className="text-muted-foreground mt-1">
@@ -134,7 +141,7 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
             >
               [ CANCEL ]
             </Button>
-            <Button type="submit" disabled={createNetwork.isPending || !name.trim()}>
+            <Button type="submit" disabled={createNetwork.isPending || !trimmedName || isInvalid}>
               {createNetwork.isPending ? '[ CREATING... ]' : '[ CREATE ]'}
             </Button>
           </DialogFooter>
@@ -143,4 +150,3 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
     </Dialog>
   )
 }
-

@@ -2,7 +2,19 @@
 
 set -eo pipefail
 
-MESH_STATE_DIR="/root/.tailscale"
+# Fix volume perms (old deployments are root-owned) then drop to mesh,
+# keeping NET_ADMIN/NET_RAW ambient so iptables etc. still work.
+if [ "$(id -u)" = "0" ]; then
+    chown -R mesh:mesh /home/mesh/.tailscale
+    export HOME=/home/mesh USER=mesh
+    exec setpriv \
+        --reuid=mesh --regid=mesh --init-groups \
+        --inh-caps=+net_admin,+net_raw \
+        --ambient-caps=+net_admin,+net_raw \
+        -- "$0" "$@"
+fi
+
+MESH_STATE_DIR="${MESH_STATE_DIR:-$HOME/.tailscale}"
 
 if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
     echo "Set the LOGIN_URL and AUTH_KEY environment variables in .env to run the MESH analyst client." >&2

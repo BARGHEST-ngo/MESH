@@ -29,7 +29,6 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       unsigned_sha256: ${{ steps.unsigned-hash.outputs.unsigned_sha256 }}
-      hashes: ${{ steps.hashes.outputs.hashes }}
 
     steps:
       - name: Check out code
@@ -74,24 +73,7 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('android-client/android/**/*.gradle*', 'android-client/android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
-      - name: Decode Keystore
-        if: github.event_name != 'pull_request'
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: |
-          echo "$KEYSTORE_BASE64" | base64 -d > mesh-release.jks
-
-      - name: Build and Sign Release APK
-        if: github.event_name != 'pull_request'
-        env:
-          JKS_PATH: ${{ github.workspace }}/android-client/mesh-release.jks
-          JKS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          JKS_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-        run: |
-          make release-apk-signed
-
       - name: Build Release APK (unsigned)
-        if: github.event_name == 'pull_request'
         run: |
           make release-apk
 
@@ -116,27 +98,13 @@ jobs:
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Rename APK with version
-        if: github.event_name != 'pull_request'
-        run: |
-          mv mesh-release.apk mesh-${{ steps.version.outputs.version }}.apk
-
-      - name: Compute provenance subjects
-        if: github.event_name != 'pull_request'
-        id: hashes
-        run: |
-          echo "hashes=$(sha256sum mesh-${{ steps.version.outputs.version }}.apk | base64 -w0)" >> "$GITHUB_OUTPUT"
-
-      - name: Upload APK Artifact
+      - name: Upload unsigned APK Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: github.event_name != 'pull_request'
         with:
-          name: mesh-${{ steps.version.outputs.version }}
-          path: android-client/mesh-${{ steps.version.outputs.version }}.apk
-
-      - name: Cleanup keystore
-        if: always()
-        run: rm -f mesh-release.jks
+          name: mesh-${{ steps.version.outputs.version }}-unsigned
+          path: android-client/mesh-release-unsigned.apk
+          if-no-files-found: error
 
   # Verify reproducibility by rebuilding the unsigned APK on a separate runner
   # and comparing its SHA-256 hash against the primary build.
@@ -204,41 +172,140 @@ jobs:
             echo "  diffoscope build1/mesh-release-unsigned.apk build2/mesh-release-unsigned.apk"
             exit 1
           fi
-          echo "✅ Reproducibility check PASSED — unsigned APK is bit-for-bit identical"
+          echo "Reproducibility check PASSED — unsigned APK is bit-for-bit identical"
 
-  # Create a GitHub release only after reproducibility is verified and only for tag pushes.
-  create-release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+  # Sign the unsigned APK in an isolated job.
+  #   - this is so arb code is not executed in the same container as signing in case of supply chain issue
+  #   - runs only in the `android-signing` environment (required reviewers)
+  #   - re-verifies the unsigned artifact hash against build-release's output before signing
+  #   - invokes apksigner directly from the runner image, never via `make`
+  # The signing keystore and credentials must be configured as Environment secrets on
+  # `android-signing`, not as repo-level secrets, so they are only injected here.
+  sign-release:
+    if: github.event_name != 'pull_request'
     needs: [build-release, verify-reproducibility]
     runs-on: ubuntu-latest
+    environment: android-signing
     permissions:
-      contents: write
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    outputs:
+      signed_sha256: ${{ steps.signed-hash.outputs.signed_sha256 }}
+      hashes: ${{ steps.hashes.outputs.hashes }}
 
     steps:
-      - name: Download APK artifact
+      - name: Set up Android build-tools (for apksigner)
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        with:
+          packages: build-tools;36.0.0
+
+      - name: Add Android Build Tools to PATH
+        run: echo "$ANDROID_HOME/build-tools/36.0.0" >> "$GITHUB_PATH"
+
+      - name: Download unsigned APK
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: mesh-${{ needs.build-release.outputs.version }}
+          name: mesh-${{ needs.build-release.outputs.version }}-unsigned
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v2
-        with:
-          files: mesh-${{ needs.build-release.outputs.version }}.apk
-          generate_release_notes: true
+      - name: Re-verify unsigned APK hash (content-addressed gate)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPECTED: ${{ needs.build-release.outputs.unsigned_sha256 }}
+        run: |
+          ACTUAL=$(sha256sum mesh-release-unsigned.apk | cut -d' ' -f1)
+          echo "Expected: $EXPECTED"
+          echo "Actual:   $ACTUAL"
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::Unsigned APK hash mismatch — refusing to sign"
+            exit 1
+          fi
 
-  # Generate SLSA Level 3 provenance for the APK artifact.
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/mesh-release.jks"
+
+      - name: Sign APK
+        env:
+          JKS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          JKS_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          VERSION: ${{ needs.build-release.outputs.version }}
+        run: |
+          cp mesh-release-unsigned.apk "mesh-${VERSION}.apk"
+          apksigner sign --v1-signing-enabled false --alignment-preserved \
+            --ks "$RUNNER_TEMP/mesh-release.jks" \
+            --ks-pass env:JKS_PASSWORD \
+            --ks-key-alias "$JKS_ALIAS" \
+            "mesh-${VERSION}.apk"
+          apksigner verify --verbose "mesh-${VERSION}.apk"
+
+      - name: Hash signed APK
+        id: signed-hash
+        run: |
+          echo "signed_sha256=$(sha256sum mesh-${{ needs.build-release.outputs.version }}.apk | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Compute provenance subjects
+        id: hashes
+        run: |
+          echo "hashes=$(sha256sum mesh-${{ needs.build-release.outputs.version }}.apk | base64 -w0)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload signed APK Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mesh-${{ needs.build-release.outputs.version }}
+          path: mesh-${{ needs.build-release.outputs.version }}.apk
+          if-no-files-found: error
+
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/mesh-release.jks"
+
+  # Generate SLSA Level 3 provenance for the signed APK artifact.
   # This runs on an isolated runner via the slsa-github-generator reusable workflow,
-  # producing non-falsifiable provenance.
+  # producing non-falsifiable provenance over the signed bytes.
+  # upload-assets is false so create-release can attach both the APK and the
+  # provenance file in a single immutable-release-compatible call.
   provenance:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-    needs: [build-release, verify-reproducibility]
+    needs: [sign-release]
     permissions:
       actions: read
       id-token: write
       contents: write
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
-      base64-subjects: ${{ needs.build-release.outputs.hashes }}
-      upload-assets: true
+      base64-subjects: ${{ needs.sign-release.outputs.hashes }}
+      upload-assets: false
+
+  # Create the GitHub release once, with both the signed APK and the provenance
+  # file. Runs after both sign-release and provenance so the release is created
+  # complete in a single step (compatible with immutable releases).
+  create-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: [build-release, sign-release, provenance]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download signed APK artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: mesh-${{ needs.build-release.outputs.version }}
+
+      - name: Download provenance artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: ${{ needs.provenance.outputs.provenance-name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v2
+        with:
+          files: |
+            mesh-${{ needs.build-release.outputs.version }}.apk
+            ${{ needs.provenance.outputs.provenance-name }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

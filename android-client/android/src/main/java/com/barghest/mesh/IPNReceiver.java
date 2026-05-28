@@ -25,10 +25,10 @@ import java.util.Objects;
  */
 public class IPNReceiver extends BroadcastReceiver {
 
-    public static final String INTENT_CONNECT_VPN = "com.barghest.com.barghest.com.barghest.com.barghest.mesh.CONNECT_VPN";
-    public static final String INTENT_DISCONNECT_VPN = "com.barghest.com.barghest.com.barghest.com.barghest.mesh.DISCONNECT_VPN";
+    public static final String INTENT_CONNECT_VPN = "com.barghest.mesh.CONNECT_VPN";
+    public static final String INTENT_DISCONNECT_VPN = "com.barghest.mesh.DISCONNECT_VPN";
 
-    private static final String INTENT_USE_EXIT_NODE = "com.barghest.com.barghest.com.barghest.com.barghest.mesh.USE_EXIT_NODE";
+    private static final String INTENT_USE_EXIT_NODE = "com.barghest.mesh.USE_EXIT_NODE";
 
     @Override
     public void onReceive(Context context, Intent intent) {

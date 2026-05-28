@@ -51,7 +51,7 @@ tasks:
     desc: Enter an interactive shell in the MESH analyst client container
     cmds:
       - docker compose up -d analyst
-      - docker compose exec analyst /bin/bash
+      - docker compose exec --user mesh analyst /bin/bash
     deps:
       - configureAnalyst
 

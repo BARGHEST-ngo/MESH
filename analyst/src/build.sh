@@ -57,7 +57,7 @@ echo "${GREEN}Building mesh CLI...${NC}"
 cd "$ROOT_DIR/analyst"
 go build \
 	-trimpath \
-	-o "$ROOT_DIR/analyst/mesh-analyst" \
+	-o "$ROOT_DIR/analyst/mesh" \
 	.
 
 echo "${GREEN}Build complete!${NC}"
