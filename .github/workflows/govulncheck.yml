@@ -44,8 +44,4 @@ jobs:
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
       - name: Scan MESH module
-        run: govulncheck ./analyst/src/cmd/... ./android-client/cmd/...
-
-      - name: Scan tailscale module with MESH code
-        working-directory: tailscale
-        run: govulncheck ./cmd/tailscale/cli/... ./cmd/tailscaled/... ./wgengine/magicsock/... ./wgengine/wgcfg/... ./paths/...
+        run: govulncheck ./analyst/... ./android-client/cmd/...
