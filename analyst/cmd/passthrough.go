@@ -13,7 +13,7 @@ import (
 // execTailscale replaces the current process with the co-located tailscale
 // binary, passing args directly. The tailscale binary must live in the same
 // directory as the mesh-analyst binary.
-func execTailscale(args []string) error {
+func ExecTailscale(args []string) error {
 	self, err := os.Executable()
 	if err != nil {
 		return err
