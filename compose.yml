@@ -5,6 +5,8 @@ services:
     volumes:
       - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale:/etc/headscale
       - headscale-data:/var/lib/headscale
+    ports:
+      - "3478:3478/udp"
     tmpfs:
       - /var/run/headscale
     command: serve
