@@ -30,25 +30,25 @@
 <br/></h3>
 
 > [!IMPORTANT]
-> **Public Alpha**: Currently in **public alpha** and under active development. It is **not production-ready**. A full penetration test is in progress. Until it is complete, do **not** use this project in production environments. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues.
+> **Public Alpha**: Currently in **public alpha** and under active development. A full penetration has been completed and we have patched all major vulnerabilities. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues."
 
-**MESH enables remote wireless debugging for mobile devices, providing mobile forensics & network monitoring over an encrypted, censorship-resistant peer-to-peer mesh network.**
+**MESH enables internet-routable wireless debugging for mobile devices over an encrypted, censorship-resistant peer-to-peer mesh network.**
 
-Mobile devices are often placed behind NAT, firewalls, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics typically requires centralized VPN servers or risky port-forwarding.
+Mobile devices are often trapped behind NAT, firewalls, carrier-grade NAT, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics usually depends on centralized VPN servers, brittle hub-and-spoke setups, or risky port forwarding.
 
-MESH solves this by creating an encrypted peer-to-peer overlay network and assigning each node a CGNAT-range address via a virtual TUN interface. Devices appear as if they are on the same local subnet — even when geographically distant or behind multiple NAT layers.
+MESH solves this by creating an encrypted peer-to-peer overlay network and assigning each node a CGNAT-range address through a virtual TUN interface. Devices appear as if they are on the same private subnet, even when they are geographically distant or hidden behind multiple NAT layers.
 
-This enables **remote mobile forensics** using ADB Wireless Debugging and [libimobiledevice](https://libimobiledevice.org/), allowing tools such as WARD, [MVT](https://github.com/mvt-project/), and [AndroidQF](https://github.com/mvt-project/androidqf) to operate remotely without exposing devices to the public internet.  
+This allows analysts to run remote mobile forensics workflows over ADB Wireless Debugging and libimobiledevice without exposing target devices to the public internet. Tools such as WARD, MVT, AndroidQF, and other ADB/iOS tooling can operate across the encrypted overlay as if the device were locally reachable.
 
-The mesh can also be used for **remote network monitoring**, including PCAP capture and Suricata-based intrusion detection over the encrypted overlay. Allowing for both immediate forensics capture and network capture.
+MESH also supports remote network monitoring, including PCAP capture and Suricata-based intrusion detection over the same encrypted mesh. This makes it possible to perform both immediate forensic acquisition and live network capture from devices in hostile or restricted environments.
 
-MESH is designed specifically for civil society forensics & hardened for hostile/censored networks:
+MESH is designed for civil society forensics and hardened for censored or adversarial networks:
 
-- Direct peer-to-peer WireGuard transport when available  
-- Optional AmneziaWG to obfuscate WireGuard fingerprints to evade national firewalls or DPI inspection
-- Automatic fallback to end-to-end encrypted HTTPS relays when UDP is blocked  
+- Direct peer-to-peer WireGuard transport when available
+- Optional AmneziaWG support to obfuscate WireGuard fingerprints against DPI and national firewall blocking
+- Automatic fallback to end-to-end encrypted HTTPS relays when UDP is blocked
 
-Meshes are ephemeral and analyst-controlled: bring devices online, collect evidence, and tear the network down immediately afterward. No complicated hub-and-spoke configurations.
+Meshes are ephemeral and analyst-controlled. Bring devices online, collect evidence, monitor traffic, and tear the network down immediately afterward — without maintaining permanent infrastructure or complex VPN configurations.
 
 ## Quick start
 
@@ -79,7 +79,6 @@ Remote: https://your-domain:8443/login
 
 The Web UI uses a self-signed certificate by default.
 
-
 > [!IMPORTANT]
 > The default ACL allows nodes in each network talk to each other.
 > Production deployments should use restrictive policies. Modify these via the ACL tab.
@@ -91,10 +90,10 @@ See the documentation for node enrollment and forensic workflows.
 
 ## Architecture summary
 
-MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require Tailscale infrastructure. 
+MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require Tailscale infrastructure.
 
 To establish peer-to-peer, end-to-end encrypted channel is created using UDP hole punching. If UDP is unavailable or blocked, it will fail over to E2EE HTTPs relays called DERP relays. The DERP protocol [DERP (Designated Encrypted Relay for Packets)](https://github.com/tailscale/tailscale/tree/main/derp) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
- 
+
 MESH follows the same model. By default, if an operator has not configured their own DERP infrastructure (which can be done using MESH's control plane), MESH uses Tailscale’s public DERP servers to ensure reliable connectivity, particularly in restrictive network environments. However, MESH does not require Tailscale infrastructure: operators can deploy and use their own DERP servers via the control plane, which includes an embedded DERP implementation. This makes MESH fully self-hostable when desired.
 
 DERP servers act purely as transport relays. They facilitate connectivity between devices but do not have visibility into the data exchanged, which remains end-to-end encrypted.
@@ -111,15 +110,15 @@ Forensic traffic flows directly between endpoints whenever possible.
 
 ## Key capabilities
 
-- Peer-to-peer encrypted forensic subnets  
-- Automatic WireGuard / AmneziaWG key management  
-- Self-hostable control plane with ACL enforcement  
-- CGNAT-assigned virtual TUN interfaces  
-- ADB-over-WiFi & libimobiledevice compatibility  
-- AndroidQF + MVT integration  
-- Secure transfer of forensic artifacts  
-- Optional kill-switch containment  
-- Rapid mesh creation and teardown  
+- Peer-to-peer encrypted forensic subnets
+- Automatic WireGuard / AmneziaWG key management
+- Self-hostable control plane with ACL enforcement
+- CGNAT-assigned virtual TUN interfaces
+- ADB-over-WiFi & libimobiledevice compatibility
+- AndroidQF + MVT integration
+- Secure transfer of forensic artifacts
+- Optional kill-switch containment
+- Rapid mesh creation and teardown
 
 <img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/2e539f33-d46a-4396-b25e-43c23e9e4040" />
 
@@ -131,24 +130,24 @@ Forensic traffic flows directly between endpoints whenever possible.
 
 Traditional VPN and hub-and-spoke architectures introduce:
 
-- Persistent infrastructure risk  
-- Centralized traffic analysis points  
-- Single points of failure  
-- Increased operational exposure  
+- Persistent infrastructure risk
+- Centralized traffic analysis points
+- Single points of failure
+- Increased operational exposure
 
 MESH separates coordination from data transport:
 
-- The control plane does not carry forensic traffic  
-- Peer connections are direct whenever possible  
-- Relays are transport fallbacks, not architectural hubs  
-- Meshes are disposable and task-scoped  
+- The control plane does not carry forensic traffic
+- Peer connections are direct whenever possible
+- Relays are transport fallbacks, not architectural hubs
+- Meshes are disposable and task-scoped
 
 MESH is optimized for transient, high-risk environments rather than permanent enterprise networking.
 
 ### Repository structure
 
-- `android-client` — Android endpoint APK  
-- `control-plane` — Coordination server  
+- `android-client` — Android endpoint APK
+- `control-plane` — Coordination server
 - `analyst` — Analyst CLI client
 
 ### Developer notes
