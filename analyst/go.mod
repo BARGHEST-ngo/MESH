@@ -45,3 +45,5 @@ require (
 	golang.org/x/sys v0.43.0 // indirect
 	golang.zx2c4.com/wireguard/windows v0.5.3 // indirect
 )
+
+replace tailscale.com => ../tailscale
