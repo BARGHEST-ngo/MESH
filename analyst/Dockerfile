@@ -12,6 +12,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Cache analyst module deps separately
+COPY tailscale/go.mod tailscale/go.sum ./tailscale/
 COPY analyst/go.mod analyst/go.sum ./analyst/
 RUN cd analyst && go mod download
 
