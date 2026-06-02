@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -55,6 +56,26 @@ func runAdbPairLite(ctx context.Context, args []string) error {
 		fmt.Printf("chosen Android device: <%s> (%s)\n", chosenPeer.HostName, chosenPeer.IP)
 		fmt.Printf("(review these instructions!)\n\n")
 		fmt.Println("prompt user to allow wireless debugging and open the pairing dialog...")
+		ReadString("Press Enter when the pairing dialog is open...")
+
+		fmt.Println("Scanning for pairing port...")
+		openPorts, err := scanOpenPorts(ctx, chosenPeer.IP)
+		if err != nil {
+			return fmt.Errorf("port scan failed: %w", err)
+		}
+		if len(openPorts) == 0 {
+			return fmt.Errorf("no open ports found on %s — is the pairing dialog open?", chosenPeer.IP)
+		}
+
+		var pairPort int
+		if len(openPorts) == 1 {
+			pairPort = openPorts[0]
+			fmt.Printf("Found pairing port: %d\n", pairPort)
+		} else {
+			// multiple open ports found...
+		}
+
+		fmt.Printf("pairing port: %d\n", pairPort)
 	}
 
 	return nil
@@ -121,7 +142,7 @@ func scanOpenPorts(ctx context.Context, ip string) ([]int, error) {
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			addr := fmt.Sprintf("%s:%d", ip, p)
+			addr := net.JoinHostPort(ip, strconv.Itoa(p))
 			conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 			if err == nil {
 				conn.Close()
