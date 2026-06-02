@@ -14,7 +14,7 @@
 # These tags disable features in Tailscale that reach out to Tailscale-controlled servers
 # ts_omit_clientmetrics excluded: its omit stub is incomplete (missing Type enum)
 # and logtail omission already blocks the only metric exfiltration path.
-GOTAGS := ts_omit_logtail,ts_omit_netlog,ts_omit_captiveportal,ts_omit_clientupdate,ts_omit_usermetrics,ts_omit_cloud
+GOTAGS := ts_omit_logtail,ts_omit_netlog,ts_omit_captiveportal,ts_omit_clientupdate,ts_omit_usermetrics,ts_omit_cloud,ts_omit_conn25
 
 # Reproducibility: default SOURCE_DATE_EPOCH to the last git commit timestamp.
 # CI or F-Droid may override this via the environment.

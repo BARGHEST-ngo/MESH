@@ -35,7 +35,7 @@ if [ ! -d "$BUILD_DIR" ]; then
 	exit 1
 fi
 
-tags="${TAGS:+$TAGS,}ts_omit_logtail"
+tags="${TAGS:+$TAGS,}ts_omit_logtail,ts_omit_conn25"
 
 cd "$BUILD_DIR"
 
