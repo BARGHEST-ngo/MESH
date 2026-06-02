@@ -5,4 +5,4 @@ use (
 	./analyst
 )
 
-replace tailscale.com => github.com/BARGHEST-ngo/mesh-tailscale v1.94.2-0.20260512151315-5e37e12167e6
+replace tailscale.com => github.com/BARGHEST-ngo/mesh-tailscale v1.95.0-pre.0.20260602113745-edfc235e37f0
