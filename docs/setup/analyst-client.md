@@ -2,6 +2,11 @@
 
 Now let's set up the MESH analyst client on your acquisition workstation. This will allow you to connect to the mesh network and conduct forensic collections.
 
+The analyst client runs on a secure forensics node and provides the MESH CLI for managing connections and running forensic tools.
+
+> [!WARNING]
+> While MESH locks down ports and services between the analyst node and the compromised device, you must treat that network path as untrusted. The analyst node must therefore be a hardened, dedicated system that can be snapshotted after forensic collection, and must not be your everyday personal workstation. Although it would require a very complex attack to achieve lateral movement from a mobile device to a Linux-based analyst node, you should still assume the risk exists and use a secure, controlled node for this purpose.”
+
 ## Step 1: Clone and build
 
 Clone the MESH repository and build the analyst client if you haven't already:
