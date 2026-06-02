@@ -15,12 +15,13 @@ import (
 )
 
 var nativeCommands = map[string]bool{
-	"adbpair":    true,
-	"adbcollect": true,
-	"adbdisable": true,
-	"adbclean":   true,
-	"status":     true,
-	"help":       true,
+	"adbpair":     true,
+	"adbcollect":  true,
+	"adbdisable":  true,
+	"adbclean":    true,
+	"status":      true,
+	"help":        true,
+	"adbpairlite": true,
 }
 
 func main() {
@@ -47,6 +48,7 @@ func main() {
 			cmd.AdbdisableCmd(),
 			cmd.AdbcleanCmd(),
 			cmd.StatusCmd(),
+			cmd.AdbPairLiteCmd(),
 		},
 		FlagSet: flag.NewFlagSet("meshcli", flag.ContinueOnError),
 		Exec: func(ctx context.Context, args []string) error {
