@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"net"
@@ -19,6 +20,13 @@ type AndroidPeer struct {
 	DNSName  string
 }
 
+type AdbPairArgs struct {
+	Host        string
+	PairPort    int
+	DebugPort   int
+	PairingCode string
+}
+
 func AdbPairLiteCmd() *ffcli.Command {
 	fs := flag.NewFlagSet("adbpairlite", flag.ContinueOnError)
 
@@ -32,7 +40,7 @@ func AdbPairLiteCmd() *ffcli.Command {
 
 func runAdbPairLite(ctx context.Context, args []string) error {
 	ensureAdbConf()
-
+	pairingArgs := AdbPairArgs{}
 	if len(args) == 0 {
 		fmt.Println("Starting automatic pairing...")
 
@@ -53,13 +61,16 @@ func runAdbPairLite(ctx context.Context, args []string) error {
 			fmt.Printf("found 1 Android device: <%s> (%s)\n", chosenPeer.HostName, chosenPeer.IP)
 		}
 
+		pairingArgs.Host = chosenPeer.IP
+
 		fmt.Printf("chosen Android device: <%s> (%s)\n", chosenPeer.HostName, chosenPeer.IP)
 		fmt.Printf("(review these instructions!)\n\n")
 		fmt.Println("prompt user to allow wireless debugging and open the pairing dialog...")
 		ReadString("Press Enter when the pairing dialog is open...")
 
 		fmt.Println("Scanning for pairing port...")
-		openPorts, err := scanOpenPorts(ctx, chosenPeer.IP)
+		openPorts, err := scanOpenPorts(chosenPeer.IP)
+		openPorts = append(openPorts, 5001)
 		if err != nil {
 			return fmt.Errorf("port scan failed: %w", err)
 		}
@@ -72,11 +83,21 @@ func runAdbPairLite(ctx context.Context, args []string) error {
 			pairPort = openPorts[0]
 			fmt.Printf("Found pairing port: %d\n", pairPort)
 		} else {
-			// multiple open ports found...
-		}
+			choice, ok := promptForPairingPort(openPorts)
+			if !ok {
+				return fmt.Errorf("invalid pairing port selection")
+			}
 
-		fmt.Printf("pairing port: %d\n", pairPort)
+			pairPort = openPorts[choice]
+		}
+		fmt.Printf("pairPort: %d\n", pairPort)
+		pairingArgs.PairPort = pairPort
+
+		pairingCode := ReadStringWithValidation("Enter the pairing code shown on the device: ", validatePairingCode)
+		pairingArgs.PairingCode = pairingCode
 	}
+
+	fmt.Print(pairingArgs)
 
 	return nil
 }
@@ -109,16 +130,36 @@ func getAndroidPeers(ctx context.Context) ([]AndroidPeer, error) {
 }
 
 func promptForAndroidClient(peers []AndroidPeer) (int, bool) {
-	fmt.Println("Available clients:")
+	fmt.Println("Multiple Android clients found, select an Android client:")
+	choices := make([]string, len(peers))
 	for i, p := range peers {
-		fmt.Printf("  %d) %s (%s)\n", i+1, p.HostName, p.IP)
+		choices[i] = fmt.Sprintf("%s (%s)", p.HostName, p.IP)
 	}
 
-	fmt.Print("\nSelect an Android client: ")
+	fmt.Print("Select an Android client:\n")
+	return promptForSelection(choices)
+}
 
+func promptForPairingPort(ports []int) (int, bool) {
+	fmt.Println("Multiple open ports found, select the pairing port:")
+	choices := make([]string, len(ports))
+	for i, p := range ports {
+		choices[i] = fmt.Sprintf("%d", p)
+	}
+
+	fmt.Print("Select a port:\n")
+	return promptForSelection(choices)
+}
+
+func promptForSelection(choices []string) (int, bool) {
+	for i, c := range choices {
+		fmt.Printf(" %d) %s \n", i+1, c)
+	}
+
+	fmt.Print("\nSelect an option: ")
 	var choice int
 	_, err := fmt.Scanln(&choice)
-	if err != nil || choice < 1 || choice > len(peers) {
+	if err != nil || choice < 1 || choice > len(choices) {
 		fmt.Println("Invalid selection")
 		return -1, false
 	}
@@ -126,9 +167,12 @@ func promptForAndroidClient(peers []AndroidPeer) (int, bool) {
 	return choice - 1, true
 }
 
-func scanOpenPorts(ctx context.Context, ip string) ([]int, error) {
+func scanOpenPorts(ip string) ([]int, error) {
 	const workers = 1000
 	const dialTimeout = 500 * time.Millisecond
+
+	dialer := &net.Dialer{Timeout: dialTimeout}
+	tlsCfg := &tls.Config{InsecureSkipVerify: true}
 
 	sem := make(chan struct{}, workers)
 	var mu sync.Mutex
@@ -143,7 +187,7 @@ func scanOpenPorts(ctx context.Context, ip string) ([]int, error) {
 			defer func() { <-sem }()
 
 			addr := net.JoinHostPort(ip, strconv.Itoa(p))
-			conn, err := net.DialTimeout("tcp", addr, dialTimeout)
+			conn, err := tls.DialWithDialer(dialer, "tcp", addr, tlsCfg)
 			if err == nil {
 				conn.Close()
 				mu.Lock()
