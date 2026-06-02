@@ -34,12 +34,18 @@ services:
       - NET_RAW
     devices:
       - /dev/net/tun:/dev/net/tun
-    # The daemon sets ip_forward itself when needed (exit node or subnet router).
+    # Bridged networking preserves netns isolation between the analyst (which
+    # talks to potentially-hostile devices) and the host's network stack.
+    # The WireGuard/MagicSock UDP port is pinned in entrypoint.sh (MESH_PORT)
+    # and published below so peers can reach this node without host networking.
+    ports:
+      - "${MESH_PORT:-41641}:${MESH_PORT:-41641}/udp"
     volumes:
       - analyst-data:/home/mesh/.tailscale
     environment:
       - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
       - AUTH_KEY=${AUTH_KEY}
+      - MESH_PORT=${MESH_PORT:-41641}
 
 volumes:
   headscale-data:
