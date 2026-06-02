@@ -34,7 +34,7 @@ RANDOM_HOSTNAME="${RANDOM_HOSTNAME:0:$HOSTNAME_LEN}"
     --port="${MESH_PORT}" \
     2>&1 | tee "${MESH_STATE_DIR}/mesh.log" &
 
-/usr/bin/mesh cli up \
+/usr/bin/tailscale up \
     --reset \
     --login-server="${LOGIN_URL}" \
     --auth-key="${AUTH_KEY}" \
