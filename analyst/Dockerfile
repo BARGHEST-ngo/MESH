@@ -1,13 +1,22 @@
-FROM golang:1.26-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS build
+FROM golang:1.26.3-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS build
 
 RUN apk add --no-cache git patch
 
 WORKDIR /usr/src/app
 
+# Disable workspace so each module resolves independently
+ENV GOWORK=off
+
+# Cache root module deps (used by tailscale submodule build)
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY analyst/src ./analyst/src
+# Cache analyst module deps separately
+COPY tailscale/go.mod tailscale/go.sum ./tailscale/
+COPY analyst/go.mod analyst/go.sum ./analyst/
+RUN cd analyst && go mod download
+
+COPY analyst ./analyst
 COPY tailscale ./tailscale
 RUN ./analyst/src/build.sh
 
@@ -52,7 +61,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && setcap cap_net_admin,cap_net_raw+eip /usr/bin/tcpdump
 
 COPY --from=android-sdk /usr/local/android-sdk/platform-tools ${ANDROID_SDK_ROOT}/platform-tools
-COPY --from=build       /usr/src/app/analyst/mesh             /usr/bin/mesh
+COPY --from=build       /usr/src/app/analyst/tailscaled  /usr/bin/tailscaled
+COPY --from=build       /usr/src/app/analyst/tailscale   /usr/bin/tailscale
+COPY --from=build       /usr/src/app/analyst/mesh  /usr/bin/mesh
 COPY --chmod=755        analyst/entrypoint.sh                 /usr/bin/entrypoint.sh
 COPY --chown=mesh:mesh  analyst/bashrc                        /home/mesh/.bashrc
 COPY                    analyst/amneziawg.conf.example        /etc/mesh/amneziawg.conf.example

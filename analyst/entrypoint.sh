@@ -29,12 +29,12 @@ HOSTNAME_LEN=$(( (RANDOM % 10) + 6 ))
 RANDOM_HOSTNAME=$(LC_ALL=C head -c 512 /dev/urandom | tr -dc 'a-z0-9')
 RANDOM_HOSTNAME="${RANDOM_HOSTNAME:0:$HOSTNAME_LEN}"
 
-/usr/bin/mesh \
+/usr/bin/tailscaled \
     --statedir="${MESH_STATE_DIR}" \
     --port="${MESH_PORT}" \
     2>&1 | tee "${MESH_STATE_DIR}/mesh.log" &
 
-/usr/bin/mesh cli up \
+/usr/bin/tailscale up \
     --reset \
     --login-server="${LOGIN_URL}" \
     --auth-key="${AUTH_KEY}" \

@@ -33,7 +33,6 @@ tasks:
       - task: controlPlaneType
       - task: controlPlaneDomain
       - task: headscaleConfig
-        if: '[ ! -f control-plane/headscale/config.yaml ]'
       - task: confirmDotEnv
 
   down:
