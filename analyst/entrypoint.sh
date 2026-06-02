@@ -15,6 +15,10 @@ if [ "$(id -u)" = "0" ]; then
 fi
 
 MESH_STATE_DIR="${MESH_STATE_DIR:-$HOME/.tailscale}"
+# Fixed WireGuard/MagicSock UDP port so the container can be reached on a
+# predictable host port (published in compose.yml). Required for p2p without
+# host networking, since UPnP/PMP can't be done from inside a bridged netns.
+MESH_PORT="${MESH_PORT:-41641}"
 
 if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
     echo "Set the LOGIN_URL and AUTH_KEY environment variables in .env to run the MESH analyst client." >&2
@@ -27,9 +31,11 @@ RANDOM_HOSTNAME="${RANDOM_HOSTNAME:0:$HOSTNAME_LEN}"
 
 /usr/bin/mesh \
     --statedir="${MESH_STATE_DIR}" \
+    --port="${MESH_PORT}" \
     2>&1 | tee "${MESH_STATE_DIR}/mesh.log" &
 
 /usr/bin/mesh cli up \
+    --reset \
     --login-server="${LOGIN_URL}" \
     --auth-key="${AUTH_KEY}" \
     --hostname="${RANDOM_HOSTNAME}" \
