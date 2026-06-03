@@ -204,6 +204,21 @@ open class IpnViewModel : ViewModel() {
     }
   }
 
+  fun resetAuth(completionHandler: (Result<Unit>) -> Unit = {}) {
+      Client(viewModelScope).resetAuth { 
+          result -> result
+          .onSuccess {
+              TSLog.d(TAG, "Auth state reset")
+              completionHandler(Result.success(Unit))
+              stopVPN()
+          }
+          .onFailure {
+              TSLog.d(TAG, "Error resetting auth state: ${it.message}")
+              completionHandler(Result.failure(it))
+          }
+      }
+  }
+
   fun loginWithAuthKey(authKey: String, completionHandler: (Result<Unit>) -> Unit = {}) {
     val prefs = Ipn.MaskedPrefs()
     prefs.WantRunning = true
