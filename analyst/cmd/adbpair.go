@@ -41,87 +41,90 @@ var adbpairliteArgs struct {
 }
 
 func AdbPairCmd() *ffcli.Command {
-	fs := flag.NewFlagSet("adbpairlite", flag.ContinueOnError)
+	fs := flag.NewFlagSet("adbpair", flag.ContinueOnError)
 	fs.BoolVar(&adbpairliteArgs.qf, "qf", false, "perform adbcollect (AndroidQF/WARD) immediately after connection")
 
 	return &ffcli.Command{
-		Name:       "adbpairlite",
-		ShortUsage: "mesh adbpairlite [flags]",
+		Name:       "adbpair",
+		ShortUsage: "mesh adbpair [flags]",
+		ShortHelp:  "Pair & connect to a device on the MESH network via ADB",
 		FlagSet:    fs,
 		Exec:       runAdbPair,
 	}
 }
 
 func runAdbPair(ctx context.Context, args []string) error {
+	if len(args) > 0 {
+		return fmt.Errorf("unexpected arguments: %v", args)
+	}
+
 	ensureAdbConf()
 	pairingArgs := PairingArgs{}
 
-	if len(args) == 0 {
-		fmt.Println("Starting automatic pairing...")
+	fmt.Println("Starting automatic pairing...")
 
-		chosenPeer, err := selectAndroidPeer(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to select an Android client: %w", err)
-		}
-		pairingArgs.Host = chosenPeer.IP
+	chosenPeer, err := selectAndroidPeer(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to select an Android client: %w", err)
+	}
+	pairingArgs.Host = chosenPeer.IP
 
-		fmt.Printf("Using Android device: %s (%s)\n\n", chosenPeer.HostName, chosenPeer.IP)
-		fmt.Println("On the Android device:")
-		fmt.Println("1. Enable Wireless Debugging")
-		fmt.Println("2. Tap 'Pair device with pairing code'")
-		ReadString("Press Enter when the pairing dialog is open...")
+	fmt.Printf("Using Android device: %s (%s)\n\n", chosenPeer.HostName, chosenPeer.IP)
+	fmt.Println("On the Android device:")
+	fmt.Println("1. Enable Wireless Debugging")
+	fmt.Println("2. Tap 'Pair device with pairing code'")
+	ReadString("Press Enter when the pairing dialog is open...")
 
-		fmt.Println("Scanning for open ports...")
-		openPorts, err := scanOpenPorts(chosenPeer.IP)
-		if err != nil {
-			return fmt.Errorf("port scan failed: %w", err)
-		}
-		if len(openPorts) == 0 {
-			return fmt.Errorf("no open ports found on %s - is the pairing dialog open?", chosenPeer.IP)
-		}
+	fmt.Println("Scanning for open ports...")
+	openPorts, err := scanOpenPorts(chosenPeer.IP)
+	if err != nil {
+		return fmt.Errorf("port scan failed: %w", err)
+	}
+	if len(openPorts) == 0 {
+		return fmt.Errorf("no open ports found on %s - is the pairing dialog open?", chosenPeer.IP)
+	}
 
-		pairingArgs.PairingCode = ReadStringWithValidation("Enter the pairing code shown on the device: ", validatePairingCode)
+	pairingArgs.PairingCode = ReadStringWithValidation("Enter the pairing code shown on the device: ", validatePairingCode)
 
-		adbClient, err := adb.New()
-		if err != nil {
-			return fmt.Errorf("failed to initialize ADB: %w", err)
-		}
-		adb.Client = adbClient
+	adbClient, err := adb.New()
+	if err != nil {
+		return fmt.Errorf("failed to initialize ADB: %w", err)
+	}
+	adb.Client = adbClient
 
-		devices, err := adb.Client.Devices()
-		if err != nil {
-			return fmt.Errorf("failed to get devices: %w", err)
-		}
-		if len(devices) > 0 {
-			fmt.Printf("Found existing ADB devices: %v\n", devices)
-			if err := disconnect(""); err != nil {
-				return err
-			}
-		}
-
-		pairedPort, err := pairWithDiscovery(&pairingArgs, openPorts)
-		if err != nil {
+	devices, err := adb.Client.Devices()
+	if err != nil {
+		return fmt.Errorf("failed to get devices: %w", err)
+	}
+	if len(devices) > 0 {
+		fmt.Printf("Found existing ADB devices: %v\n", devices)
+		if err := disconnect(""); err != nil {
 			return err
 		}
+	}
 
-		debugPort, err := resolveDebugPort(chosenPeer.IP, openPorts, pairedPort)
-		if err != nil {
-			return fmt.Errorf("unable to locate debug port: %w", err)
-		}
-		pairingArgs.DebugPort = debugPort
+	pairedPort, err := pairWithDiscovery(&pairingArgs, openPorts)
+	if err != nil {
+		return err
+	}
 
-		if err := connect(&pairingArgs); err != nil {
+	debugPort, err := resolveDebugPort(chosenPeer.IP, openPorts, pairedPort)
+	if err != nil {
+		return fmt.Errorf("unable to locate debug port: %w", err)
+	}
+	pairingArgs.DebugPort = debugPort
+
+	if err := connect(&pairingArgs); err != nil {
+		return err
+	}
+
+	if err := validateConnect(); err != nil {
+		return err
+	}
+
+	if adbpairliteArgs.qf {
+		if err := qf(); err != nil {
 			return err
-		}
-
-		if err := validateConnect(); err != nil {
-			return err
-		}
-
-		if adbpairliteArgs.qf {
-			if err := qf(); err != nil {
-				return err
-			}
 		}
 	}
 
