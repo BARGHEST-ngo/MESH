@@ -15,13 +15,12 @@ import (
 )
 
 var nativeCommands = map[string]bool{
-	"adbpair":     true,
-	"adbcollect":  true,
-	"adbdisable":  true,
-	"adbclean":    true,
-	"status":      true,
-	"help":        true,
-	"adbpairlite": true,
+	"adbpair":    true,
+	"adbcollect": true,
+	"adbdisable": true,
+	"adbclean":   true,
+	"status":     true,
+	"help":       true,
 }
 
 func main() {
@@ -43,12 +42,11 @@ func main() {
 		ShortHelp:  "MESH analyst CLI",
 		LongHelp:   "Native MESH commands are listed below. Standard tailscale commands are also supported.",
 		Subcommands: []*ffcli.Command{
-			cmd.AdbpairCmd(),
+			cmd.AdbPairCmd(),
 			cmd.AdbcollectCmd(),
 			cmd.AdbdisableCmd(),
 			cmd.AdbcleanCmd(),
 			cmd.StatusCmd(),
-			cmd.AdbPairLiteCmd(),
 		},
 		FlagSet: flag.NewFlagSet("meshcli", flag.ContinueOnError),
 		Exec: func(ctx context.Context, args []string) error {
