@@ -430,4 +430,13 @@
     <string name="awg_validation_error">Invalid configuration</string>
     <string name="awg_restart_required">Settings saved. Disconnect and reconnect to apply changes.</string>
 
+    <!-- Reset auth -->
+    <string name="reset_mesh">Reset MESH</string>
+    <string name="reset_mesh_subtitle">Clear keys, profiles &amp; preferences; keeps app data</string>
+    <string name="reset_mesh_confirm_title">Reset MESH?</string>
+    <string name="reset_mesh_confirm_message">This erases all node keys, control planes profiles, and preferences on this device and disconnects the tunnel. Downloaded files and app data are kept. You\'ll need to log in again.</string>
+    <string name="reset">Reset</string>
+    <string name="reset_failed">Unable to reset MESH at this time. Please try again.</string>
+    <string name="reset_failed_title">Reset failed</string>
+
 </resources>
