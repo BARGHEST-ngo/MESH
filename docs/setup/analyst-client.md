@@ -4,8 +4,8 @@ Now let's set up the MESH analyst client on your acquisition workstation. This w
 
 The analyst client runs on a secure forensics node and provides the MESH CLI for managing connections and running forensic tools.
 
-> [!WARNING]
-> While MESH locks down ports and services between the analyst node and the compromised device, you must treat that network path as untrusted. The analyst node must therefore be a hardened, dedicated system that can be snapshotted after forensic collection, and must not be your everyday personal workstation. Although it would require a very complex attack to achieve lateral movement from a mobile device to a Linux-based analyst node, you should still assume the risk exists and use a secure, controlled node for this purpose.”
+!!! WARNING
+While MESH locks down ports and services between the analyst node and the compromised device, you must treat that network path as untrusted. The analyst node must therefore be a hardened, dedicated system that can be snapshotted after forensic collection, and must not be your everyday personal workstation. Although it would require a very complex attack to achieve lateral movement from a mobile device to a Linux-based analyst node, you should still assume the risk exists and use a secure, controlled node for this purpose.”
 
 ## Step 1: Clone and build
 
@@ -21,7 +21,7 @@ task build
 ```
 
 !!! tip "Build Time"
-    The build process may take 5-10 minutes depending on your system.
+The build process may take 5-10 minutes depending on your system.
 
 ## Step 2: Start the MESH analyst container
 
