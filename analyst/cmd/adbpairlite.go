@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"context"
-	"crypto/tls"
 	"flag"
 	"fmt"
 	"net"
+	"os/exec"
 	"sort"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/BARGHEST-ngo/androidqf_mesh/adb"
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
 
@@ -44,23 +45,10 @@ func runAdbPairLite(ctx context.Context, args []string) error {
 	if len(args) == 0 {
 		fmt.Println("Starting automatic pairing...")
 
-		peers, err := getAndroidPeers(ctx)
-		if err != nil || len(peers) == 0 {
-			return fmt.Errorf("unable to find any connected Android clients")
+		chosenPeer, err := selectAndroidPeer(ctx)
+		if err != nil {
+			return fmt.Errorf("unable to select an Android client: %w", err)
 		}
-
-		var chosenPeer AndroidPeer
-		if len(peers) > 1 {
-			choice, valid := promptForAndroidClient(peers)
-			if !valid {
-				return fmt.Errorf("invalid client selection")
-			}
-			chosenPeer = peers[choice]
-		} else {
-			chosenPeer = peers[0]
-			fmt.Printf("found 1 Android device: <%s> (%s)\n", chosenPeer.HostName, chosenPeer.IP)
-		}
-
 		pairingArgs.Host = chosenPeer.IP
 
 		fmt.Printf("chosen Android device: <%s> (%s)\n", chosenPeer.HostName, chosenPeer.IP)
@@ -68,38 +56,127 @@ func runAdbPairLite(ctx context.Context, args []string) error {
 		fmt.Println("prompt user to allow wireless debugging and open the pairing dialog...")
 		ReadString("Press Enter when the pairing dialog is open...")
 
-		fmt.Println("Scanning for pairing port...")
-		openPorts, err := scanOpenPorts(chosenPeer.IP)
-		openPorts = append(openPorts, 5001)
+		pairPort, err := selectPort(chosenPeer.IP)
 		if err != nil {
-			return fmt.Errorf("port scan failed: %w", err)
-		}
-		if len(openPorts) == 0 {
-			return fmt.Errorf("no open ports found on %s — is the pairing dialog open?", chosenPeer.IP)
-		}
-
-		var pairPort int
-		if len(openPorts) == 1 {
-			pairPort = openPorts[0]
-			fmt.Printf("Found pairing port: %d\n", pairPort)
-		} else {
-			choice, ok := promptForPairingPort(openPorts)
-			if !ok {
-				return fmt.Errorf("invalid pairing port selection")
-			}
-
-			pairPort = openPorts[choice]
+			return fmt.Errorf("unable to locate pairing port: %w", err)
 		}
 		fmt.Printf("pairPort: %d\n", pairPort)
 		pairingArgs.PairPort = pairPort
 
 		pairingCode := ReadStringWithValidation("Enter the pairing code shown on the device: ", validatePairingCode)
 		pairingArgs.PairingCode = pairingCode
+
+		adbClient, err := adb.New()
+		if err != nil {
+			return fmt.Errorf("failed to initialize ADB: %w", err)
+		}
+		devices, err := adbClient.Devices()
+		if err != nil {
+			return fmt.Errorf("failed to get devices: %w", err)
+		}
+
+		if len(devices) > 0 {
+			fmt.Printf("Found existing ADB devices: %v\n", devices)
+			if err := disc(adbClient, ""); err != nil {
+				return err
+			}
+		}
+
+		if err := pair(adbClient, &pairingArgs); err != nil {
+			return err
+		}
+
+		time.Sleep(2 * time.Second)
+
+		debugPort, err := selectPort(chosenPeer.IP)
+		if err != nil {
+			return fmt.Errorf("unable to locate debug port: %w", err)
+		}
+		pairingArgs.DebugPort = debugPort
+
+		if err := connect(adbClient, &pairingArgs); err != nil {
+			return err
+		}
 	}
 
-	fmt.Print(pairingArgs)
-
 	return nil
+}
+
+func pair(adbclient *adb.ADB, args *AdbPairArgs) error {
+	if adbclient == nil {
+		return fmt.Errorf("adb not initialized")
+	}
+
+	if args == nil {
+		return fmt.Errorf("invalid pairing args")
+	}
+	fmt.Printf("Pairing to device...\n")
+	output, err := adbclient.Exec("pair", net.JoinHostPort(args.Host, strconv.Itoa(args.PairPort)), args.PairingCode)
+	if err != nil {
+		return fmt.Errorf("ADB pair failed: %w\nOutput: %s", err, string(output))
+	}
+	fmt.Printf("ADB pair successful:\n%s", string(output))
+	if err := saveHost(args.Host); err != nil {
+		return fmt.Errorf("failed to save host config: %w", err)
+	}
+	return nil
+}
+
+func connect(adbclient *adb.ADB, args *AdbPairArgs) error {
+	if adbclient == nil {
+		return fmt.Errorf("adb not initialized")
+	}
+	if args == nil {
+		return fmt.Errorf("invalid pairing args")
+	}
+	fmt.Printf("Connecting to device...\n")
+	output, err := adbclient.Exec("connect", net.JoinHostPort(args.Host, strconv.Itoa(args.DebugPort)))
+	if err != nil {
+		return fmt.Errorf("ADB connect failed: %w\nOutput: %s", err, string(output))
+	}
+	fmt.Printf("ADB connect successful:\n%s", string(output))
+	if err := saveHostport(strconv.Itoa(args.DebugPort)); err != nil {
+		return fmt.Errorf("failed to save hostport config: %w", err)
+	}
+	return nil
+}
+
+func disc(adbClient *adb.ADB, serial string) error {
+	if serial == "" {
+		fmt.Printf("Disconnecting all devices...\n")
+		out, err := exec.Command(adbClient.ExePath, "disconnect").Output()
+		if err != nil {
+			return fmt.Errorf("failed to disconnect all devices: %v\nOutput: %s", err, string(out))
+		}
+	} else {
+		fmt.Printf("Disconnecting device %s...\n", serial)
+		out, err := exec.Command(adbClient.ExePath, "disconnect", serial).Output()
+		if err != nil {
+			return fmt.Errorf("failed to disconnect device %s: %v\nOutput: %s", serial, err, string(out))
+		}
+	}
+	return nil
+}
+
+func selectAndroidPeer(ctx context.Context) (*AndroidPeer, error) {
+	peers, err := getAndroidPeers(ctx)
+	if err != nil || len(peers) == 0 {
+		return nil, fmt.Errorf("unable to find any connected Android clients")
+	}
+
+	var chosenPeer AndroidPeer
+	if len(peers) > 1 {
+		choice, valid := promptForAndroidClient(peers)
+		if !valid {
+			return nil, fmt.Errorf("invalid client selection")
+		}
+		chosenPeer = peers[choice]
+	} else {
+		chosenPeer = peers[0]
+		fmt.Printf("found 1 Android device: <%s> (%s)\n", chosenPeer.HostName, chosenPeer.IP)
+	}
+
+	return &chosenPeer, nil
 }
 
 func getAndroidPeers(ctx context.Context) ([]AndroidPeer, error) {
@@ -140,8 +217,8 @@ func promptForAndroidClient(peers []AndroidPeer) (int, bool) {
 	return promptForSelection(choices)
 }
 
-func promptForPairingPort(ports []int) (int, bool) {
-	fmt.Println("Multiple open ports found, select the pairing port:")
+func promptForPort(ports []int) (int, bool) {
+	fmt.Println("Multiple open ports found, select a port:")
 	choices := make([]string, len(ports))
 	for i, p := range ports {
 		choices[i] = fmt.Sprintf("%d", p)
@@ -167,12 +244,34 @@ func promptForSelection(choices []string) (int, bool) {
 	return choice - 1, true
 }
 
+func selectPort(ip string) (int, error) {
+	fmt.Println("Scanning for port...")
+	openPorts, err := scanOpenPorts(ip)
+	if err != nil {
+		return -1, fmt.Errorf("port scan failed: %w", err)
+	}
+	if len(openPorts) == 0 {
+		return -1, fmt.Errorf("no open ports found on %s", ip)
+	}
+
+	var pairPort int
+	if len(openPorts) == 1 {
+		pairPort = openPorts[0]
+		fmt.Printf("Found port: %d\n", pairPort)
+	} else {
+		choice, ok := promptForPort(openPorts)
+		if !ok {
+			return -1, fmt.Errorf("invalid port selection")
+		}
+
+		pairPort = openPorts[choice]
+	}
+	return pairPort, nil
+}
+
 func scanOpenPorts(ip string) ([]int, error) {
 	const workers = 1000
 	const dialTimeout = 500 * time.Millisecond
-
-	dialer := &net.Dialer{Timeout: dialTimeout}
-	tlsCfg := &tls.Config{InsecureSkipVerify: true}
 
 	sem := make(chan struct{}, workers)
 	var mu sync.Mutex
@@ -187,7 +286,7 @@ func scanOpenPorts(ip string) ([]int, error) {
 			defer func() { <-sem }()
 
 			addr := net.JoinHostPort(ip, strconv.Itoa(p))
-			conn, err := tls.DialWithDialer(dialer, "tcp", addr, tlsCfg)
+			conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 			if err == nil {
 				conn.Close()
 				mu.Lock()
