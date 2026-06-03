@@ -55,6 +55,17 @@ Meshes are ephemeral and analyst-controlled. Bring devices online, collect evide
 For full documentation:  
 https://docs.meshforensics.org/
 
+### Prerequisites
+
+- **Git**
+- **Docker Engine** with the Compose V2 plugin (`docker compose`, not legacy `docker-compose`). [Install instructions](https://docs.docker.com/get-docker/).
+- **Task (go-task)** for build orchestration and interactive setup. [Install instructions](https://taskfile.dev/docs/installation). Short version:
+  - Linux: `sudo snap install task --classic`
+  - macOS: `brew install go-task`
+
+> [!NOTE]
+> Most runtime operations work with plain `docker compose`, but the interactive setup tasks (`.env` management, config templating, auth-key rotation) require go-task.
+
 ### 1. Clone the repository
 
 ```
