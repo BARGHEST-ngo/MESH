@@ -46,7 +46,7 @@ func AdbcollectCmd() *ffcli.Command {
 	return &ffcli.Command{
 		Name:       "adbcollect",
 		ShortUsage: "mesh adbcollect [flags]",
-		ShortHelp:  "Collects ADB data, using Android`QF` and WARD",
+		ShortHelp:  "Collects ADB data, using AndroidQF and WARD",
 		LongHelp: `The adbcollect command initiates ADB acquisition using AndroidQF and WARD libraries. The output is in the same format ready for WARD or MVT usage.
 
 Examples:
