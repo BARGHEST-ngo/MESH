@@ -42,7 +42,7 @@ func main() {
 		ShortHelp:  "MESH analyst CLI",
 		LongHelp:   "Native MESH commands are listed below. Standard tailscale commands are also supported.",
 		Subcommands: []*ffcli.Command{
-			cmd.AdbpairCmd(),
+			cmd.AdbPairCmd(),
 			cmd.AdbcollectCmd(),
 			cmd.AdbdisableCmd(),
 			cmd.AdbcleanCmd(),
