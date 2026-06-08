@@ -39,35 +39,54 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.barghest.mesh.R
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private const val BASE = 16 // sp
 
+/** Bundled JetBrains Mono — pins the monospace face so it renders identically across OEMs. */
+val MeshMono =
+    FontFamily(
+        Font(R.font.jetbrains_mono_regular, FontWeight.Normal),
+        Font(R.font.jetbrains_mono_bold, FontWeight.Bold),
+    )
+
+/** Hanken Grotesk variable font for guidance text; each entry pins the wght axis (API 26+). */
+val MeshSans =
+    FontFamily(
+        Font(R.font.hanken_grotesk, FontWeight.Normal),
+        Font(R.font.hanken_grotesk, FontWeight.Medium),
+        Font(R.font.hanken_grotesk, FontWeight.SemiBold),
+        Font(R.font.hanken_grotesk, FontWeight.Bold),
+        Font(R.font.hanken_grotesk, FontWeight.ExtraBold),
+    )
+
 private val AppTypography =
     Typography(
-        displayLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = (BASE + 20).sp, lineHeight = (BASE + 28).sp),
-        displayMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = (BASE + 14).sp, lineHeight = (BASE + 22).sp),
-        displaySmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 10).sp, lineHeight = (BASE + 18).sp),
+        displayLarge = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.Bold, fontSize = (BASE + 20).sp, lineHeight = (BASE + 28).sp),
+        displayMedium = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.Bold, fontSize = (BASE + 14).sp, lineHeight = (BASE + 22).sp),
+        displaySmall = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 10).sp, lineHeight = (BASE + 18).sp),
 
-        headlineLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 8).sp, lineHeight = (BASE + 16).sp),
-        headlineMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE + 6).sp, lineHeight = (BASE + 14).sp),
-        headlineSmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE + 4).sp, lineHeight = (BASE + 12).sp),
+        headlineLarge = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 8).sp, lineHeight = (BASE + 16).sp),
+        headlineMedium = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 6).sp, lineHeight = (BASE + 14).sp),
+        headlineSmall = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 4).sp, lineHeight = (BASE + 12).sp),
 
-        titleLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE + 4).sp, lineHeight = (BASE + 10).sp),
-        titleMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = 18.sp, lineHeight = 26.sp),
-        titleSmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE + 1).sp, lineHeight = (BASE + 8).sp),
+        titleLarge = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.SemiBold, fontSize = (BASE + 4).sp, lineHeight = (BASE + 10).sp),
+        titleMedium = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, lineHeight = 24.sp),
+        titleSmall = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.SemiBold, fontSize = (BASE - 1).sp, lineHeight = (BASE + 6).sp),
 
-        bodyLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Normal, fontSize = (BASE + 2).sp, lineHeight = (BASE + 8).sp),
-        bodyMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 26.sp),
-        bodySmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Normal, fontSize = (BASE - 2).sp, lineHeight = (BASE + 4).sp),
+        bodyLarge = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.Normal, fontSize = (BASE + 2).sp, lineHeight = (BASE + 8).sp),
+        bodyMedium = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 22.sp),
+        bodySmall = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.Normal, fontSize = (BASE - 2).sp, lineHeight = (BASE + 4).sp),
 
-        labelLarge = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE - 1).sp, lineHeight = (BASE + 4).sp),
-        labelMedium = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium, fontSize = (BASE - 2).sp, lineHeight = (BASE + 3).sp),
-        labelSmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Normal, fontSize = (BASE - 4).sp, lineHeight = (BASE + 1).sp),
+        labelLarge = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.SemiBold, fontSize = (BASE - 1).sp, lineHeight = (BASE + 4).sp),
+        labelMedium = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.Medium, fontSize = (BASE - 2).sp, lineHeight = (BASE + 3).sp),
+        labelSmall = TextStyle(fontFamily = MeshSans, fontWeight = FontWeight.Medium, fontSize = (BASE - 4).sp, lineHeight = (BASE + 1).sp),
     )
 
 @Composable
@@ -141,16 +160,22 @@ private fun createDarkColorScheme(): ColorScheme {
         onSurface = DarkColors.CardForeground,
         surfaceVariant = DarkColors.Popover,
         onSurfaceVariant = DarkColors.PopoverForeground,
+        // Map Material's surface-container ladder onto the warm neutral steps.
+        surfaceContainerLowest = DarkColors.Background,
+        surfaceContainerLow = DarkColors.Popover,
+        surfaceContainer = DarkColors.Card,
+        surfaceContainerHigh = DarkColors.Secondary,
+        surfaceContainerHighest = MeshPalette.BorderHi,
         outline = DarkColors.Border,
         outlineVariant = DarkColors.Border,
-        scrim = Color(0x00000000)
+        scrim = Color(0xFF000000)
     )
 }
 
 
 
 val ColorScheme.warning: Color
-    @Composable get() = if (isSystemInDarkTheme()) Color(0xFFE5A300) else Color(0xFFCC8A00)
+    @Composable get() = if (isSystemInDarkTheme()) MeshPalette.Amber else Color(0xFFCC8A00)
 
 val ColorScheme.onWarning: Color get() = Color(0xFF000000)
 
@@ -164,9 +189,12 @@ val ColorScheme.onWarningContainer: Color
 
 val ColorScheme.success: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) Color(0xFF2ECB10) else Color(0xFF0F8A0F)
+    get() = if (isSystemInDarkTheme()) MeshPalette.Green else Color(0xFF0F8A0F)
 
-val ColorScheme.onSuccess: Color get() = Color(0xFF000000)
+val ColorScheme.onSuccess: Color
+    @Composable
+    // Bright success (dark mode) takes black text; dark success (light mode) takes white.
+    get() = if (isSystemInDarkTheme()) Color(0xFF000000) else Color(0xFFFFFFFF)
 
 val ColorScheme.successContainer: Color
     @Composable
@@ -184,7 +212,7 @@ val ColorScheme.off: Color
 val ColorScheme.link: Color get() = onPrimaryContainer
 
 val ColorScheme.customError: Color
-    @Composable get() = if (isSystemInDarkTheme()) Color(0xFFFF5555) else Color(0xFFCC0000)
+    @Composable get() = if (isSystemInDarkTheme()) MeshPalette.Red else Color(0xFFCC0000)
 
 val ColorScheme.customErrorContainer: Color
     @Composable get() = if (isSystemInDarkTheme()) Color(0xFF4A0E11) else Color(0xFFFFEAEA)
