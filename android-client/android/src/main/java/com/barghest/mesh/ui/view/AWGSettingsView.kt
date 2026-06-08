@@ -20,8 +20,10 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -180,6 +182,21 @@ fun AWGSettingsView(
     }
 }
 
+/** High-contrast input colours for the dark warm theme. */
+@Composable
+private fun meshFieldColors(): TextFieldColors =
+    OutlinedTextFieldDefaults.colors(
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        cursorColor = MaterialTheme.colorScheme.primary,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
 @Composable
 private fun AWGNumberField(
     label: String,
@@ -202,6 +219,7 @@ private fun AWGNumberField(
                 },
                 modifier = Modifier.width(80.dp),
                 singleLine = true,
+                colors = meshFieldColors(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         }
@@ -257,6 +275,7 @@ private fun AWGSmallNumberField(
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            colors = meshFieldColors(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
     }

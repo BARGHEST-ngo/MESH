@@ -21,10 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.barghest.mesh.R
+import com.barghest.mesh.ui.theme.MeshMono
 import com.barghest.mesh.mdm.MDMSetting
 import com.barghest.mesh.mdm.MDMSettings
 import com.barghest.mesh.ui.util.itemsWithDividers
@@ -56,12 +56,12 @@ fun MDMSettingView(setting: MDMSetting<*>) {
         Text(
             setting.key,
             fontSize = MaterialTheme.typography.labelSmall.fontSize,
-            fontFamily = FontFamily.Monospace)
+            fontFamily = MeshMono)
       },
       trailingContent = {
         Text(
             if (value.isSet) value.value.toString() else "[not set]",
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MeshMono,
             maxLines = 1,
             fontWeight = FontWeight.SemiBold)
       })
