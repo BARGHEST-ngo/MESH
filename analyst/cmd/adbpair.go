@@ -61,7 +61,6 @@ func runAdbPair(ctx context.Context, args []string) error {
 		return fmt.Errorf("unexpected arguments: %v", args)
 	}
 
-	ensureAdbConf()
 	pairingArgs := PairingArgs{}
 
 	fmt.Println("Starting automatic pairing...")
@@ -173,9 +172,6 @@ func pair(args *PairingArgs) error {
 		return fmt.Errorf("ADB pair failed: %w\nOutput: %s", err, string(output))
 	}
 	fmt.Println("ADB pair successful")
-	if err := saveHost(args.Host); err != nil {
-		return fmt.Errorf("failed to save host config: %w", err)
-	}
 	return nil
 }
 
@@ -215,10 +211,6 @@ func connect(args *PairingArgs) error {
 	output, err := adb.Client.Exec("connect", net.JoinHostPort(args.Host, strconv.Itoa(args.DebugPort)))
 	if err != nil {
 		return fmt.Errorf("ADB connect failed: %w\nOutput: %s", err, string(output))
-	}
-
-	if err := saveHostport(strconv.Itoa(args.DebugPort)); err != nil {
-		return fmt.Errorf("failed to save hostport config: %w", err)
 	}
 	return nil
 }
