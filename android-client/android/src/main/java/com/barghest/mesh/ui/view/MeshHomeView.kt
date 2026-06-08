@@ -47,7 +47,6 @@ data class MeshHomeNavigation(
     val onNavigateToMainView: () -> Unit,
     val onNavigateToADBSetup: () -> Unit,
     val onUploadQR: () -> Unit = {},
-    val onOpenRedesignedClient: () -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,7 +119,7 @@ fun MeshHomeView(
                         )
                     }
 
-                    item { FooterSectionModern(onOpenRedesignedClient = navigation.onOpenRedesignedClient) }
+                    item { FooterSectionModern() }
                 }
                 Box(
                     Modifier
@@ -381,7 +380,7 @@ private fun ConnectionStepButton(text: String, onClick: () -> Unit) {
 
 
 @Composable
-private fun FooterSectionModern(onOpenRedesignedClient: () -> Unit = {}) {
+private fun FooterSectionModern() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -399,14 +398,6 @@ private fun FooterSectionModern(onOpenRedesignedClient: () -> Unit = {}) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
-        // Entry into the redesigned client.
-        TextButton(onClick = onOpenRedesignedClient) {
-            Text(
-                text = stringResource(R.string.open_redesigned_client),
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
     }
 }
 

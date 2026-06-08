@@ -47,7 +47,6 @@
     <string name="step_auth_key_short">Auth key</string>
     <string name="powered_by_mesh"></string>
     <string name="footer_brand">[ BARGHEST.ASIA ]</string>
-    <string name="open_redesigned_client">Open redesigned client (preview)</string>
 
     <!-- Additional MeshHomeView strings -->
     <string name="settings_description">Settings</string>
