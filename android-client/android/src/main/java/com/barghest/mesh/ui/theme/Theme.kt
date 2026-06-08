@@ -453,5 +453,21 @@ val ColorScheme.searchBarColors: TextFieldColors
             unfocusedBorderColor = Color.Transparent
         )
 
+/** High-contrast input colours for the dark warm theme. */
+val ColorScheme.meshFieldColors: TextFieldColors
+    @Composable
+    get() =
+        OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
 val TextStyle.short: TextStyle get() = copy(lineHeight = 20.sp)
 val Typography.minTextSize: TextUnit get() = 10.sp
