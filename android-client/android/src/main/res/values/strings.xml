@@ -47,10 +47,15 @@
     <string name="step_auth_key_short">Auth key</string>
     <string name="powered_by_mesh"></string>
     <string name="footer_brand">[ BARGHEST.ASIA ]</string>
+    <string name="open_redesigned_client">Open redesigned client (preview)</string>
 
     <!-- Additional MeshHomeView strings -->
     <string name="settings_description">Settings</string>
     <string name="mesh_logo_description">MESH Logo</string>
+    <!-- Connection status labels: each state has distinct text, so state is never conveyed by colour alone. -->
+    <string name="mesh_status_connected">[ CONNECTED ]</string>
+    <string name="mesh_status_vpn_off">[ CONNECTED · VPN OFF ]</string>
+    <string name="mesh_status_disconnected">[ DISCONNECTED ]</string>
     <string name="disconnected_from_mesh">Disconnected from MESH network</string>
     <string name="connection_options">[ CONNECT ] </string>
     <string name="manage_connection">Manage your connection or add additional accounts</string>
