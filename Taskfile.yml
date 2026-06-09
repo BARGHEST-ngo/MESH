@@ -123,7 +123,7 @@ tasks:
         - CONTROL_PLANE_DOMAIN
     vars:
       CONTROL_PLANE_DOMAIN_VALUE: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
-      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" ""}}'
+      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" "" | trimAll " "}}'
       DEFAULT_CORS_ORIGIN: https://{{.CONTROL_PLANE_DOMAIN_ONLY}}
     cmds:
       - printf "\033[1;32mDomain name set to {{.CONTROL_PLANE_DOMAIN_ONLY}}.\033[0m\n\n"
@@ -139,7 +139,7 @@ tasks:
         - CONTROL_PLANE_DOMAIN
     vars:
       CONTROL_PLANE_DOMAIN_VALUE: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
-      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" ""}}'
+      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" "" | trimAll " "}}'
     cmds:
       - cmd: >
           sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN_ONLY}}/g"
@@ -150,10 +150,6 @@ tasks:
           "(Get-Content 'control-plane/headscale/config.example.yaml') -replace 'CONTROL_PLANE_DOMAIN', '{{.CONTROL_PLANE_DOMAIN_ONLY}}' |
           Set-Content 'control-plane/headscale/config.yaml'"
         platforms: [windows]
-    sources:
-      - control-plane/headscale/config.example.yaml
-    generates:
-      - control-plane/headscale/config.yaml
 
   loginUrl:
     internal: true
