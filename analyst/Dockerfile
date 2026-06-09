@@ -61,6 +61,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && setcap cap_net_admin,cap_net_raw+eip /usr/bin/tcpdump
 
 COPY --from=android-sdk /usr/local/android-sdk/platform-tools ${ANDROID_SDK_ROOT}/platform-tools
+
+# The Android SDK ships x86_64 adb for Linux. On ARM64 replace it with the native Debian build.
+RUN arch="$(dpkg --print-architecture)" \
+    && if [ "$arch" = "arm64" ]; then \
+        apt-get update \
+        && apt-get install -y --no-install-recommends adb \
+        && cp /usr/bin/adb "${ANDROID_SDK_ROOT}/platform-tools/adb" \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+
 COPY --from=build       /usr/src/app/analyst/tailscaled  /usr/bin/tailscaled
 COPY --from=build       /usr/src/app/analyst/tailscale   /usr/bin/tailscale
 COPY --from=build       /usr/src/app/analyst/mesh  /usr/bin/mesh
