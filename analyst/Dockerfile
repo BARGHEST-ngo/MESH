@@ -23,6 +23,7 @@ RUN ./analyst/src/build.sh
 FROM debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        adb \
         iptables \
         iproute2 \
         iputils-ping \
@@ -37,9 +38,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && mkdir -p /home/mesh/.tailscale \
     && chown -R mesh:mesh /home/mesh \
     && setcap cap_net_admin,cap_net_raw+eip /usr/bin/tcpdump
-
-RUN apt-get install -y --no-install-recommends adb \
-    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build       /usr/src/app/analyst/tailscaled  /usr/bin/tailscaled
 COPY --from=build       /usr/src/app/analyst/tailscale   /usr/bin/tailscale
