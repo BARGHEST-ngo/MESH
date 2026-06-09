@@ -49,7 +49,13 @@ RUN arch="$(dpkg --print-architecture)" \
 	&& ln -s ${JAVA_HOME} /usr/local/openjdk-${TARGET_JAVA_VERSION}
 
 # Install Go
-RUN GO_DOWNLOAD_URL="https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+RUN arch="$(dpkg --print-architecture)" \
+	&& case "$arch" in \
+	"amd64") goArch="amd64" ;; \
+	"arm64") goArch="arm64" ;; \
+	*) echo >&2 "error: unsupported architecture: '$arch'"; exit 1 ;; \
+	esac \
+	&& GO_DOWNLOAD_URL="https://go.dev/dl/go${GO_VERSION}.linux-${goArch}.tar.gz" \
 	&& echo "Installing Go ${GO_VERSION}..." \
 	&& wget --progress=dot:giga -O go.tar.gz "${GO_DOWNLOAD_URL}" \
 	&& tar -C /usr/local -xzf go.tar.gz \
@@ -86,6 +92,15 @@ RUN ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools
 		"platform-tools" \
 		"build-tools;36.0.0" \
 	&& "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --list_installed
+
+# On ARM64, the Android SDK ships x86_64 adb which won't run natively.
+# Replace it with Debian's native ARM64 build so the PATH entry still resolves correctly.
+RUN arch="$(dpkg --print-architecture)" \
+	&& if [ "$arch" = "arm64" ]; then \
+		apt-get update \
+		&& apt-get install -y adb \
+		&& cp /usr/bin/adb "${ANDROID_SDK_ROOT}/platform-tools/adb"; \
+	fi
 
 # Install Task
 RUN curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | bash \
