@@ -55,10 +55,10 @@ import com.barghest.mesh.ui.viewModel.LoginWithAuthKeyViewModel
 import com.barghest.mesh.ui.viewModel.LoginWithCustomControlURLViewModel
 
 data class LoginViewStrings(
-    var title: String,
-    var explanation: String,
-    var inputTitle: String,
-    var placeholder: String,
+    val title: String,
+    val explanation: String,
+    val inputTitle: String,
+    val placeholder: String,
 )
 
 @Composable
