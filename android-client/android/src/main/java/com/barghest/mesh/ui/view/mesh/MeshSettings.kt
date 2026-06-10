@@ -3,7 +3,6 @@
 
 package com.barghest.mesh.ui.view.mesh
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -93,7 +91,7 @@ private fun Group(label: String, content: @Composable () -> Unit) {
     }
 }
 
-/** Live Settings wiring; null runs the self-contained demo. */
+/** Live Settings wiring. */
 data class MeshSettingsLive(
     val controlUrl: String?,
     val onOpenControlServer: () -> Unit,
@@ -105,7 +103,7 @@ data class MeshSettingsLive(
 )
 
 @Composable
-fun MeshSettingsScreen(onBack: () -> Unit, live: MeshSettingsLive? = null) {
+fun MeshSettingsScreen(onBack: () -> Unit, live: MeshSettingsLive) {
     val cs = MaterialTheme.colorScheme
     val uriHandler = LocalUriHandler.current
 
@@ -113,25 +111,25 @@ fun MeshSettingsScreen(onBack: () -> Unit, live: MeshSettingsLive? = null) {
         MeshTopBar(stringResource(R.string.mesh_topbar_settings), onBack = onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 16.dp)) {
             Group(stringResource(R.string.mesh_set_group_connection)) {
-                SettingRow("globe", stringResource(R.string.mesh_set_control_server), live?.controlUrl?.takeIf { it.isNotEmpty() } ?: stringResource(R.string.mesh_set_not_configured), onClick = live?.onOpenControlServer ?: {}) {
+                SettingRow("globe", stringResource(R.string.mesh_set_control_server), live.controlUrl?.takeIf { it.isNotEmpty() } ?: stringResource(R.string.mesh_set_not_configured), onClick = live.onOpenControlServer) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
                 MeshDivider()
-                SettingRow("globe", stringResource(R.string.mesh_set_exit_node), stringResource(R.string.mesh_set_exit_node_sub), onClick = live?.onOpenExitNodes ?: {}) {
+                SettingRow("globe", stringResource(R.string.mesh_set_exit_node), stringResource(R.string.mesh_set_exit_node_sub), onClick = live.onOpenExitNodes) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
             }
             Group(stringResource(R.string.mesh_set_group_network)) {
-                SettingRow("globe", stringResource(R.string.mesh_set_magic_dns), stringResource(R.string.mesh_set_magic_dns_sub), onClick = live?.onOpenDns ?: {}) {
+                SettingRow("globe", stringResource(R.string.mesh_set_magic_dns), stringResource(R.string.mesh_set_magic_dns_sub), onClick = live.onOpenDns) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
                 MeshDivider()
-                SettingRow("grid", stringResource(R.string.mesh_set_split), stringResource(R.string.mesh_set_split_sub), onClick = live?.onOpenSplitTunnel ?: {}) {
+                SettingRow("grid", stringResource(R.string.mesh_set_split), stringResource(R.string.mesh_set_split_sub), onClick = live.onOpenSplitTunnel) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
             }
             Group(stringResource(R.string.mesh_set_group_privacy)) {
-                SettingRow("eyeOff", stringResource(R.string.mesh_set_obfuscation), stringResource(R.string.mesh_set_obfuscation_sub), onClick = live?.onOpenObfuscation ?: {}) {
+                SettingRow("eyeOff", stringResource(R.string.mesh_set_obfuscation), stringResource(R.string.mesh_set_obfuscation_sub), onClick = live.onOpenObfuscation) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
             }
@@ -145,7 +143,7 @@ fun MeshSettingsScreen(onBack: () -> Unit, live: MeshSettingsLive? = null) {
                 }
             }
             Group(stringResource(R.string.mesh_set_group_danger)) {
-                SettingRow("x", stringResource(R.string.mesh_set_forget), stringResource(R.string.mesh_set_forget_sub), danger = true, onClick = live?.onForgetEnrollment ?: {}) {
+                SettingRow("x", stringResource(R.string.mesh_set_forget), stringResource(R.string.mesh_set_forget_sub), danger = true, onClick = live.onForgetEnrollment) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshRed)
                 }
             }
