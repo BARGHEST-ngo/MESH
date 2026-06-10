@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -162,7 +163,7 @@ fun MeshHomeScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Image(
                     painter = painterResource(R.drawable.mesh_wordmark),
                     contentDescription = "MESH",
@@ -170,7 +171,7 @@ fun MeshHomeScreen(
                     modifier = Modifier.height(20.dp),
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("v${AppVersion.Short()}", color = cs.meshMuted, fontFamily = MeshMono, fontSize = 9.5.sp, modifier = Modifier.padding(top = 4.dp))
+                Text("v${AppVersion.Short()}", color = cs.meshMuted, fontFamily = MeshMono, fontSize = 9.5.sp, modifier = Modifier.offset(y = 10.dp))
             }
             Box(Modifier.size(34.dp).clip(CircleShape).clickable(onClick = actions.onOpenSettings), contentAlignment = Alignment.Center) {
                 MeshIcon("gear", size = 21.dp, color = cs.meshText2)
