@@ -152,17 +152,19 @@ fun MeshSettingsScreen(onBack: () -> Unit, live: MeshSettingsLive) {
     }
 }
 
-private data class LearnStep(val icon: String, val title: String, val body: String)
+private data class LearnStep(val icon: String, val titleRes: Int, val bodyRes: Int)
 
 @Composable
 fun MeshLearnScreen(onBack: () -> Unit, onStart: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val steps = listOf(
-        LearnStep("qr", stringResource(R.string.mesh_learn_s1_title), stringResource(R.string.mesh_learn_s1_body)),
-        LearnStep("lock", stringResource(R.string.mesh_learn_s2_title), stringResource(R.string.mesh_learn_s2_body)),
-        LearnStep("eye", stringResource(R.string.mesh_learn_s3_title), stringResource(R.string.mesh_learn_s3_body)),
-        LearnStep("power", stringResource(R.string.mesh_learn_s4_title), stringResource(R.string.mesh_learn_s4_body)),
-    )
+    val steps = remember {
+        listOf(
+            LearnStep("qr", R.string.mesh_learn_s1_title, R.string.mesh_learn_s1_body),
+            LearnStep("lock", R.string.mesh_learn_s2_title, R.string.mesh_learn_s2_body),
+            LearnStep("eye", R.string.mesh_learn_s3_title, R.string.mesh_learn_s3_body),
+            LearnStep("power", R.string.mesh_learn_s4_title, R.string.mesh_learn_s4_body),
+        )
+    }
     Column(Modifier.fillMaxSize().background(cs.meshBg)) {
         MeshTopBar(stringResource(R.string.mesh_learn_topbar), onBack = onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
@@ -182,9 +184,9 @@ fun MeshLearnScreen(onBack: () -> Unit, onStart: () -> Unit) {
                         if (i < steps.lastIndex) Box(Modifier.padding(vertical = 6.dp).width(1.5.dp).height(22.dp).background(cs.meshBorder))
                     }
                     Column(Modifier.padding(bottom = if (i < steps.lastIndex) 0.dp else 22.dp)) {
-                        Text(s.title, color = cs.meshText, fontSize = 15.5.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(s.titleRes), color = cs.meshText, fontSize = 15.5.sp, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(4.dp))
-                        Text(s.body, color = cs.meshText2, fontSize = 13.sp, lineHeight = 19.sp)
+                        Text(stringResource(s.bodyRes), color = cs.meshText2, fontSize = 13.sp, lineHeight = 19.sp)
                     }
                 }
             }

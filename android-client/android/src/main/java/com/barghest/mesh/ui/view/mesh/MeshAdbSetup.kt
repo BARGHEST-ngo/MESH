@@ -53,7 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.barghest.mesh.R
 
-private data class AdbStep(val n: Int, val title: String, val body: String)
+private data class AdbStep(val n: Int, val titleRes: Int, val bodyRes: Int)
 
 /** Opens Developer options (Wireless debugging), falling back to the top-level Settings app. */
 private fun openDeveloperSettings(context: Context) {
@@ -85,13 +85,15 @@ fun MeshAdbSetupScreen(
     val cs = MaterialTheme.colorScheme
     val context = LocalContext.current
     var done by remember { mutableStateOf(setOf<Int>()) }
-    val steps = listOf(
-        AdbStep(1, stringResource(R.string.mesh_adb_s1_title), stringResource(R.string.mesh_adb_s1_body)),
-        AdbStep(2, stringResource(R.string.mesh_adb_s2_title), stringResource(R.string.mesh_adb_s2_body)),
-        AdbStep(3, stringResource(R.string.mesh_adb_s3_title), stringResource(R.string.mesh_adb_s3_body)),
-        AdbStep(4, stringResource(R.string.mesh_adb_s4_title), stringResource(R.string.mesh_adb_s4_body)),
-        AdbStep(5, stringResource(R.string.mesh_adb_s5_title), stringResource(R.string.mesh_adb_s5_body)),
-    )
+    val steps = remember {
+        listOf(
+            AdbStep(1, R.string.mesh_adb_s1_title, R.string.mesh_adb_s1_body),
+            AdbStep(2, R.string.mesh_adb_s2_title, R.string.mesh_adb_s2_body),
+            AdbStep(3, R.string.mesh_adb_s3_title, R.string.mesh_adb_s3_body),
+            AdbStep(4, R.string.mesh_adb_s4_title, R.string.mesh_adb_s4_body),
+            AdbStep(5, R.string.mesh_adb_s5_title, R.string.mesh_adb_s5_body),
+        )
+    }
 
     Column(Modifier.fillMaxSize().background(cs.meshBg)) {
         MeshTopBar(stringResource(R.string.mesh_adb_topbar), onBack = onBack)
@@ -130,9 +132,9 @@ fun MeshAdbSetupScreen(
                             else Text("${s.n}", color = cs.accent, fontFamily = MeshMono, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                         Column(Modifier.weight(1f)) {
-                            Text(s.title, color = cs.meshText, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(s.titleRes), color = cs.meshText, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.height(2.dp))
-                            Text(s.body, color = cs.meshText2, fontSize = 12.5.sp, lineHeight = 18.sp)
+                            Text(stringResource(s.bodyRes), color = cs.meshText2, fontSize = 12.5.sp, lineHeight = 18.sp)
                         }
                     }
                 }

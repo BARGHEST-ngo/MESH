@@ -66,14 +66,27 @@ fun MeshFlow(env: MeshLiveEnv, onExit: () -> Unit = {}) {
         }
     }
 
-    val homeActions = MeshHomeActions(
-        onStart = { env.onStartSession() },
-        onEnd = { endConfirm = true },
-        onOpenSettings = { go(MeshScreen.Settings) },
-        onOpenLearn = { go(MeshScreen.Learn) },
-        onOpenExitNodes = { env.onOpenExitNodes() },
-        onOpenAdb = { go(MeshScreen.Adb) },
-    )
+    val homeActions = remember(env) {
+        MeshHomeActions(
+            onStart = { env.onStartSession() },
+            onEnd = { endConfirm = true },
+            onOpenSettings = { go(MeshScreen.Settings) },
+            onOpenLearn = { go(MeshScreen.Learn) },
+            onOpenExitNodes = { env.onOpenExitNodes() },
+            onOpenAdb = { go(MeshScreen.Adb) },
+        )
+    }
+    val settingsLive = remember(env) {
+        MeshSettingsLive(
+            controlUrl = env.controlUrl,
+            onOpenControlServer = env.onOpenControlServer,
+            onOpenExitNodes = env.onOpenExitNodes,
+            onOpenDns = env.onOpenDns,
+            onOpenSplitTunnel = env.onOpenSplitTunnel,
+            onOpenObfuscation = env.onOpenObfuscation,
+            onForgetEnrollment = env.onForgetEnrollment,
+        )
+    }
 
     Column(Modifier.fillMaxSize().background(cs.meshBg)) {
         Box(Modifier.weight(1f).fillMaxWidth().statusBarsPadding().navigationBarsPadding()) {
@@ -94,15 +107,7 @@ fun MeshFlow(env: MeshLiveEnv, onExit: () -> Unit = {}) {
                     )
                     MeshScreen.Settings -> MeshSettingsScreen(
                         onBack = { go(MeshScreen.Home) },
-                        live = MeshSettingsLive(
-                            controlUrl = env.controlUrl,
-                            onOpenControlServer = env.onOpenControlServer,
-                            onOpenExitNodes = env.onOpenExitNodes,
-                            onOpenDns = env.onOpenDns,
-                            onOpenSplitTunnel = env.onOpenSplitTunnel,
-                            onOpenObfuscation = env.onOpenObfuscation,
-                            onForgetEnrollment = env.onForgetEnrollment,
-                        ),
+                        live = settingsLive,
                     )
                 }
             }

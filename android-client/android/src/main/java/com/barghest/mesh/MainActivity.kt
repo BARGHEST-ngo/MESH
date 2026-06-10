@@ -550,17 +550,19 @@ class MainActivity : ComponentActivity() {
                                 val vpnActive by appViewModel.vpnActive.collectAsState(initial = false)
                                 val netmap by viewModel.netmap.collectAsState(initial = null)
                                 val prefs by viewModel.prefs.collectAsState(initial = null)
-                                val peer = netmap?.Peers?.firstOrNull()
-                                val analyst = peer?.let {
-                                    MeshDefaults.analyst.copy(
-                                        name = it.ComputedName ?: MeshDefaults.analyst.name,
-                                        ip = it.primaryIPv4Address ?: MeshDefaults.analyst.ip,
-                                    )
-                                }
-                                val exitNodeId = prefs?.activeExitNodeID ?: prefs?.selectedExitNodeID
-                                val exitNodeName = exitNodeId?.let { id -> netmap?.Peers?.find { it.StableID == id } }?.exitNodeName
-                                MeshFlow(
-                                    env = MeshLiveEnv(
+                                // Map IPN state -> UI env once per backend change, not on every recomposition,
+                                // so MeshFlow's subtree can skip while a session streams netmap updates.
+                                val env = remember(ipnState, vpnActive, netmap, prefs) {
+                                    val peer = netmap?.Peers?.firstOrNull()
+                                    val analyst = peer?.let {
+                                        MeshDefaults.analyst.copy(
+                                            name = it.ComputedName ?: MeshDefaults.analyst.name,
+                                            ip = it.primaryIPv4Address ?: MeshDefaults.analyst.ip,
+                                        )
+                                    }
+                                    val exitNodeId = prefs?.activeExitNodeID ?: prefs?.selectedExitNodeID
+                                    val exitNodeName = exitNodeId?.let { id -> netmap?.Peers?.find { it.StableID == id } }?.exitNodeName
+                                    MeshLiveEnv(
                                         connected = ipnState == Ipn.State.Running && vpnActive,
                                         analyst = analyst,
                                         controlUrl = prefs?.ControlURL,
@@ -573,9 +575,9 @@ class MainActivity : ComponentActivity() {
                                         onOpenSplitTunnel = { navController.navigate("splitTunneling") },
                                         onOpenObfuscation = { navController.navigate("awgSettings") },
                                         onForgetEnrollment = { viewModel.resetAuth { } },
-                                    ),
-                                    onExit = { moveTaskToBack(true) },
-                                )
+                                    )
+                                }
+                                MeshFlow(env = env, onExit = { moveTaskToBack(true) })
                             }
                             composable("loginWithCustomControl") {
                                 LoginWithCustomControlURLView(
