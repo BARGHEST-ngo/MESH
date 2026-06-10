@@ -217,19 +217,26 @@ private fun Welcome() {
     }
 }
 
+/** Eyebrow + large title + body — the shared header for the How-it-works / Consent pages. */
+@Composable
+private fun OnbHeader(eyebrow: String, title: String, body: String) {
+    val cs = MaterialTheme.colorScheme
+    Eyebrow(eyebrow, color = cs.accent)
+    Spacer(Modifier.height(10.dp))
+    Text(title, color = cs.meshText, fontSize = 25.sp, fontWeight = FontWeight.SemiBold, lineHeight = 30.sp, letterSpacing = (-0.4).sp)
+    Spacer(Modifier.height(8.dp))
+    Text(body, color = cs.meshText2, fontSize = 14.5.sp, lineHeight = 22.sp)
+    Spacer(Modifier.height(14.dp))
+}
+
 @Composable
 private fun HowItWorks() {
-    val cs = MaterialTheme.colorScheme
     Column(Modifier.fillMaxSize().padding(start = 26.dp, end = 26.dp, top = 12.dp)) {
-        Eyebrow(stringResource(R.string.mesh_onb_how_eyebrow), color = cs.accent)
-        Spacer(Modifier.height(10.dp))
-        Text(stringResource(R.string.mesh_onb_how_title), color = cs.meshText, fontSize = 25.sp, fontWeight = FontWeight.SemiBold, lineHeight = 30.sp, letterSpacing = (-0.4).sp)
-        Spacer(Modifier.height(8.dp))
-        Text(
-            stringResource(R.string.mesh_onb_how_body),
-            color = cs.meshText2, fontSize = 14.5.sp, lineHeight = 22.sp,
+        OnbHeader(
+            eyebrow = stringResource(R.string.mesh_onb_how_eyebrow),
+            title = stringResource(R.string.mesh_onb_how_title),
+            body = stringResource(R.string.mesh_onb_how_body),
         )
-        Spacer(Modifier.height(14.dp))
         OnbBullet(stringResource(R.string.mesh_onb_how_b1))
         OnbBullet(stringResource(R.string.mesh_onb_how_b2))
         OnbBullet(stringResource(R.string.mesh_onb_how_b3))
@@ -241,15 +248,11 @@ private fun HowItWorks() {
 private fun Consent() {
     val cs = MaterialTheme.colorScheme
     Column(Modifier.fillMaxSize().padding(start = 26.dp, end = 26.dp, top = 12.dp)) {
-        Eyebrow(stringResource(R.string.mesh_onb_consent_eyebrow), color = cs.accent)
-        Spacer(Modifier.height(10.dp))
-        Text(stringResource(R.string.mesh_onb_consent_title), color = cs.meshText, fontSize = 25.sp, fontWeight = FontWeight.SemiBold, lineHeight = 30.sp, letterSpacing = (-0.4).sp)
-        Spacer(Modifier.height(8.dp))
-        Text(
-            stringResource(R.string.mesh_onb_consent_body),
-            color = cs.meshText2, fontSize = 14.5.sp, lineHeight = 22.sp,
+        OnbHeader(
+            eyebrow = stringResource(R.string.mesh_onb_consent_eyebrow),
+            title = stringResource(R.string.mesh_onb_consent_title),
+            body = stringResource(R.string.mesh_onb_consent_body),
         )
-        Spacer(Modifier.height(14.dp))
         OnbBullet(stringResource(R.string.mesh_onb_consent_b1))
         OnbBullet(stringResource(R.string.mesh_onb_consent_b2))
         OnbBullet(stringResource(R.string.mesh_onb_consent_b3))
