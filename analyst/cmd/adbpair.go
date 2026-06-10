@@ -147,22 +147,17 @@ func checkDataPath(ctx context.Context, ip string) error {
 
 	// Confirm wireguard path
 	// (should never fail if device is listed in `mesh status`)
-	if err := ping(ctx, addr, tailcfg.PingDisco); err != nil {
+	if _, err := localClient.Ping(ctx, addr, tailcfg.PingDisco); err != nil {
 		return fmt.Errorf("device %s is not reachable on the MESH network: %w", ip, err)
 	}
 
 	// Confirm data can be exchanged
-	if err := ping(ctx, addr, tailcfg.PingTSMP); err != nil {
+	if _, err := localClient.Ping(ctx, addr, tailcfg.PingTSMP); err != nil {
 		return fmt.Errorf("device %s is reachable on the MESH network, but the data path is broken\n"+
 			"Toggle WiFi on the Android device and retry", ip)
 	}
 
 	return nil
-}
-
-func ping(ctx context.Context, addr netip.Addr, mode tailcfg.PingType) error {
-	_, err := localClient.Ping(ctx, addr, mode)
-	return err
 }
 
 func pairWithDiscovery(args *PairingArgs, openPorts []int) (int, error) {
