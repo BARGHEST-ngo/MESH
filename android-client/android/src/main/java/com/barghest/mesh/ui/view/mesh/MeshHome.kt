@@ -74,8 +74,6 @@ import com.barghest.mesh.ui.theme.meshText
 import com.barghest.mesh.ui.theme.meshText2
 import com.barghest.mesh.ui.util.AppVersion
 
-enum class HeroStyle { Rings, Shield, Bar }
-
 @Composable
 private fun HeroRings(active: Boolean) {
     val cs = MaterialTheme.colorScheme
@@ -134,51 +132,6 @@ private fun HeroRings(active: Boolean) {
     }
 }
 
-@Composable
-private fun HeroBar(active: Boolean) {
-    val cs = MaterialTheme.colorScheme
-    val c = if (active) cs.meshGreen else cs.meshMuted
-    Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp)) {
-        Box(
-            Modifier
-                .padding(bottom = 20.dp)
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (active) cs.meshGreen.dim(0.12f) else cs.meshCard)
-                .border(1.5.dp, if (active) cs.meshGreen else cs.meshBorder, RoundedCornerShape(16.dp))
-                .align(Alignment.CenterHorizontally),
-            contentAlignment = Alignment.Center,
-        ) { MeshIcon(if (active) "lock" else "shield", size = 30.dp, color = c) }
-        val t = rememberInfiniteTransition(label = "bars")
-        Row(Modifier.fillMaxWidth().height(8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            repeat(28) { i ->
-                val h by t.animateFloat(
-                    0.4f, 1f,
-                    infiniteRepeatable(tween(1400), RepeatMode.Reverse, StartOffset(i * 50)),
-                    label = "b$i",
-                )
-                val sy = if (active) h else 0.5f
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxSize()
-                        .graphicsLayer { scaleY = sy }
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(if (active) cs.meshGreen else cs.meshBorder),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun Hero(active: Boolean, style: HeroStyle) {
-    when (style) {
-        HeroStyle.Bar -> HeroBar(active)
-        else -> HeroRings(active)
-    }
-}
-
 data class MeshHomeActions(
     val onStart: () -> Unit,
     val onEnd: () -> Unit,
@@ -192,7 +145,6 @@ data class MeshHomeActions(
 fun MeshHomeScreen(
     connected: Boolean,
     actions: MeshHomeActions,
-    heroStyle: HeroStyle = HeroStyle.Rings,
     analyst: Analyst = MeshDefaults.analyst,
     exitNodeName: String? = null,
     adbReady: Boolean = false,
@@ -229,7 +181,7 @@ fun MeshHomeScreen(
             Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Hero(connected, heroStyle)
+            HeroRings(connected)
             Spacer(Modifier.height(18.dp))
             Row(
                 Modifier
