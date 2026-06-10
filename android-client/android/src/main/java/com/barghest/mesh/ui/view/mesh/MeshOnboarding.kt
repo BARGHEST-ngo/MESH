@@ -102,13 +102,13 @@ fun MeshOnboarding(onDone: () -> Unit) {
     if (showQuiz) {
         QuizDialog(
             title = stringResource(R.string.mesh_quiz_title),
-            question = if (activeQuiz == 1) quizConsent else quizAdb,
+            question = if (activeQuiz == 1) quizAdb else quizConsent,
             onAnswer = { answeredTrue ->
                 showQuiz = false
                 if (answeredTrue) {
                     proceedAfterQuiz()
                 } else {
-                    warningMessage = if (activeQuiz == 1) warnConsent else warnAdb
+                    warningMessage = if (activeQuiz == 1) warnAdb else warnConsent
                     showWarning = true
                 }
             },
