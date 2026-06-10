@@ -59,8 +59,9 @@ fun MeshFlow(env: MeshLiveEnv, onExit: () -> Unit = {}) {
     }
 
     BackHandler(enabled = true) {
-        when (screen) {
-            MeshScreen.Home -> onExit()
+        when {
+            endConfirm -> endConfirm = false           // dismiss the end-session sheet first
+            screen == MeshScreen.Home -> onExit()
             else -> go(MeshScreen.Home)
         }
     }
