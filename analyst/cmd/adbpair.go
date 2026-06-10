@@ -73,15 +73,15 @@ func runAdbPair(ctx context.Context, args []string) error {
 	}
 	pairingArgs.Host = chosenPeer.IP
 
+	if err := checkDataPath(ctx, chosenPeer.IP); err != nil {
+		return err
+	}
+
 	fmt.Printf("Using Android device: %s (%s)\n\n", chosenPeer.HostName, chosenPeer.IP)
 	fmt.Println("On the Android device:")
 	fmt.Println("1. Enable Wireless Debugging")
 	fmt.Println("2. Tap 'Pair device with pairing code'")
 	ReadString("Press Enter when the pairing dialog is open...")
-
-	if err := checkDataPath(ctx, chosenPeer.IP); err != nil {
-		return err
-	}
 
 	fmt.Println("Scanning for open ports...")
 	openPorts, err := scanOpenPorts(chosenPeer.IP)
@@ -144,6 +144,9 @@ func checkDataPath(ctx context.Context, ip string) error {
 	if err != nil {
 		return err
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
 
 	// Confirm wireguard path
 	// (should never fail if device is listed in `mesh status`)
