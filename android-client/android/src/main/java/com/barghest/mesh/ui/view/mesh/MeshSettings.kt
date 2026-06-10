@@ -68,23 +68,18 @@ private fun SettingRow(
     control: @Composable () -> Unit,
 ) {
     val cs = MaterialTheme.colorScheme
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+    MeshRow(
+        modifier = (if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = 14.dp, vertical = 13.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(13.dp),
-    ) {
-        Box(Modifier.size(34.dp).background(if (danger) cs.meshRedDim else cs.accentDim(0.13f), RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-            MeshIcon(icon, size = 18.dp, color = if (danger) cs.meshRed else cs.accent)
-        }
-        Column(Modifier.weight(1f)) {
-            Text(title, color = if (danger) cs.meshRed else cs.meshText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            if (sub != null) Text(sub, color = cs.meshText2, fontSize = 12.sp)
-        }
-        control()
-    }
+        icon = icon,
+        title = title,
+        sub = sub,
+        iconTint = if (danger) cs.meshRed else cs.accent,
+        iconBg = if (danger) cs.meshRedDim else cs.accentDim(0.13f),
+        titleColor = if (danger) cs.meshRed else cs.meshText,
+        spacing = 13.dp,
+        trailing = control,
+    )
 }
 
 @Composable

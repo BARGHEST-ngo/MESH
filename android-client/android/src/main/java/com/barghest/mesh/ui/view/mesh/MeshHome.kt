@@ -275,16 +275,11 @@ fun MeshHomeScreen(
                 }
                 AdbCard(adbReady, actions.onOpenAdb)
                 MeshCard(onClick = actions.onOpenLearn) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Box(Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(cs.accentDim(0.14f)), contentAlignment = Alignment.Center) {
-                            MeshIcon("info", size = 18.dp, color = cs.accent)
-                        }
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.mesh_learn_card_title), color = cs.meshText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                            Text(stringResource(R.string.mesh_learn_card_sub), color = cs.meshText2, fontSize = 12.sp)
-                        }
-                        MeshIcon("chevR", size = 18.dp, color = cs.meshMuted)
-                    }
+                    MeshRow(
+                        icon = "info",
+                        title = stringResource(R.string.mesh_learn_card_title),
+                        sub = stringResource(R.string.mesh_learn_card_sub),
+                    )
                 }
             } else {
                 AnalystCard(analyst)
@@ -299,23 +294,21 @@ fun MeshHomeScreen(
 @Composable
 private fun AnalystCard(a: Analyst) {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(com.barghest.mesh.ui.theme.MeshRadii.card)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .meshCard(shape, cs.meshCard, cs.meshBorder)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Box(Modifier.size(46.dp).clip(RoundedCornerShape(12.dp)).background(cs.accentDim(0.16f)), contentAlignment = Alignment.Center) {
-            MeshIcon("user", size = 24.dp, color = cs.accent)
-        }
-        Column(Modifier.weight(1f)) {
-            Eyebrow(stringResource(R.string.mesh_analyst_label), color = cs.accent)
-            Spacer(Modifier.height(4.dp))
-            Text(a.name.ifBlank { stringResource(R.string.mesh_analyst_placeholder) }, color = cs.meshText, fontSize = 15.5.sp, fontWeight = FontWeight.SemiBold)
-            MonoText(a.ip, color = cs.meshText2, fontSize = 12.sp)
+    MeshCard {
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(Modifier.size(46.dp).clip(RoundedCornerShape(12.dp)).background(cs.accentDim(0.16f)), contentAlignment = Alignment.Center) {
+                MeshIcon("user", size = 24.dp, color = cs.accent)
+            }
+            Column(Modifier.weight(1f)) {
+                Eyebrow(stringResource(R.string.mesh_analyst_label), color = cs.accent)
+                Spacer(Modifier.height(4.dp))
+                Text(a.name.ifBlank { stringResource(R.string.mesh_analyst_placeholder) }, color = cs.meshText, fontSize = 15.5.sp, fontWeight = FontWeight.SemiBold)
+                MonoText(a.ip, color = cs.meshText2, fontSize = 12.sp)
+            }
         }
     }
 }
@@ -323,25 +316,12 @@ private fun AnalystCard(a: Analyst) {
 /** Exit-node selector — taps through to the existing picker. */
 @Composable
 private fun ExitNodeCard(name: String?, onOpen: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(com.barghest.mesh.ui.theme.MeshRadii.card)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .meshCard(shape, cs.meshCard, cs.meshBorder)
-            .clickable(onClick = onOpen)
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Box(Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(cs.accentDim(0.14f)), contentAlignment = Alignment.Center) {
-            MeshIcon("globe", size = 18.dp, color = cs.accent)
-        }
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.mesh_exit_node), color = cs.meshText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text(name ?: stringResource(R.string.mesh_exit_node_none), color = cs.meshText2, fontSize = 12.sp)
-        }
-        MeshIcon("chevR", size = 18.dp, color = cs.meshMuted)
+    MeshCard(onClick = onOpen, pad = 14.dp) {
+        MeshRow(
+            icon = "globe",
+            title = stringResource(R.string.mesh_exit_node),
+            sub = name ?: stringResource(R.string.mesh_exit_node_none),
+        )
     }
 }
 
@@ -349,25 +329,18 @@ private fun ExitNodeCard(name: String?, onOpen: () -> Unit) {
 @Composable
 private fun AdbCard(ready: Boolean, onOpen: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(com.barghest.mesh.ui.theme.MeshRadii.card)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .meshCard(shape, cs.meshCard, if (ready) cs.meshGreen.copy(alpha = 0.4f) else cs.meshBorder)
-            .clickable(onClick = onOpen)
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    MeshCard(
+        onClick = onOpen,
+        pad = 14.dp,
+        border = if (ready) cs.meshGreen.copy(alpha = 0.4f) else cs.meshBorder,
     ) {
-        Box(
-            Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(if (ready) cs.meshGreenDim else cs.meshAmberDim),
-            contentAlignment = Alignment.Center,
-        ) { MeshIcon(if (ready) "check" else "wifi", size = 18.dp, color = if (ready) cs.meshGreen else cs.meshAmber) }
-        Column(Modifier.weight(1f)) {
-            Text(if (ready) stringResource(R.string.mesh_adb_on_title) else stringResource(R.string.mesh_adb_off_title), color = cs.meshText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text(if (ready) stringResource(R.string.mesh_adb_on_sub) else stringResource(R.string.mesh_adb_off_sub), color = cs.meshText2, fontSize = 12.sp)
-        }
-        MeshIcon("chevR", size = 18.dp, color = cs.meshMuted)
+        MeshRow(
+            icon = if (ready) "check" else "wifi",
+            title = if (ready) stringResource(R.string.mesh_adb_on_title) else stringResource(R.string.mesh_adb_off_title),
+            sub = if (ready) stringResource(R.string.mesh_adb_on_sub) else stringResource(R.string.mesh_adb_off_sub),
+            iconTint = if (ready) cs.meshGreen else cs.meshAmber,
+            iconBg = if (ready) cs.meshGreenDim else cs.meshAmberDim,
+        )
     }
 }
 
