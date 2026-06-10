@@ -11,11 +11,19 @@ on:
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
+# Allow the workflow to deploy to GitHub Pages via the Actions deployment flow.
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; let in-progress runs finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -44,7 +52,21 @@ jobs:
         with:
           globs: "docs/**/*.{md,markdown}"
 
-      - name: Build and deploy documentation
-        run: mkdocs gh-deploy --force --clean
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build documentation
+        run: mkdocs build --strict --clean --site-dir ./site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ./site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
