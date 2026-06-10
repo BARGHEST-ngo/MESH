@@ -157,7 +157,8 @@ func checkDataPath(ctx context.Context, ip string) error {
 	// Confirm data can be exchanged
 	if _, err := localClient.Ping(ctx, addr, tailcfg.PingTSMP); err != nil {
 		return fmt.Errorf("device %s is reachable on the MESH network, but the data path is broken\n"+
-			"Toggle WiFi on the Android device and retry", ip)
+			"error: %w\n\n"+
+			"Toggle WiFi on the Android device and retry", ip, err)
 	}
 
 	return nil
