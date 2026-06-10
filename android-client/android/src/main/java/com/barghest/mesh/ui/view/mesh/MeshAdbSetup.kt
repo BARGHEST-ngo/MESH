@@ -59,6 +59,7 @@ private data class AdbStep(val n: Int, val title: String, val body: String)
 private fun openDeveloperSettings(context: Context) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
         Toast.makeText(context, context.getString(R.string.mesh_adb_toast_need_r), Toast.LENGTH_LONG).show()
+        return
     }
     val intents = listOf(
         Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
