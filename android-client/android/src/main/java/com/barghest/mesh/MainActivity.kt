@@ -92,7 +92,12 @@ import com.barghest.mesh.ui.theme.AppTheme
 import com.barghest.mesh.ui.util.AndroidTVUtil
 import com.barghest.mesh.ui.util.set
 import com.barghest.mesh.ui.util.universalFit
+import com.barghest.mesh.ui.model.Ipn
 import com.barghest.mesh.ui.view.ADBSetup
+import com.barghest.mesh.ui.view.mesh.MeshFlow
+import com.barghest.mesh.ui.view.mesh.MeshLiveEnv
+import com.barghest.mesh.ui.view.mesh.MeshOnboarding
+import com.barghest.mesh.ui.view.mesh.MeshDefaults
 import com.barghest.mesh.ui.view.AWGSettingsView
 import com.barghest.mesh.ui.view.AboutView
 import com.barghest.mesh.ui.view.DNSSettingsView
@@ -324,66 +329,58 @@ class MainActivity : ComponentActivity() {
                     // Background for the letterbox
                     Surface(modifier = Modifier.universalFit()) {
                         // Letterbox for AndroidTV
-                        val startDest = if (isIntroScreenViewedSet()) "main" else "onboarding"
+                        // Redesigned client is the home; the legacy UI stays under Settings → Advanced.
+                        val startDest = if (isIntroScreenViewedSet()) "meshFlow" else "onboarding"
                         NavHost(
                             navController = navController,
                             startDestination = startDest,
                             enterTransition = {
                                 slideInHorizontally(
-                                    animationSpec = tween(250, easing = LinearOutSlowInEasing),
+                                    animationSpec = tween(190, easing = LinearOutSlowInEasing),
                                     initialOffsetX = { it },
                                 ) +
                                     fadeIn(
                                         animationSpec =
-                                            tween(
-                                                500,
-                                                easing = LinearOutSlowInEasing,
-                                            ),
+                                            tween(200, easing = LinearOutSlowInEasing),
                                     )
                             },
                             exitTransition = {
                                 slideOutHorizontally(
-                                    animationSpec = tween(250, easing = LinearOutSlowInEasing),
+                                    animationSpec = tween(190, easing = LinearOutSlowInEasing),
                                     targetOffsetX = { -it },
                                 ) +
                                     fadeOut(
                                         animationSpec =
-                                            tween(
-                                                500,
-                                                easing = LinearOutSlowInEasing,
-                                            ),
+                                            tween(200, easing = LinearOutSlowInEasing),
                                     )
                             },
                             popEnterTransition = {
                                 slideInHorizontally(
-                                    animationSpec = tween(250, easing = LinearOutSlowInEasing),
+                                    animationSpec = tween(190, easing = LinearOutSlowInEasing),
                                     initialOffsetX = { -it },
                                 ) +
                                     fadeIn(
                                         animationSpec =
-                                            tween(
-                                                500,
-                                                easing = LinearOutSlowInEasing,
-                                            ),
+                                            tween(200, easing = LinearOutSlowInEasing),
                                     )
                             },
                             popExitTransition = {
                                 slideOutHorizontally(
-                                    animationSpec = tween(250, easing = LinearOutSlowInEasing),
+                                    animationSpec = tween(190, easing = LinearOutSlowInEasing),
                                     targetOffsetX = { it },
                                 ) +
                                     fadeOut(
                                         animationSpec =
-                                            tween(
-                                                500,
-                                                easing = LinearOutSlowInEasing,
-                                            ),
+                                            tween(200, easing = LinearOutSlowInEasing),
                                     )
                             },
                         ) {
+                            // Pop to [route] if present, else pop one level (these screens are also reached from meshFlow).
                             fun backTo(route: String): () -> Unit =
                                 {
-                                    navController.popBackStack(route = route, inclusive = false)
+                                    if (!navController.popBackStack(route = route, inclusive = false)) {
+                                        navController.popBackStack()
+                                    }
                                 }
 
                             val mainViewNav =
@@ -423,10 +420,9 @@ class MainActivity : ComponentActivity() {
                             val exitNodePickerNav =
                                 ExitNodePickerNav(
                                     onNavigateBackHome = {
-                                        navController.popBackStack(
-                                            route = "main",
-                                            inclusive = false,
-                                        )
+                                        if (!navController.popBackStack(route = "main", inclusive = false)) {
+                                            navController.popBackStack()
+                                        }
                                     },
                                     onNavigateBackToExitNodes = backTo("exitNodes"),
                                     onNavigateToMullvad = { navController.navigate("mullvad") },
@@ -525,14 +521,10 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             composable("onboarding") {
-                                OnboardingScreen(
-                                    hasPendingIntent = hasPendingMeshIntent,
-                                    onQRScanned = { uri ->
-                                        handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
-                                    },
-                                    onComplete = {
+                                MeshOnboarding(
+                                    onDone = {
                                         setIntroScreenViewed(true)
-                                        navController.navigate("main") {
+                                        navController.navigate("meshFlow") {
                                             popUpTo("onboarding") { inclusive = true }
                                         }
                                         val action = pendingMeshAction
@@ -550,6 +542,39 @@ class MainActivity : ComponentActivity() {
                                     onNavigateHome = {
                                         navController.navigate("main")
                                     },
+                                )
+                            }
+                            // Redesigned client wired to live IPN state (some fields still sample values).
+                            composable("meshFlow") {
+                                val ipnState by viewModel.ipnState.collectAsState(initial = Ipn.State.NoState)
+                                val vpnActive by appViewModel.vpnActive.collectAsState(initial = false)
+                                val netmap by viewModel.netmap.collectAsState(initial = null)
+                                val prefs by viewModel.prefs.collectAsState(initial = null)
+                                val peer = netmap?.Peers?.firstOrNull()
+                                val analyst = peer?.let {
+                                    MeshDefaults.analyst.copy(
+                                        name = it.ComputedName ?: MeshDefaults.analyst.name,
+                                        ip = it.primaryIPv4Address ?: MeshDefaults.analyst.ip,
+                                    )
+                                }
+                                val exitNodeId = prefs?.activeExitNodeID ?: prefs?.selectedExitNodeID
+                                val exitNodeName = exitNodeId?.let { id -> netmap?.Peers?.find { it.StableID == id } }?.exitNodeName
+                                MeshFlow(
+                                    env = MeshLiveEnv(
+                                        connected = ipnState == Ipn.State.Running && vpnActive,
+                                        analyst = analyst,
+                                        controlUrl = prefs?.ControlURL,
+                                        exitNodeName = exitNodeName,
+                                        onStartSession = { showQRScanFromHome = true },
+                                        onEndSession = { viewModel.toggleVpn(desiredState = false) },
+                                        onOpenExitNodes = { navController.navigate("exitNodes") },
+                                        onOpenControlServer = { navController.navigate("loginWithCustomControl") },
+                                        onOpenDns = { navController.navigate("dnsSettings") },
+                                        onOpenSplitTunnel = { navController.navigate("splitTunneling") },
+                                        onOpenObfuscation = { navController.navigate("awgSettings") },
+                                        onForgetEnrollment = { viewModel.resetAuth { } },
+                                    ),
+                                    onExit = { moveTaskToBack(true) },
                                 )
                             }
                             composable("loginWithCustomControl") {
