@@ -143,9 +143,8 @@ fun MeshAdbSetupScreen(
             Spacer(Modifier.height(20.dp))
         }
 
-        Column(Modifier.fillMaxWidth().background(cs.meshBg)) {
-            Box(Modifier.fillMaxWidth().height(1.dp).background(cs.meshBorder))
-            Row(Modifier.padding(horizontal = 20.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        MeshBottomBar {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 MeshButton(stringResource(R.string.mesh_adb_open_settings), { openDeveloperSettings(context) }, modifier = Modifier.weight(1f), variant = MeshButtonVariant.Secondary, height = 56.dp)
                 MeshButton(stringResource(R.string.mesh_adb_its_on), onEnabled, modifier = Modifier.weight(1f), height = 56.dp, icon = "check")
             }

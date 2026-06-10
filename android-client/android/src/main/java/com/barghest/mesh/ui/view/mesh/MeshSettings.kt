@@ -93,11 +93,6 @@ private fun Group(label: String, content: @Composable () -> Unit) {
     }
 }
 
-@Composable
-private fun Divider() {
-    Box(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.meshBorder))
-}
-
 /** Live Settings wiring; null runs the self-contained demo. */
 data class MeshSettingsLive(
     val controlUrl: String?,
@@ -121,7 +116,7 @@ fun MeshSettingsScreen(onBack: () -> Unit, live: MeshSettingsLive? = null) {
                 SettingRow("globe", stringResource(R.string.mesh_set_control_server), live?.controlUrl?.takeIf { it.isNotEmpty() } ?: stringResource(R.string.mesh_set_not_configured), onClick = live?.onOpenControlServer ?: {}) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
-                Divider()
+                MeshDivider()
                 SettingRow("globe", stringResource(R.string.mesh_set_exit_node), stringResource(R.string.mesh_set_exit_node_sub), onClick = live?.onOpenExitNodes ?: {}) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
@@ -130,7 +125,7 @@ fun MeshSettingsScreen(onBack: () -> Unit, live: MeshSettingsLive? = null) {
                 SettingRow("globe", stringResource(R.string.mesh_set_magic_dns), stringResource(R.string.mesh_set_magic_dns_sub), onClick = live?.onOpenDns ?: {}) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
-                Divider()
+                MeshDivider()
                 SettingRow("grid", stringResource(R.string.mesh_set_split), stringResource(R.string.mesh_set_split_sub), onClick = live?.onOpenSplitTunnel ?: {}) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
@@ -144,7 +139,7 @@ fun MeshSettingsScreen(onBack: () -> Unit, live: MeshSettingsLive? = null) {
                 SettingRow("info", stringResource(R.string.mesh_set_version, AppVersion.Short()), stringResource(R.string.mesh_set_source), onClick = { uriHandler.openUri(Links.SOURCE_REPO_URL) }) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
-                Divider()
+                MeshDivider()
                 SettingRow("file", stringResource(R.string.mesh_set_license), stringResource(R.string.mesh_set_license_sub), onClick = { uriHandler.openUri(Links.LICENSE_URL) }) {
                     MeshIcon("chevR", size = 17.dp, color = cs.meshMuted)
                 }
@@ -196,11 +191,8 @@ fun MeshLearnScreen(onBack: () -> Unit, onStart: () -> Unit) {
                 }
             }
         }
-        Column(Modifier.fillMaxWidth().background(cs.meshBg)) {
-            Divider()
-            Box(Modifier.padding(horizontal = 20.dp, vertical = 14.dp)) {
-                MeshButton(stringResource(R.string.mesh_start_cta), onStart, full = true, height = 56.dp, icon = "shield")
-            }
+        MeshBottomBar {
+            MeshButton(stringResource(R.string.mesh_start_cta), onStart, full = true, height = 56.dp, icon = "shield")
         }
     }
 }

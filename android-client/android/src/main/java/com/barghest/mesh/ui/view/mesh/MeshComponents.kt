@@ -46,6 +46,7 @@ import com.barghest.mesh.ui.theme.MeshRadii
 import com.barghest.mesh.ui.theme.accent
 import com.barghest.mesh.ui.theme.accentDim
 import com.barghest.mesh.ui.theme.dim
+import com.barghest.mesh.ui.theme.meshBg
 import com.barghest.mesh.ui.theme.meshBgRaised
 import com.barghest.mesh.ui.theme.meshBorder
 import com.barghest.mesh.ui.theme.meshBorderHi
@@ -148,6 +149,21 @@ fun MeshRow(
             if (sub != null) Text(sub, color = cs.meshText2, fontSize = 12.sp)
         }
         trailing()
+    }
+}
+
+/** Full-width hairline in the border colour. */
+@Composable
+fun MeshDivider() {
+    Box(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.meshBorder))
+}
+
+/** Bottom action bar: a hairline divider above a padded slot for the screen's primary button(s). */
+@Composable
+fun MeshBottomBar(content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.meshBg)) {
+        MeshDivider()
+        Box(Modifier.padding(horizontal = 20.dp, vertical = 14.dp)) { content() }
     }
 }
 
