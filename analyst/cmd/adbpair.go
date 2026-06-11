@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/netip"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -22,6 +23,7 @@ import (
 	rt "github.com/botherder/go-savetime/runtime"
 	"github.com/google/uuid"
 	"github.com/peterbourgon/ff/v3/ffcli"
+	"tailscale.com/tailcfg"
 )
 
 type AndroidPeer struct {
@@ -70,6 +72,10 @@ func runAdbPair(ctx context.Context, args []string) error {
 		return fmt.Errorf("unable to select an Android client: %w", err)
 	}
 	pairingArgs.Host = chosenPeer.IP
+
+	if err := checkDataPath(ctx, chosenPeer.IP); err != nil {
+		return err
+	}
 
 	fmt.Printf("Using Android device: %s (%s)\n\n", chosenPeer.HostName, chosenPeer.IP)
 	fmt.Println("On the Android device:")
@@ -128,6 +134,31 @@ func runAdbPair(ctx context.Context, args []string) error {
 		if err := qf(); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func checkDataPath(ctx context.Context, ip string) error {
+	addr, err := netip.ParseAddr(ip)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	// Confirm wireguard path
+	// (should never fail if device is listed in `mesh status`)
+	if _, err := localClient.Ping(ctx, addr, tailcfg.PingDisco); err != nil {
+		return fmt.Errorf("device %s is not reachable on the MESH network: %w", ip, err)
+	}
+
+	// Confirm data can be exchanged
+	if _, err := localClient.Ping(ctx, addr, tailcfg.PingTSMP); err != nil {
+		return fmt.Errorf("device %s is reachable on the MESH network, but the data path is broken\n"+
+			"error: %w\n\n"+
+			"Toggle WiFi on the Android device and retry", ip, err)
 	}
 
 	return nil
