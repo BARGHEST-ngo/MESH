@@ -46,6 +46,7 @@ import com.barghest.mesh.ui.theme.MeshRadii
 import com.barghest.mesh.ui.theme.accent
 import com.barghest.mesh.ui.theme.accentDim
 import com.barghest.mesh.ui.theme.dim
+import com.barghest.mesh.ui.theme.meshBg
 import com.barghest.mesh.ui.theme.meshBgRaised
 import com.barghest.mesh.ui.theme.meshBorder
 import com.barghest.mesh.ui.theme.meshBorderHi
@@ -109,12 +110,61 @@ fun MeshCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     pad: Dp = 16.dp,
+    border: Color = MaterialTheme.colorScheme.meshBorder,
     content: @Composable () -> Unit,
 ) {
     val shape = RoundedCornerShape(MeshRadii.card)
-    var base = modifier.meshCard(shape, MaterialTheme.colorScheme.meshCard, MaterialTheme.colorScheme.meshBorder)
+    var base = modifier.meshCard(shape, MaterialTheme.colorScheme.meshCard, border)
     if (onClick != null) base = base.clickable(onClick = onClick)
     Box(base.padding(pad)) { content() }
+}
+
+/** Standard list row: 34dp icon square + title/sub column + trailing slot (default chevron). */
+@Composable
+fun MeshRow(
+    icon: String,
+    title: String,
+    sub: String? = null,
+    modifier: Modifier = Modifier,
+    iconTint: Color = MaterialTheme.colorScheme.accent,
+    iconBg: Color = MaterialTheme.colorScheme.accentDim(0.14f),
+    titleColor: Color = MaterialTheme.colorScheme.meshText,
+    spacing: Dp = 12.dp,
+    trailing: @Composable () -> Unit = {
+        MeshIcon("chevR", size = 18.dp, color = MaterialTheme.colorScheme.meshMuted)
+    },
+) {
+    val cs = MaterialTheme.colorScheme
+    Row(
+        modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing),
+    ) {
+        Box(
+            Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(iconBg),
+            contentAlignment = Alignment.Center,
+        ) { MeshIcon(icon, size = 18.dp, color = iconTint) }
+        Column(Modifier.weight(1f)) {
+            Text(title, color = titleColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            if (sub != null) Text(sub, color = cs.meshText2, fontSize = 12.sp)
+        }
+        trailing()
+    }
+}
+
+/** Full-width hairline in the border colour. */
+@Composable
+fun MeshDivider() {
+    Box(Modifier.fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.meshBorder))
+}
+
+/** Bottom action bar: a hairline divider above a padded slot for the screen's primary button(s). */
+@Composable
+fun MeshBottomBar(content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.meshBg)) {
+        MeshDivider()
+        Box(Modifier.padding(horizontal = 20.dp, vertical = 14.dp)) { content() }
+    }
 }
 
 enum class MeshButtonVariant { Primary, Secondary, Ghost, Danger }
