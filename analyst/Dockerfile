@@ -20,7 +20,7 @@ COPY analyst ./analyst
 COPY tailscale ./tailscale
 RUN ./analyst/src/build.sh
 
-FROM debian:bookworm-slim@sha256:0104b334637a5f19aa9c983a91b54c89887c0984081f2068983107a6f6c21eeb
+FROM debian:trixie-slim@sha256:4e401d95de7083948053197a9c3913343cd06b706bf15eb6a0c3ccd26f436a0e
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         adb \
