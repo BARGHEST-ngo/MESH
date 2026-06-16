@@ -7,6 +7,7 @@ import { useCreatePreAuthKey } from '../api/usePreAuthKeys'
 import { Copy, Check } from 'lucide-react'
 import { encrypt } from '../lib/onboardingCrypto'
 import { QRCodeCanvas } from 'qrcode.react'
+import { useControlPlaneUrl } from '@/api/useConfig'
 
 interface GenerateKeyDialogProps {
   open: boolean
@@ -36,7 +37,9 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
   const [intent, setIntent] = useState<string | null>(null)
   const [pin, setPin] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [controlPlaneURL, setControlPlaneURL] = useState('')
+  const { data: configUrl = '' } = useControlPlaneUrl()
+  const [controlPlaneURLOverride, setControlPlaneURL] = useState<string | null>(null)
+  const controlPlaneURL = controlPlaneURLOverride ?? configUrl
   const [urlError, setUrlError] = useState('')
   const [intentError, setIntentError] = useState('')
   const createKey = useCreatePreAuthKey()
