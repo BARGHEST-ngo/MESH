@@ -448,6 +448,7 @@
     <string name="mesh_onb_get_started">Get started</string>
     <string name="mesh_onb_continue">Continue</string>
     <string name="mesh_onb_understand">I understand</string>
+    <string name="mesh_onb_pending_notice">Your analyst\'s link is ready — you\'ll be asked for a PIN next.</string>
     <string name="mesh_back">back</string>
     <string name="mesh_quiz_title">Pop quiz!</string>
     <string name="mesh_quiz_consent">Consensual forensics may involve granting access to sensitive data on your device.</string>

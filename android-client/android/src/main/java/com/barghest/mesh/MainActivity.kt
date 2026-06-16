@@ -168,6 +168,7 @@ class MainActivity : ComponentActivity() {
     private var showPinDialog by mutableStateOf(false)
     private var pinDialogCallback: ((String) -> Unit)? = null
     private var showQRScanFromHome by mutableStateOf(false)
+    private var adbWifiEnabled by mutableStateOf(false)
 
     private fun Context.isLandscapeCapable(): Boolean =
         (resources.configuration.screenLayout and SCREENLAYOUT_SIZE_MASK) >=
@@ -522,6 +523,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable("onboarding") {
                                 MeshOnboarding(
+                                    pendingLink = hasPendingMeshIntent,
                                     onDone = {
                                         setIntroScreenViewed(true)
                                         navController.navigate("meshFlow") {
@@ -552,7 +554,7 @@ class MainActivity : ComponentActivity() {
                                 val prefs by viewModel.prefs.collectAsState(initial = null)
                                 // Map IPN state -> UI env once per backend change, not on every recomposition,
                                 // so MeshFlow's subtree can skip while a session streams netmap updates.
-                                val env = remember(ipnState, vpnActive, netmap, prefs) {
+                                val env = remember(ipnState, vpnActive, netmap, prefs, adbWifiEnabled) {
                                     val peer = netmap?.Peers?.firstOrNull()
                                     val analyst = peer?.let {
                                         MeshDefaults.analyst.copy(
@@ -567,6 +569,7 @@ class MainActivity : ComponentActivity() {
                                         analyst = analyst,
                                         controlUrl = prefs?.ControlURL,
                                         exitNodeName = exitNodeName,
+                                        adbReady = adbWifiEnabled,
                                         onStartSession = { showQRScanFromHome = true },
                                         onEndSession = { viewModel.toggleVpn(desiredState = false) },
                                         onOpenExitNodes = { navController.navigate("exitNodes") },
@@ -782,8 +785,18 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Wireless debugging is the channel the analyst uses to attach over Wi-Fi; read the
+    // real OS setting so the Home card reflects actual state, not an in-app guess.
+    private fun isWirelessDebuggingOn(): Boolean =
+        try {
+            Settings.Global.getInt(contentResolver, "adb_wifi_enabled", 0) == 1
+        } catch (e: Exception) {
+            false
+        }
+
     override fun onResume() {
         super.onResume()
+        adbWifiEnabled = isWirelessDebuggingOn()
         val restrictionsManager =
             this.getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
         lifecycleScope.launch(Dispatchers.IO) {
