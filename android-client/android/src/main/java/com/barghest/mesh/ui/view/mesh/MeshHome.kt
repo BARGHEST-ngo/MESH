@@ -220,12 +220,12 @@ fun MeshHomeScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (!connected) {
-                MeshButton(stringResource(R.string.mesh_start_cta), actions.onStart, full = true, height = 56.dp, icon = "shield")
                 Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                     InfoTile(Modifier.weight(1f), "lock", stringResource(R.string.mesh_tile_encrypted_title), stringResource(R.string.mesh_tile_encrypted_sub))
                     InfoTile(Modifier.weight(1f), "eyeOff", stringResource(R.string.mesh_tile_notrack_title), stringResource(R.string.mesh_tile_notrack_sub))
                     InfoTile(Modifier.weight(1f), "power", stringResource(R.string.mesh_tile_control_title), stringResource(R.string.mesh_tile_control_sub))
                 }
+                MeshButton(stringResource(R.string.mesh_start_cta), actions.onStart, full = true, height = 56.dp, icon = "shield")
                 AdbCard(adbReady, actions.onOpenAdb)
                 MeshCard(onClick = actions.onOpenLearn) {
                     MeshRow(
@@ -301,9 +301,7 @@ private fun AdbCard(ready: Boolean, onOpen: () -> Unit) {
 private fun InfoTile(modifier: Modifier, icon: String, title: String, sub: String) {
     val cs = MaterialTheme.colorScheme
     Column(
-        modifier
-            .meshCard(RoundedCornerShape(16.dp), cs.meshCard, cs.meshBorder)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+        modifier.padding(horizontal = 8.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         MeshIcon(icon, size = 18.dp, color = cs.meshText2)
