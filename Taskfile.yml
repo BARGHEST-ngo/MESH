@@ -129,6 +129,7 @@ tasks:
       - printf "\033[1;32mDomain name set to {{.CONTROL_PLANE_DOMAIN_ONLY}}.\033[0m\n\n"
       - echo "CONTROL_PLANE_DOMAIN={{.CONTROL_PLANE_DOMAIN_ONLY}}" >> .env
       - echo "CORS_ORIGIN={{.CORS_ORIGIN | default .DEFAULT_CORS_ORIGIN }}" >> .env
+      - echo "CONTROL_PLANE_URL=https://{{.CONTROL_PLANE_DOMAIN_ONLY}}" >> .env
     deps:
       - createDotEnv
 

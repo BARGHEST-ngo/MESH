@@ -19,11 +19,12 @@ services:
     environment:
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
       - NGINX_MODE=${NGINX_MODE:-prod}
+      - CONTROL_PLANE_URL=${CONTROL_PLANE_URL}
     depends_on:
       - headscale
     ports:
       - "127.0.0.1:80:8080"
-    entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE' < /etc/nginx/nginx.conf.template > /tmp/nginx.conf && nginx -c /tmp/nginx.conf -g 'daemon off;'"
+    entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE $$CONTROL_PLANE_URL' < /etc/nginx/nginx.conf.template > /tmp/nginx.conf && nginx -c /tmp/nginx.conf -g 'daemon off;'"
 
   analyst:
     build:
