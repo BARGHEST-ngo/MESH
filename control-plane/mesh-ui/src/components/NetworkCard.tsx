@@ -19,7 +19,7 @@ export function NetworkCard({ network }: NetworkCardProps) {
   const [keyDialogOpen, setKeyDialogOpen] = useState(false)
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   
-  const { data: nodes = [], isLoading: nodesLoading } = useNodesByNetwork(expanded ? network.name : undefined)
+  const { data: nodes = [], isLoading: nodesLoading } = useNodesByNetwork(network.name)
   const deleteNetwork = useDeleteNetwork()
   const deleteNode = useDeleteNode()
   const expireNode = useExpireNode()
