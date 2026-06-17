@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.barghest.mesh.R
 import com.barghest.mesh.ui.theme.listItem
+import com.barghest.mesh.ui.theme.meshFieldColors
 import com.barghest.mesh.ui.theme.off
 import com.barghest.mesh.ui.theme.success
 import com.barghest.mesh.ui.util.Lists
@@ -202,6 +203,7 @@ private fun AWGNumberField(
                 },
                 modifier = Modifier.width(80.dp),
                 singleLine = true,
+                colors = MaterialTheme.colorScheme.meshFieldColors,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         }
@@ -257,6 +259,7 @@ private fun AWGSmallNumberField(
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            colors = MaterialTheme.colorScheme.meshFieldColors,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
     }

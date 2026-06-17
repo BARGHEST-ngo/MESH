@@ -15,6 +15,8 @@ object Links {
   const val SERVER_URL = ""
   const val ADMIN_URL = SERVER_URL + "/admin"
   const val SIGNIN_URL = ""
+  const val SOURCE_REPO_URL = "https://github.com/BARGHEST-ngo/MESH"
+  const val LICENSE_URL = "https://github.com/BARGHEST-ngo/MESH/blob/main/LICENSE"
   const val PRIVACY_POLICY_URL = "https://barghest.asia/mesh/priv"
   const val TERMS_URL = "https://barghest.asia/mesh/terms"
   const val DOCS_URL = "https://barghest.asia/mesh/docs"
