@@ -1,0 +1,9 @@
+serverAddr = "frps"
+serverPort = 7000
+
+[[proxies]]
+name = "headscale"
+type = "http"
+localIP = "headscale"
+localPort = 8080
+subdomain = "MESH_SUBDOMAIN"
