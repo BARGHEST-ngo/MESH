@@ -35,12 +35,26 @@ export function NetworkCard({ network }: NetworkCardProps) {
       : `Are you sure you want to delete "${network.name}"?`
     
     if (window.confirm(confirmMessage)) {
-      try {
+      try { 
+        if (clientCount > 0) {
+          await handleDeleteAllNodes()
+        }
         await deleteNetwork.mutateAsync(network)
       } catch (error) {
         console.error('Failed to delete network:', error)
         alert('Failed to delete network. Make sure all clients are removed first.')
       }
+    }
+  }
+
+  const handleDeleteAllNodes = async () => {
+    try {
+      for (const node of nodes) {
+        if (!node.id) continue
+        await deleteNode.mutateAsync(node.id)
+      }
+    } catch(error) {
+      console.error('Failed to delete node:', error)
     }
   }
 
