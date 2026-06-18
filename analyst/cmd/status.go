@@ -131,18 +131,19 @@ func runStatus(ctx context.Context, args []string) error {
 		fmt.Fprintf(os.Stdout, "\n")
 	}
 
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
+	fmt.Fprintf(w, "IP\tDNS Name\tOS\tRelay\tHostname\n")
+
 	if statusArgs.self && st.Self != nil {
 		ip := ""
 		if len(st.Self.TailscaleIPs) > 0 {
 			ip = st.Self.TailscaleIPs[0].String()
 		}
-		fmt.Fprintf(os.Stdout, "%-15s %-20s %-12s %-7s %s\n", ip, st.Self.DNSName, "-", "-", st.Self.HostName)
+		fmt.Fprintf(w, "*%s\t%s\t%s\t%s\t%s\n",
+			ip, st.Self.DNSName, "-", "-", st.Self.HostName)
 	}
 
 	if statusArgs.peers {
-		w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
-		fmt.Fprintf(w, "IP\tDNS Name\tOS\tRelay\tHostname\n")
-
 		for _, peerKey := range st.Peers() {
 			peer := st.Peer[peerKey]
 			if statusArgs.active && !peer.Active {
