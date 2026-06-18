@@ -148,7 +148,7 @@ tasks:
       TOKEN: 'ask-dave'
       VPS_HOST: 'ask-dave'
     cmds:
-      - printf "\033[1;32mGenerated deployment ID {{.SLUG}} with auth token\033[0m\n\n"
+      - printf "\033[1;32mGenerated deployment ID {{.SLUG}} with auth token {{.TOKEN}}\033[0m\n\n"
       - echo "MESH_SUBDOMAIN={{.SLUG}}" >> .env
       - echo "FRP_AUTH_TOKEN={{.TOKEN}}" >> .env
       - echo "CONTROL_PLANE_URL=http://{{.VPS_HOST}}:8090" >> .env
