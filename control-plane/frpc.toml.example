@@ -1,9 +1,18 @@
-serverAddr = "frps"
+serverAddr = "VPS_HOST"
 serverPort = 7000
+
+auth.token = "FRP_AUTH_TOKEN"
 
 [[proxies]]
 name = "headscale"
-type = "http"
+type = "tcp"
 localIP = "headscale"
 localPort = 8080
-subdomain = "MESH_SUBDOMAIN"
+remotePort = 8090
+
+[[proxies]]
+name = "ui"
+type = "tcp"
+localIP = "ui"
+localPort = 8080
+remotePort = 8091
