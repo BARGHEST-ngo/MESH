@@ -1,23 +1,10 @@
 services:
-  frps:
-    image: snowdreamtech/frps:latest
-    restart: unless-stopped
-    volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/frps.toml:/etc/frp/frps.toml:ro
-    ports:
-      - "8090:8090"
-    networks:
-      default:
-        aliases:
-          - "${MESH_SUBDOMAIN:-unset}.mesh.internal"
-
   frpc:
     image: snowdreamtech/frpc:latest
     restart: unless-stopped
     volumes:
       - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/frpc.toml:/etc/frp/frpc.toml:ro
     depends_on:
-      - frps
       - headscale
 
   headscale:
