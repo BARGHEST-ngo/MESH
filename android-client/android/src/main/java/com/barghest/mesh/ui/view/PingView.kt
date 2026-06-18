@@ -40,7 +40,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,6 +61,7 @@ import com.patrykandpatrick.vico.core.entry.FloatEntry
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import com.barghest.mesh.R
 import com.barghest.mesh.ui.model.Tailcfg
+import com.barghest.mesh.ui.theme.MeshMono
 import com.barghest.mesh.ui.util.ConnectionMode
 import com.barghest.mesh.ui.viewModel.PingViewModel
 import java.text.DecimalFormat
@@ -115,7 +115,7 @@ fun PingView(model: PingViewModel = viewModel()) {
               }) { latency ->
                 Text(
                     latency,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MeshMono,
                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     textAlign = TextAlign.Right,
                     modifier = Modifier.fillMaxWidth())

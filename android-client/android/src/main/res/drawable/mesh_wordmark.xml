@@ -1,0 +1,11 @@
+<!-- MESH pixel wordmark (from mesh_pixel_wordmark_transparent.svg), cropped to the glyph
+     bounds (original 869x488 had large empty margins). White fill; tint at render. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="42dp"
+    android:viewportWidth="782"
+    android:viewportHeight="166">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M0,3 h41 v164 h-41 z M91,40 h42 v127 h-42 z M183,40 h42 v127 h-42 z M0,3 h183 v37 h-183 z M251,0 h42 v166 h-42 z M251,0 h141 v37 h-141 z M251,64 h141 v37 h-141 z M251,129 h141 v37 h-141 z M419,0 h113 v37 h-113 z M419,0 h42 v101 h-42 z M419,64 h150 v37 h-150 z M527,101 h42 v65 h-42 z M419,129 h150 v37 h-150 z M594,0 h42 v166 h-42 z M740,0 h42 v166 h-42 z M594,64 h188 v37 h-188 z" />
+</vector>

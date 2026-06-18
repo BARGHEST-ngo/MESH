@@ -1,0 +1,18 @@
+<!-- Adaptive-icon foreground: the MESH wordmark centred within the 108x108 safe zone
+     (~58/108 wide) so the launcher mask never crops it. White; the brown comes from
+     the adaptive background (@color/mesh_background). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="25"
+        android:translateY="47.84"
+        android:scaleX="0.07417"
+        android:scaleY="0.07417">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M0,3 h41 v164 h-41 z M91,40 h42 v127 h-42 z M183,40 h42 v127 h-42 z M0,3 h183 v37 h-183 z M251,0 h42 v166 h-42 z M251,0 h141 v37 h-141 z M251,64 h141 v37 h-141 z M251,129 h141 v37 h-141 z M419,0 h113 v37 h-113 z M419,0 h42 v101 h-42 z M419,64 h150 v37 h-150 z M527,101 h42 v65 h-42 z M419,129 h150 v37 h-150 z M594,0 h42 v166 h-42 z M740,0 h42 v166 h-42 z M594,64 h188 v37 h-188 z" />
+    </group>
+</vector>
