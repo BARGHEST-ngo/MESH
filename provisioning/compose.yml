@@ -1,0 +1,10 @@
+services:
+  provisioner:
+    build:
+      context: ../
+      dockerfile: provisioning/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:8080"
+    env_file:
+      - provisioner.env
