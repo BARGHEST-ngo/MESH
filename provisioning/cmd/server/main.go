@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
 
 // This is an intentionally light-weight and basic HTTP server
@@ -23,9 +25,33 @@ func main() {
 		log.Fatal("PROVISIONING_API_KEY must be set")
 	}
 
+	portMin := os.Getenv("FRPS_PORT_MIN")
+	if portMin == "" {
+		log.Fatal("FRPS_PORT_MIN must be set")
+	}
+
+	portMinInt, err := strconv.Atoi(portMin)
+	if err != nil {
+		log.Fatal("FRPS_PORT_MIN must be set")
+	}
+
+	portMax := os.Getenv("FRPS_PORT_MAX")
+	if portMin == "" {
+		log.Fatal("FRPS_PORT_MIN must be set")
+	}
+	portMaxInt, err := strconv.Atoi(portMax)
+	if err != nil {
+		log.Fatal("FRPS_PORT_MIN must be set")
+	}
+
+	registry, err := state.New("", portMinInt, portMaxInt)
+	if err != nil {
+		log.Fatal("failed to initialise port registry")
+	}
+
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(apiKey),
+		Handler:      api.NewRouter(apiKey, registry),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}

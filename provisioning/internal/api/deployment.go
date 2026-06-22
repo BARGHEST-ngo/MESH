@@ -10,7 +10,7 @@ import (
 
 // Provision a new frp container
 // Generate subdomain slug, token & return to client
-func handlePostDeployment(w http.ResponseWriter, r *http.Request) {
+func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 	slug, err := generateSlug()
 	if err != nil {
 		// write error
@@ -23,10 +23,18 @@ func handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	port, err := h.registry.AllocatePort(slug, token)
+	if err != nil {
+		//write error
+		return
+	}
+
+	// start container
+
 	response := &DeploymentResponse{
-		Slug:  slug,
-		Token: token,
-		
+		Slug:     slug,
+		Token:    token,
+		FrpsPort: port,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
@@ -44,4 +52,4 @@ func generateToken() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(b), err
 }
 
-func handleDeleteDeployment(w http.ResponseWriter, r *http.Request) {}
+func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request) {}

@@ -1,5 +1,8 @@
 package state
 
+// State Registry tracks the internal state of deployments
+// Primarily tracks allocated ports for all started containers
+
 import (
 	"encoding/json"
 	"fmt"
