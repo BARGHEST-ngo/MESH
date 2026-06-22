@@ -2,6 +2,8 @@ package api
 
 import (
 	"crypto/rand"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 )
@@ -15,25 +17,31 @@ func handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, err := generateToken()
+	if err != nil {
+		// write error
+		return
+	}
+
 	response := &DeploymentResponse{
-		Slug: slug,
+		Slug:  slug,
+		Token: token,
+		
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
 func generateSlug() (string, error) {
-	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-	b := make([]byte, 10)
+	b := make([]byte, 5)
 	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
+	return hex.EncodeToString(b), err
+}
 
-	for i := range b {
-		b[i] = charset[int(b[i])%len(charset)]
-	}
-	return string(b), nil
+func generateToken() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	return base64.RawURLEncoding.EncodeToString(b), err
 }
 
 func handleDeleteDeployment(w http.ResponseWriter, r *http.Request) {}
