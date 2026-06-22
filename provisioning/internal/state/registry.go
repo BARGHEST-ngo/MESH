@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -31,6 +32,9 @@ type Registry struct {
 }
 
 func New(path string, portMin, portMax int) (*Registry, error) {
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return nil, fmt.Errorf("failed to create state directory: %w", err)
+	}
 	r := &Registry{
 		path:    path,
 		portMin: portMin,
