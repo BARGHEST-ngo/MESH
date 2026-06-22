@@ -32,19 +32,19 @@ func main() {
 
 	portMinInt, err := strconv.Atoi(portMin)
 	if err != nil {
-		log.Fatal("FRPS_PORT_MIN must be set")
+		log.Fatal("failed to parse FRPS_PORT_MIN")
 	}
 
 	portMax := os.Getenv("FRPS_PORT_MAX")
 	if portMin == "" {
-		log.Fatal("FRPS_PORT_MIN must be set")
+		log.Fatal("FRPS_PORT_MAX must be set")
 	}
 	portMaxInt, err := strconv.Atoi(portMax)
 	if err != nil {
-		log.Fatal("FRPS_PORT_MIN must be set")
+		log.Fatal("failed to parse FRPS_PORT_MAX")
 	}
 
-	registry, err := state.New("", portMinInt, portMaxInt)
+	registry, err := state.New("/var/lib/mesh-provisioner/state.json", portMinInt, portMaxInt)
 	if err != nil {
 		log.Fatal("failed to initialise port registry")
 	}

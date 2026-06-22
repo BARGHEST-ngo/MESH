@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -13,19 +14,19 @@ import (
 func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 	slug, err := generateSlug()
 	if err != nil {
-		// write error
+		http.Error(w, "failed to generate slug", http.StatusInternalServerError)
 		return
 	}
 
 	token, err := generateToken()
 	if err != nil {
-		// write error
+		http.Error(w, "failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
 	port, err := h.registry.AllocatePort(slug, token)
 	if err != nil {
-		//write error
+		http.Error(w, fmt.Sprintf("failed to allocate port: %v", err), http.StatusInternalServerError)
 		return
 	}
 
