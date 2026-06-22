@@ -31,7 +31,7 @@
 
 **MESH is a networking tool, to support remote logical forensics acquision on mobile devices**
 
-MESH gives analysts a direct, encrypted path to mobile devices for wireless debugging and forensic acquisition, even when those devices sit behind NAT, firewalls, or restrictive mobile networks. It builds a private overlay so a remote device behaves as if it were on the same local subnet. It does not require central VPN servers, no port forwarding, and no permanent infrastructure to maintain or defend. This allows for seemless and easy remote, over the internet, acquision with [MVT](https://github.com/mvt-project/mvt) and [AndroidQF](https://github.com/mvt-project/androidqf).
+MESH gives analysts a direct, encrypted path to mobile devices for wireless debugging, network monitoring and forensic acquisition, even when those devices sit behind NAT, firewalls, or restrictive mobile networks. It builds a private overlay so a remote device behaves as if it were on the same local subnet. It does not require central VPN servers, no port forwarding, and no permanent infrastructure to maintain or defend. This allows for seemless and easy remote, over the internet, network monitoring and acquision with the likes of [MVT](https://github.com/mvt-project/mvt) and [AndroidQF](https://github.com/mvt-project/androidqf).
 
 ## What it does
 
