@@ -24,15 +24,21 @@ tasks:
 
   controlPlane:
     desc: Start MESH control plane
-    cmd: docker compose up -d headscale ui
+    cmds:
+      - cmd: docker compose up -d headscale ui frpc
+        if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
+      - cmd: docker compose up -d headscale ui
+        if: '! grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
     deps:
       - configureControlPlane
 
   configureControlPlane:
     cmds:
       - task: controlPlaneType
+      - task: ephemeralDomain
       - task: controlPlaneDomain
       - task: headscaleConfig
+        if: '! grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
       - task: confirmDotEnv
 
   down:
@@ -106,7 +112,7 @@ tasks:
 
   controlPlaneDomain:
     internal: true
-    if: '[ -z $CONTROL_PLANE_DOMAIN ]'
+    if: '[ -z "$CONTROL_PLANE_DOMAIN" ] && ! grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
     cmds:
       - |
         printf "\033[1;36m╔═════════════════════════════════════════════════════════════════════════════════════╗\033[0m\n"
@@ -133,28 +139,62 @@ tasks:
     deps:
       - createDotEnv
 
+  ephemeralDomain:
+    internal: true
+    if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null && [ -z "$MESH_SUBDOMAIN" ]'
+    vars:
+      SLUG:
+        sh: LC_ALL=C head -c 256 /dev/urandom | tr -dc 'a-z0-9' | head -c 10
+      TOKEN: 'ask-dave'
+      VPS_HOST: 'ask-dave'
+    cmds:
+      - printf "\033[1;32mGenerated deployment ID {{.SLUG}} with auth token {{.TOKEN}}\033[0m\n\n"
+      - echo "MESH_SUBDOMAIN={{.SLUG}}" >> .env
+      - echo "FRP_AUTH_TOKEN={{.TOKEN}}" >> .env
+      - echo "CONTROL_PLANE_URL=http://{{.VPS_HOST}}:8090" >> .env
+      - echo "LOGIN_URL=http://{{.VPS_HOST}}:8090" >> .env
+      - cmd: >
+          sed -e "s|VPS_HOST|{{.VPS_HOST}}|g" -e "s|FRP_AUTH_TOKEN|{{.TOKEN}}|g"
+          control-plane/frpc.toml.example > control-plane/frpc.toml
+        platforms: [linux, darwin]
+      - cmd: >
+          sed -e "s|CONTROL_PLANE_URL|http://{{.VPS_HOST}}:8090|g"
+          control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
+        platforms: [linux, darwin]
+    deps:
+      - createDotEnv
+
+  frpcConfig:
+    internal: true
+    if: '[ -n "$MESH_SUBDOMAIN" ]'
+    requires:
+      vars:
+        - MESH_SUBDOMAIN
+    cmds:
+      - cmd: >
+          sed -e "s|MESH_SUBDOMAIN|{{.MESH_SUBDOMAIN}}|g"
+          control-plane/frpc.toml.example > control-plane/frpc.toml
+        platforms: [linux, darwin]
+
   headscaleConfig:
     internal: true
     requires:
       vars:
-        - CONTROL_PLANE_DOMAIN
-    vars:
-      CONTROL_PLANE_DOMAIN_VALUE: '{{.CONTROL_PLANE_DOMAIN | default "localhost"}}'
-      CONTROL_PLANE_DOMAIN_ONLY: '{{.CONTROL_PLANE_DOMAIN_VALUE | replace "http://" "" | replace "https://" "" | trimAll " "}}'
+        - CONTROL_PLANE_URL
     cmds:
       - cmd: >
-          sed -e "s/CONTROL_PLANE_DOMAIN/{{.CONTROL_PLANE_DOMAIN_ONLY}}/g"
+          sed -e "s|CONTROL_PLANE_URL|{{.CONTROL_PLANE_URL}}|g"
           control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
         platforms: [linux, darwin]
       - cmd: >
           powershell -Command
-          "(Get-Content 'control-plane/headscale/config.example.yaml') -replace 'CONTROL_PLANE_DOMAIN', '{{.CONTROL_PLANE_DOMAIN_ONLY}}' |
+          "(Get-Content 'control-plane/headscale/config.example.yaml') -replace 'CONTROL_PLANE_URL', '{{.CONTROL_PLANE_URL}}' |
           Set-Content 'control-plane/headscale/config.yaml'"
         platforms: [windows]
 
   loginUrl:
     internal: true
-    if: '[ "$CONTROL_PLANE_TYPE" != "Ephemeral" -a -z $LOGIN_URL ]'
+    if: '! grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null && [ -z "$LOGIN_URL" ]'
     cmds:
       - |
         printf "\033[1;36m╔═════════════════════════════════════════════════════╗\033[0m\n"
