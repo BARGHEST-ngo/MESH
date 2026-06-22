@@ -4,15 +4,21 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"net/http"
+
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
 
-func NewRouter(apiKey string) http.Handler {
-	keyHash := sha256.Sum256([]byte(apiKey))
+type handler struct {
+	registry *state.Registry
+}
 
+func NewRouter(apiKey string, registry *state.Registry) http.Handler {
+	keyHash := sha256.Sum256([]byte(apiKey))
+	h := &handler{registry: registry}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handleHealth)
-	mux.HandleFunc("POST /deployment", handlePostDeployment)
-	mux.HandleFunc("DELETE /deployment", handleDeleteDeployment)
+	mux.HandleFunc("POST /deployment", h.handlePostDeployment)
+	mux.HandleFunc("DELETE /deployment/{slug}", h.handleDeleteDeployment)
 
 	return authRequest(keyHash, mux)
 }
