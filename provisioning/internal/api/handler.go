@@ -11,7 +11,8 @@ func NewRouter(apiKey string) http.Handler {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handleHealth)
-	mux.HandleFunc("POST /deployment", handleDeployment)
+	mux.HandleFunc("POST /deployment", handlePostDeployment)
+	mux.HandleFunc("DELETE /deployment", handleDeleteDeployment)
 
 	return authRequest(keyHash, mux)
 }
