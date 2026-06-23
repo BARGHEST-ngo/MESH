@@ -37,7 +37,7 @@ func main() {
 	}
 
 	portMax := os.Getenv("FRPS_PORT_MAX")
-	if portMax == "" {
+	if portMin == "" {
 		log.Fatal("FRPS_PORT_MAX must be set")
 	}
 	portMaxInt, err := strconv.Atoi(portMax)
@@ -53,8 +53,8 @@ func main() {
 	srv := &http.Server{
 		Addr:         ":8080",
 		Handler:      api.NewRouter(apiKey, registry),
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
 	}
 
 	go func() {
