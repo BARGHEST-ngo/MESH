@@ -37,6 +37,7 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		Token:    token,
 		FrpsPort: port,
 	}
+	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
