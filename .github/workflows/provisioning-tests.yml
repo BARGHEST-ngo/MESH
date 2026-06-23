@@ -1,0 +1,20 @@
+name: Provisioning Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'provisioning/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/provisioning-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - run: go test ./provisioning/...
