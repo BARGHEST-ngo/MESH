@@ -5,10 +5,9 @@ import { useTheme } from '../lib/theme'
 import { Button } from './ui/button'
 import { Wordmark } from './Wordmark'
 
-const navItemBase =
-  'flex items-center gap-3 px-3.5 py-3 rounded-[10px] text-[14.5px] font-semibold transition-colors border border-transparent text-foreground hover:bg-card-hi'
-const navItemActive =
-  'flex items-center gap-3 px-3.5 py-3 rounded-[10px] text-[14.5px] font-semibold transition-colors border border-primary/40 bg-primary/15 text-primary'
+const navBase = 'flex items-center gap-3 px-3.5 py-3 rounded-[10px] text-[14.5px] font-semibold transition-colors border'
+const navItem = `${navBase} border-transparent text-foreground hover:bg-card-hi`
+const navItemActive = `${navBase} border-primary/40 bg-primary/15 text-primary`
 
 export default function Sidebar() {
   const { logout } = useAuth()
@@ -31,11 +30,11 @@ export default function Sidebar() {
         <div className="text-[11px] font-semibold tracking-[0.3px] text-muted-foreground uppercase px-3.5 pt-2 pb-1.5">
           Menu
         </div>
-        <Link to="/" className={navItemBase} activeOptions={{ exact: true }} activeProps={{ className: navItemActive }}>
+        <Link to="/" className={navItem} activeOptions={{ exact: true }} activeProps={{ className: navItemActive }}>
           <Home size={19} />
           Networks
         </Link>
-        <Link to="/acl" className={navItemBase} activeProps={{ className: navItemActive }}>
+        <Link to="/acl" className={navItem} activeProps={{ className: navItemActive }}>
           <Shield size={19} />
           Access policy
         </Link>
