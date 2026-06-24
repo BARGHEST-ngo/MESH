@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import { Switch } from './ui/switch'
 import { useCreatePreAuthKey } from '../api/usePreAuthKeys'
-import { Copy, Check } from 'lucide-react'
+import { Copy, Check, Key, Lock, AlertTriangle, Laptop, Smartphone } from 'lucide-react'
 import { encrypt } from '../lib/onboardingCrypto'
 import { QRCodeCanvas } from 'qrcode.react'
 import { useControlPlaneUrl } from '@/api/useConfig'
@@ -13,6 +14,11 @@ interface GenerateKeyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   networkName: string
+}
+
+const TAG_LABEL: Record<'analyst' | 'mobile_node', string> = {
+  analyst: 'Analyst',
+  mobile_node: 'Mobile node',
 }
 
 function isLocalhost(url: string): boolean {
@@ -32,7 +38,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
   const [ephemeral, setEphemeral] = useState(false)
   const [expirationDays, setExpirationDays] = useState('0')
   const [expirationHours, setExpirationHours] = useState('1')
-  const [deviceTag, setDeviceTag] = useState<'analyst' | 'mobile_node'>('analyst')
+  const [deviceTag, setDeviceTag] = useState<'analyst' | 'mobile_node'>('mobile_node')
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
   const [intent, setIntent] = useState<string | null>(null)
   const [pin, setPin] = useState<string | null>(null)
@@ -69,7 +75,7 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
       }
 
       const hours = parseInt(expirationHours) || 0
-      const days = parseInt(expirationDays) || 0 
+      const days = parseInt(expirationDays) || 0
       const expiration = new Date()
       expiration.setDate(expiration.getDate() + days)
       expiration.setHours(expiration.getHours() + hours)
@@ -101,7 +107,6 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
       }
 
       setGeneratedKey(authKey || null)
-
     } catch (error) {
       console.error('Failed to generate key:', error)
       setIntentError('Failed to generate key')
@@ -127,13 +132,16 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
 
   const handleClose = () => {
     setGeneratedKey(null)
+    setIntent(null)
+    setPin(null)
     setReusable(false)
     setEphemeral(false)
     setExpirationDays('0')
     setExpirationHours('1')
-    setDeviceTag('analyst')
+    setDeviceTag('mobile_node')
     setCopied(false)
     setUrlError('')
+    setIntentError('')
     onOpenChange(false)
   }
 
@@ -141,198 +149,182 @@ export function GenerateKeyDialog({ open, onOpenChange, networkName }: GenerateK
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>&gt; GENERATE_AUTH_KEY</DialogTitle>
+          <DialogTitle>Generate auth key</DialogTitle>
           <DialogDescription>
-            Create a pre-authentication key to register new devices to <span className="text-primary font-semibold">{networkName}</span>
+            Register a new device to <span className="text-primary font-semibold">{networkName}</span>
           </DialogDescription>
         </DialogHeader>
 
         {!generatedKey ? (
           <>
-            <div className="space-y-4 my-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="reusable">Reusable</Label>
-                  <p className="text-xs text-muted-foreground">Allow multiple devices to use this key</p>
-                </div>
-                <Input
-                  id="reusable"
-                  type="checkbox"
-                  checked={reusable}
-                  onChange={(e) => setReusable(e.target.checked)}
-                  className="h-4 w-4"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="ephemeral">Ephemeral</Label>
-                  <p className="text-xs text-muted-foreground">Devices will be deleted when they disconnect</p>
-                </div>
-                <Input
-                  id="ephemeral"
-                  type="checkbox"
-                  checked={ephemeral}
-                  onChange={(e) => setEphemeral(e.target.checked)}
-                  className="h-4 w-4"
-                />
-              </div>
-
+            <div className="space-y-[18px] my-5">
               <div>
-                <Label htmlFor="deviceTag">Device Tag</Label>
+                <Label className="mb-2">Device type</Label>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setDeviceTag('analyst')}
-                    className={`flex-1 px-4 py-2 rounded border transition-colors ${
-                      deviceTag === 'analyst'
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-secondary border-border hover:bg-secondary/80'
-                    }`}
-                  >
-                    [ ANALYST ]
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeviceTag('mobile_node')}
-                    className={`flex-1 px-4 py-2 rounded border transition-colors ${
-                      deviceTag === 'mobile_node'
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-secondary border-border hover:bg-secondary/80'
-                    }`}
-                  >
-                    [ MOBILE_NODE ]
-                  </button>
+                  {(['mobile_node', 'analyst'] as const).map((tg) => (
+                    <button
+                      key={tg}
+                      type="button"
+                      onClick={() => setDeviceTag(tg)}
+                      className={`flex-1 h-11 rounded-[10px] flex items-center justify-center gap-2 text-sm font-semibold border transition-colors ${
+                        deviceTag === tg
+                          ? 'bg-primary/15 border-primary text-primary'
+                          : 'bg-card border-border text-text2 hover:bg-card-hi'
+                      }`}
+                    >
+                      {tg === 'analyst' ? <Laptop size={17} /> : <Smartphone size={17} />}
+                      {TAG_LABEL[tg]}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {deviceTag === 'mobile_node' && (
                 <div>
-                  <Label htmlFor="controlPlaneURL">ControlPlaneURL</Label>
+                  <Label htmlFor="controlPlaneURL" className="mb-2">Control plane URL</Label>
                   <Input
                     id="controlPlaneURL"
                     type="text"
                     value={controlPlaneURL}
                     onChange={(e) => { setControlPlaneURL(e.target.value); setUrlError('') }}
-                    placeholder="https://publicControlplaneURL.example.com"
-                    className={`mt-2 ${urlError ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                    placeholder="https://mesh.example.org"
+                    className="font-mono"
+                    aria-invalid={!!urlError}
                     required
                   />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Public URL that field devices will use to connect to you
-                  </p>
+                  <p className="text-xs text-soft mt-1.5">Public address field devices use to reach you.</p>
+                  {urlError && <p className="text-xs text-destructive mt-1">{urlError}</p>}
                   {isLocalhost(controlPlaneURL) && (
-                    <p className="text-xs text-yellow-400 mt-1">
-                      Warning: This appears to be a local URL. Field devices won't be able to reach it.
+                    <p className="text-xs text-warning mt-1">
+                      Warning: this looks like a local URL. Field devices won't be able to reach it.
                     </p>
                   )}
                 </div>
               )}
 
-              <div>
-                <Label htmlFor="expirationHr">Expiration (hours)</Label>
-                <Input
-                  id="expirationHr"
-                  type="number"
-                  value={expirationHours}
-                  onChange={(e) => setExpirationHours(e.target.value)}
-                  min="1"
-                  max="23"
-                  className="mt-1"
+              <div className="border border-border rounded-xl overflow-hidden">
+                <ToggleRow
+                  label="Reusable"
+                  sub="Allow multiple devices to use this key"
+                  on={reusable}
+                  onChange={setReusable}
+                />
+                <ToggleRow
+                  label="Ephemeral"
+                  sub="Remove the device when it disconnects"
+                  on={ephemeral}
+                  onChange={setEphemeral}
+                  border
                 />
               </div>
 
-              <div>
-                <Label htmlFor="expiration">Expiration (days)</Label>
-                <Input
-                  id="expiration"
-                  type="number"
-                  value={expirationDays}
-                  onChange={(e) => setExpirationDays(e.target.value)}
-                  min="0"
-                  max="365"
-                  className="mt-1"
-                />
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Label htmlFor="expirationHr" className="mb-2">Expires in (hours)</Label>
+                  <Input id="expirationHr" type="number" value={expirationHours}
+                    onChange={(e) => setExpirationHours(e.target.value)} min="0" max="23" className="font-mono" />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="expiration" className="mb-2">Expires in (days)</Label>
+                  <Input id="expiration" type="number" value={expirationDays}
+                    onChange={(e) => setExpirationDays(e.target.value)} min="0" max="365" className="font-mono" />
+                </div>
               </div>
             </div>
 
-            {intentError && (
-              <p className="text-xs text-red-500 mt-1">{intentError}</p>
-            )}
+            {intentError && <p className="text-xs text-destructive mt-1">{intentError}</p>}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleClose}>
-                [ CANCEL ]
-              </Button>
+              <Button type="button" variant="ghost" onClick={handleClose}>Cancel</Button>
               <Button onClick={handleGenerate} disabled={createKey.isPending}>
-                {createKey.isPending ? '[ GENERATING... ]' : '[ GENERATE ]'}
+                <Key size={17} />
+                {createKey.isPending ? 'Generating…' : 'Generate key'}
               </Button>
             </DialogFooter>
           </>
         ) : (
           <>
-            <div className="my-6">
+            <div className="my-5">
               {intent && pin ? (
                 <>
-                  <Label>Scan QR Code</Label>
-                  <div className="qr-download mt-2 flex justify-center p-4 bg-white rounded">
-                    <QRCodeCanvas value={intent} size={220} />
+                  <Label className="mb-2">Scan to onboard the device</Label>
+                  <div className="qr-download flex justify-center p-[18px] bg-white rounded-[14px] mb-2">
+                    <QRCodeCanvas value={intent} size={200} />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Send this QR code image to the field operator via Signal. They scan it with Google Lens to open MESH.
+                  <p className="text-[12.5px] text-text2 mb-[18px] leading-relaxed">
+                    Send this QR image to the field operator over Signal. They scan it to open MESH.
                   </p>
-                  <Label className="mt-4 block">PIN</Label>
-                  <div className="mt-2 p-4 bg-secondary border border-border rounded font-mono text-lg tracking-widest">
-                    {pin}
+
+                  <Label className="mb-2">PIN, read aloud over voice only</Label>
+                  <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-[11px] bg-inset border border-border mb-2">
+                    <Lock size={18} className="text-warning" />
+                    <span className="font-mono text-[22px] font-bold tracking-[6px] text-foreground">{pin}</span>
                   </div>
-                  <p className="text-xs text-yellow-400 mt-2">
-                    Read the PIN to the field operator over voice — do not send it digitally.
-                  </p>
-                  <Label className="mt-4 block">Auth Key (manual join)</Label>
-                  <p className="text-xs text-muted-foreground mb-1">Fallback if QR is not usable.</p>
-                  <div className="mt-1 p-4 bg-secondary border border-border rounded font-mono text-sm break-all">
-                    {generatedKey}
+                  <div className="flex items-center gap-1.5 mb-[18px]">
+                    <AlertTriangle size={13} className="text-warning" />
+                    <span className="text-xs text-warning">Never send the PIN digitally.</span>
                   </div>
+
+                  <Label className="mb-2">Auth key (manual fallback)</Label>
+                  <KeyBlock value={generatedKey} />
                 </>
               ) : (
                 <>
-                  <Label>Generated Key</Label>
-                  <div className="mt-2 p-4 bg-secondary border border-border rounded font-mono text-sm break-all">
-                    {generatedKey}
+                  <Label className="mb-2">Generated key</Label>
+                  <KeyBlock value={generatedKey} />
+                  <div className="flex items-center gap-1.5 mt-2.5">
+                    <AlertTriangle size={14} className="text-warning" />
+                    <span className="text-[12.5px] text-warning">Copy this now. It won't be shown again.</span>
                   </div>
-                  <p className="text-xs text-yellow-400 mt-2">
-                    Copy this key now! You won't be able to see it again.
-                  </p>
                 </>
               )}
             </div>
 
             <DialogFooter>
               {intent && pin ? (
-                <Button onClick={handleDownloadQR} className="flex items-center gap-2">
-                  [ DOWNLOAD QR ]
-                </Button>
+                <Button variant="secondary" onClick={handleDownloadQR}>Download QR</Button>
               ) : (
-                <Button onClick={handleCopy} className="flex items-center gap-2">
-                  {copied ? (
-                    <>
-                      <Check size={16} />
-                      [ COPIED ]
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={16} />
-                      [ COPY KEY ]
-                    </>
-                  )}
+                <Button variant="secondary" onClick={handleCopy}>
+                  {copied ? <Check size={16} /> : <Copy size={16} />}
+                  {copied ? 'Copied' : 'Copy key'}
                 </Button>
               )}
-              <Button onClick={handleClose} variant="outline">
-                [ CLOSE ]
-              </Button>
+              <Button onClick={handleClose}>Done</Button>
             </DialogFooter>
           </>
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+function ToggleRow({
+  label,
+  sub,
+  on,
+  onChange,
+  border,
+}: {
+  label: string
+  sub: string
+  on: boolean
+  onChange: (v: boolean) => void
+  border?: boolean
+}) {
+  return (
+    <div className={`flex items-center gap-3 px-3.5 py-3.5 bg-card ${border ? 'border-t border-border' : ''}`}>
+      <div className="flex-1">
+        <div className="text-sm font-semibold text-foreground">{label}</div>
+        <div className="text-xs text-text2">{sub}</div>
+      </div>
+      <Switch checked={on} onCheckedChange={onChange} />
+    </div>
+  )
+}
+
+function KeyBlock({ value }: { value: string | null }) {
+  return (
+    <div className="font-mono text-[12.5px] text-text2 bg-inset border border-border rounded-[10px] px-3.5 py-3 break-all leading-relaxed">
+      {value}
+    </div>
   )
 }
