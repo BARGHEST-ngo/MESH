@@ -8,7 +8,7 @@ services:
       - headscale
 
   headscale:
-    image: docker.io/headscale/headscale:0.28.0@sha256:51b1b9182bb6219e97374fa89af6b9320d6f87ecc739e328d5357ea4fa7a5ce3
+    image: docker.io/headscale/headscale:0.29.0@sha256:5d464c7ba8f5b2c1472f926fae4cd67f136d66ec108c0b4ad1891856ac6da915
     restart: unless-stopped
     volumes:
       - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale:/etc/headscale
