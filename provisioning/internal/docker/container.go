@@ -15,15 +15,12 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
+type Manager struct{}
+
 // Todo - pin version?
 const frps_image = "snowdreamtech/frps:latest"
 
-func Start(r *state.Registry, slug string) error {
-	d, ok := r.Get(slug)
-	if !ok {
-		return fmt.Errorf("deployment not defined")
-	}
-
+func (Manager) Start(d state.Deployment) error {
 	configPath, err := writeConfig(d)
 	if err != nil {
 		return fmt.Errorf("failed to write frps config file: %w", err)
@@ -52,7 +49,7 @@ func Start(r *state.Registry, slug string) error {
 			PortBindings:  nat.PortMap{nat.Port("7000/tcp"): []nat.PortBinding{{HostPort: fmt.Sprintf("%d", d.FrpsPort)}}},
 		},
 		&network.NetworkingConfig{},
-		nil, fmt.Sprintf("frps-%s", slug))
+		nil, fmt.Sprintf("frps-%s", d.Slug))
 	if err != nil {
 		return fmt.Errorf("failed to create container: %w", err)
 	}
@@ -77,4 +74,20 @@ func writeConfig(d state.Deployment) (string, error) {
 		return "", err
 	}
 	return path, nil
+}
+
+func (Manager) Stop(slug string) error {
+	c, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	ctx := context.Background()
+	name := fmt.Sprintf("frps-%s", slug)
+	if err := c.ContainerStop(ctx, name, container.StopOptions{}); err != nil {
+		return err
+	}
+
+	return c.ContainerRemove(ctx, name, container.RemoveOptions{})
 }

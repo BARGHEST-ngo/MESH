@@ -10,23 +10,26 @@ import (
 )
 
 type handler struct {
-	registry       *state.Registry
-	startContainer func(*state.Registry, string) error
+	registry *state.Registry
+	service  ContainerService
 }
 
 type Option func(*handler)
 
-func WithStartContainer(fn func(*state.Registry, string) error) Option {
-	return func(h *handler) { h.startContainer = fn }
+func WithContainerService(svc ContainerService) Option {
+	return func(h *handler) { h.service = svc }
+}
+
+type ContainerService interface {
+	Start(d state.Deployment) error
+	Stop(slug string) error
 }
 
 func NewRouter(apiKey string, registry *state.Registry, opts ...Option) http.Handler {
 	keyHash := sha256.Sum256([]byte(apiKey))
 	h := &handler{
 		registry: registry,
-		// Injecting this here for now so tests can complete
-		// replace with interface and mocks for testing
-		startContainer: docker.Start,
+		service:  docker.Manager{},
 	}
 	for _, opt := range opts {
 		opt(h)
