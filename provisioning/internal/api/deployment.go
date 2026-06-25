@@ -34,6 +34,7 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 
 	if err := docker.Start(h.registry, slug); err != nil {
 		http.Error(w, fmt.Sprintf("failed to start container: %v", err), http.StatusInternalServerError)
+		h.registry.Release(slug)
 		return
 	}
 
@@ -42,8 +43,8 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		Token:    token,
 		FrpsPort: port,
 	}
-	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 }
 

@@ -37,7 +37,7 @@ func main() {
 	}
 
 	portMax := os.Getenv("FRPS_PORT_MAX")
-	if portMin == "" {
+	if portMax == "" {
 		log.Fatal("FRPS_PORT_MAX must be set")
 	}
 	portMaxInt, err := strconv.Atoi(portMax)
@@ -45,7 +45,12 @@ func main() {
 		log.Fatal("failed to parse FRPS_PORT_MAX")
 	}
 
-	registry, err := state.New(filepath.Join(os.TempDir(), "state.json"), portMinInt, portMaxInt)
+	dataPath := os.Getenv("HOST_DATA_PATH")
+	if dataPath == "" {
+		log.Fatal("HOST_DATA_PATH must be set")
+	}
+
+	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMinInt, portMaxInt)
 	if err != nil {
 		log.Fatal("failed to initialise port registry")
 	}
