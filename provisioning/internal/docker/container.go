@@ -57,13 +57,16 @@ func Start(r *state.Registry, slug string) error {
 		return fmt.Errorf("failed to create container: %w", err)
 	}
 
-	fmt.Printf("container id: %s", resp.ID)
-
-	return nil
+	return client.ContainerStart(ctx, resp.ID, container.StartOptions{})
 }
 
 func writeConfig(d state.Deployment) (string, error) {
-	dir := filepath.Join(os.TempDir(), d.Slug)
+	hostDataPath := os.Getenv("HOST_DATA_PATH")
+	if hostDataPath == "" {
+		return "", fmt.Errorf("HOST_DATA_PATH not set")
+	}
+
+	dir := filepath.Join(hostDataPath, d.Slug)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return "", err
 	}
