@@ -29,30 +29,26 @@
 </div>
 <br/></h3>
 
-**MESH is a networking tool, to support remote logical forensics acquision on mobile devices**
-
-MESH gives analysts a direct, encrypted path to mobile devices for wireless debugging, network monitoring and forensic acquisition, even when those devices sit behind NAT, firewalls, or restrictive mobile networks. It builds a private overlay so a remote device behaves as if it were on the same local subnet. It does not require central VPN servers, no port forwarding, and no permanent infrastructure to maintain or defend. This allows for seemless and easy remote, over the internet, network monitoring and acquision with the likes of [MVT](https://github.com/mvt-project/mvt) and [AndroidQF](https://github.com/mvt-project/androidqf).
-
-## What it does
-
-- Remote mobile forensics over ADB Wireless Debugging and libimobiledevice: run WARD, MVT, AndroidQF, and other ADB/iOS tooling as if the device were local.
-- Remote network monitoring: PCAP capture and Suricata intrusion detection over the same encrypted mesh.
-
-## What it doesn't
-
-- MESH provides the networking necessary for remote acquision, but isn't the acquision tool.
-- We include [AndroidQF](https://github.com/mvt-project/androidqf) and [MVT](https://github.com/mvt-project/mvt) in the suite.
-
-## How it's hardened
-
-- Direct peer-to-peer first WireGuard transport when a path exists.
-- Optional AmneziaWG to obfuscate WireGuard against DPI and national firewalls.
-- Automatic fallback to encrypted HTTPS relays when UDP is blocked.
-
-Meshes are ephemeral and analyst-controlled: bring devices online, collect, then tear the network down. Nothing is left running, which supports the avoidance of fingerprinting activity.
-
 > [!IMPORTANT]
-> **Public Alpha**: Currently in **public alpha** and under active development. A full third-party penetration has been completed and we have patched all major vulnerabilities. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues."
+> **Public Alpha**: Currently in **public alpha** and under active development. A full penetration has been completed and we have patched all major vulnerabilities. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues."
+
+**MESH enables internet-routable wireless debugging for mobile devices over an encrypted, censorship-resistant peer-to-peer mesh network.**
+
+Mobile devices are often trapped behind NAT, firewalls, carrier-grade NAT, or restrictive mobile networks that prevent direct inbound access. Traditional remote forensics usually depends on centralized VPN servers, brittle hub-and-spoke setups, or risky port forwarding.
+
+MESH solves this by creating an encrypted peer-to-peer overlay network and assigning each node a CGNAT-range address through a virtual TUN interface. Devices appear as if they are on the same private subnet, even when they are geographically distant or hidden behind multiple NAT layers.
+
+This allows analysts to run remote mobile forensics workflows over ADB Wireless Debugging and libimobiledevice without exposing target devices to the public internet. Tools such as WARD, MVT, AndroidQF, and other ADB/iOS tooling can operate across the encrypted overlay as if the device were locally reachable.
+
+MESH also supports remote network monitoring, including PCAP capture and Suricata-based intrusion detection over the same encrypted mesh. This makes it possible to perform both immediate forensic acquisition and live network capture from devices in hostile or restricted environments.
+
+MESH is designed for civil society forensics and hardened for censored or adversarial networks:
+
+- Direct peer-to-peer WireGuard transport when available
+- Optional AmneziaWG support to obfuscate WireGuard fingerprints against DPI and national firewall blocking
+- Automatic fallback to end-to-end encrypted HTTPS relays when UDP is blocked
+
+Meshes are ephemeral and analyst-controlled. Bring devices online, collect evidence, monitor traffic, and tear the network down immediately afterward — without maintaining permanent infrastructure or complex VPN configurations.
 
 ## Quick start
 
