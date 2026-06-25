@@ -30,7 +30,13 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.startContainer(h.registry, slug); err != nil {
+	d, ok := h.registry.Get(slug)
+	if !ok {
+		http.Error(w, fmt.Sprintf("%s not found", slug), http.StatusNotFound)
+		return
+	}
+
+	if err := h.service.Start(d); err != nil {
 		http.Error(w, fmt.Sprintf("failed to start container: %v", err), http.StatusInternalServerError)
 		h.registry.Release(slug)
 		return
@@ -58,4 +64,18 @@ func generateToken() (string, error) {
 	return base64.RawURLEncoding.EncodeToString(b), err
 }
 
-func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request) {}
+func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request) {
+	slug := r.PathValue("slug")
+	if slug == "" {
+		http.Error(w, "slug not defined", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.Stop(slug); err != nil {
+		http.Error(w, fmt.Sprintf("failed to stop container: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	h.registry.Release(slug)
+	w.WriteHeader(http.StatusOK)
+}
