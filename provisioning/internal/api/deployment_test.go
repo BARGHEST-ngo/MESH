@@ -19,8 +19,10 @@ func newTestRouter(t *testing.T) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return api.NewRouter(testAPIKey, reg)
+	return api.NewRouter(testAPIKey, reg, api.WithStartContainer(mockStartContainer))
 }
+
+func mockStartContainer(*state.Registry, string) error { return nil }
 
 func TestPostDeployment(t *testing.T) {
 	cases := []struct {
@@ -54,7 +56,9 @@ func TestPostDeploymentPortExhaustion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router := api.NewRouter(testAPIKey, reg)
+	router := api.NewRouter(testAPIKey, reg, api.WithStartContainer(func(*state.Registry, string) error {
+		return nil
+	}))
 
 	makeRequest := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)

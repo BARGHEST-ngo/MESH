@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
 )
 
 // Provision a new frp container
@@ -32,7 +30,7 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := docker.Start(h.registry, slug); err != nil {
+	if err := h.startContainer(h.registry, slug); err != nil {
 		http.Error(w, fmt.Sprintf("failed to start container: %v", err), http.StatusInternalServerError)
 		h.registry.Release(slug)
 		return
