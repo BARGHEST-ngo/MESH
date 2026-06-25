@@ -9,16 +9,12 @@ import { Copy, Check, Key, Lock, AlertTriangle, Laptop, Smartphone } from 'lucid
 import { encrypt } from '../lib/onboardingCrypto'
 import { QRCodeCanvas } from 'qrcode.react'
 import { useControlPlaneUrl } from '@/api/useConfig'
+import { TAG_LABEL } from '../lib/tags'
 
 interface GenerateKeyDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   networkName: string
-}
-
-const TAG_LABEL: Record<'analyst' | 'mobile_node', string> = {
-  analyst: 'Analyst',
-  mobile_node: 'Mobile node',
 }
 
 function isLocalhost(url: string): boolean {

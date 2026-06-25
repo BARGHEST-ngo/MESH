@@ -9,12 +9,11 @@ import { useDeleteNode, useExpireNode, useApproveExitNode, useRevokeExitNode, is
 import { GenerateKeyDialog } from './GenerateKeyDialog'
 import { RenameNetworkDialog } from './RenameNetworkDialog'
 import type { V1User, V1Node } from '../api/openapi/types.gen'
+import { TAG_LABEL } from '../lib/tags'
 
 interface NetworkCardProps {
   network: V1User
 }
-
-const TAG_LABEL: Record<string, string> = { analyst: 'Analyst', mobile_node: 'Mobile node' }
 
 // Role tags only; per-network "tag:net-..." tags are internal noise.
 function roleTags(node: V1Node): string[] {
