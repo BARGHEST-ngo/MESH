@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { RefreshCw, Save, Shield, Network } from 'lucide-react'
 import { usePolicy, useSetPolicy } from '../api/usePolicy'
-import { Button } from '../components/ui/button'
-import { RefreshCw, Save } from 'lucide-react'
 import { parseHuJSON, toHuJSON } from '../api/usePolicy'
+import { Button } from '../components/ui/button'
+import { Card } from '../components/ui/card'
 import type { V1SetPolicyResponse } from '../api/openapi/types.gen'
 import apiClient from '../api/client'
 import { isAxiosError } from 'axios'
@@ -21,8 +22,6 @@ function ACLPage() {
   const [editedPolicy, setEditedPolicy] = useState<string>('')
   const [hasChanges, setHasChanges] = useState(false)
   const [malformedError, setMalformedError] = useState<string | null>(null)
-
-  console.log('Current malformedError state:', malformedError)
 
   useEffect(() => {
     if (policyData && !hasChanges && !editedPolicy) {
@@ -52,17 +51,12 @@ function ACLPage() {
       setMalformedError(null)
     } catch (error) {
       console.error('Failed to save policy:', error)
-      console.log('Error object:', error)
       if (isAxiosError(error)) {
-        console.log('Is axios error, status:', error.response?.status)
-        console.log('Response data:', error.response?.data)
         if (error.response?.status === 500) {
           const message = error.response?.data?.message || error.response?.data?.error || error.message || 'Server error occurred'
-          console.log('Setting malformed error:', message)
           setMalformedError(message)
         }
       } else if (error instanceof Error) {
-        console.log('Setting error message:', error.message)
         setMalformedError(error.message)
       }
     }
@@ -76,86 +70,88 @@ function ACLPage() {
     }
   }
 
+  const lineCount = Math.max(editedPolicy.split('\n').length, 1)
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="px-8 py-7 max-w-[1100px] mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 font-mono">&gt; CUSTOMIZE_ACL</h1>
-        <p className="text-muted-foreground">
-          Edit your ACL policy configuration. Custom rules will be preserved when networks are created or updated.
+        <h1 className="text-[26px] font-bold text-foreground tracking-tight mb-1.5">Access policy</h1>
+        <p className="text-sm text-text2 max-w-[640px] leading-relaxed">
+          Define who can reach whom across your networks. Your custom rules are preserved automatically
+          when networks are created or updated.
         </p>
       </div>
 
-      <div className="flex gap-3 mb-4">
-        <Button
-          onClick={handleRefresh}
-          disabled={isLoading}
-          variant="outline"
-          className="font-mono"
-        >
-          <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-          <span>REFRESH</span>
+      <div className="flex items-center gap-3 mb-3.5">
+        <Button variant="secondary" onClick={handleRefresh} disabled={isLoading}>
+          <RefreshCw size={17} className={isLoading ? 'animate-spin' : ''} />
+          Refresh
         </Button>
-        <Button
-          onClick={handleSave}
-          disabled={!hasChanges || setPolicy.isPending}
-          className="font-mono"
-        >
-          <Save size={16} />
-          <span>{setPolicy.isPending ? 'SAVING...' : 'SAVE CHANGES'}</span>
+        <Button onClick={handleSave} disabled={!hasChanges || setPolicy.isPending}>
+          <Save size={17} />
+          {setPolicy.isPending ? 'Saving…' : 'Save changes'}
         </Button>
         {hasChanges && (
-          <span className="text-sm text-amber-600 dark:text-amber-400 flex items-center">
-            !! Unsaved changes
+          <span className="inline-flex items-center gap-2 text-[13px] font-semibold text-warning">
+            <span className="w-[7px] h-[7px] rounded-full bg-warning" />
+            Unsaved changes
           </span>
         )}
       </div>
 
-      <div className="border border-border rounded-lg overflow-hidden">
-        <textarea
-          value={editedPolicy}
-          onChange={(e) => handlePolicyChange(e.target.value)}
-          className="w-full h-[600px] p-4 font-mono text-sm bg-card text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-          placeholder="Loading policy..."
-          disabled={isLoading}
-          spellCheck={false}
-        />
-      </div>
+      <Card className="overflow-hidden p-0">
+        <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-border bg-card-hi">
+          <Shield size={16} className="text-primary" />
+          <span className="font-mono text-[12.5px] text-text2">policy.hujson</span>
+        </div>
+        <div className="flex max-h-[460px] overflow-auto">
+          <div className="py-4 pl-4 pr-2.5 text-right select-none bg-card border-r border-border">
+            {Array.from({ length: lineCount }, (_, i) => (
+              <div key={i} className="font-mono text-[12.5px] leading-5 text-soft">{i + 1}</div>
+            ))}
+          </div>
+          <textarea
+            value={editedPolicy}
+            onChange={(e) => handlePolicyChange(e.target.value)}
+            className="flex-1 min-h-[420px] p-4 bg-card text-text2 font-mono text-[12.5px] leading-5 border-none outline-none resize-y box-border"
+            placeholder="Loading policy…"
+            disabled={isLoading}
+            spellCheck={false}
+          />
+        </div>
+      </Card>
 
       {setPolicy.isError && (
-        <div className="mt-4 p-4 bg-destructive/10 border border-destructive rounded-lg">
+        <div className="mt-4 p-4 bg-destructive-dim border border-destructive/30 rounded-xl">
           <p className="text-destructive font-semibold">Error saving policy</p>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-text2 mt-1">
             {setPolicy.error instanceof Error ? setPolicy.error.message : 'Unknown error occurred'}
           </p>
         </div>
       )}
 
       {malformedError && (
-        <div className="mt-4 p-4 bg-destructive/10 border border-destructive rounded-lg">
-          <p className="text-destructive font-semibold">Malformed Policy</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            {malformedError}
-          </p>
+        <div className="mt-4 p-4 bg-destructive-dim border border-destructive/30 rounded-xl">
+          <p className="text-destructive font-semibold">Malformed policy</p>
+          <p className="text-sm text-text2 mt-1">{malformedError}</p>
         </div>
       )}
 
-      <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-        <h2 className="font-semibold mb-2 font-mono">&gt; SMART_MERGE_INFO</h2>
-        <p className="text-sm text-muted-foreground">
-          When you create or update networks, the system automatically regenerates network isolation rules 
-	          (pattern: <code className="bg-background px-1 py-0.5 rounded">tag:net-&lt;network&gt; → tag:net-&lt;network&gt;:*</code>) 
-	          while preserving all your custom ACL rules and tag ownership.
-        </p>
-        <p className="text-sm text-muted-foreground mt-2">
-	          Each node registered to a network automatically receives a per-network tag (in addition to its role tag),
-	          so isolation works correctly even when devices are tagged.
-	          <br />
-          This means you can safely add custom rules here (like cross-network access or specific IP/port restrictions) 
-          and they won't be lost when networks are created or updated.
-          If you have any questions regarding this, refer to the docs at https://docs.meshforensics.org
-        </p>
-      </div>
+      <Card className="mt-[18px] p-[18px] bg-bg-raised">
+        <div className="flex gap-3">
+          <div className="w-[34px] h-[34px] rounded-[9px] bg-primary/15 flex items-center justify-center shrink-0">
+            <Network size={18} className="text-primary" />
+          </div>
+          <div>
+            <div className="text-[14.5px] font-semibold text-foreground mb-1">Smart merge keeps your rules safe</div>
+            <p className="text-[13px] text-text2 leading-relaxed max-w-[720px]">
+              Each node gets a per-network tag automatically, so network isolation always works, even with
+              custom tags. You can safely add cross-network or port rules here; they're never overwritten.
+              See the docs at <span className="text-primary">docs.meshforensics.org</span>.
+            </p>
+          </div>
+        </div>
+      </Card>
     </div>
   )
 }
-
