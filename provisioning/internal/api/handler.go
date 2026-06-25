@@ -5,16 +5,32 @@ import (
 	"crypto/subtle"
 	"net/http"
 
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
 
 type handler struct {
-	registry *state.Registry
+	registry       *state.Registry
+	startContainer func(*state.Registry, string) error
 }
 
-func NewRouter(apiKey string, registry *state.Registry) http.Handler {
+type Option func(*handler)
+
+func WithStartContainer(fn func(*state.Registry, string) error) Option {
+	return func(h *handler) { h.startContainer = fn }
+}
+
+func NewRouter(apiKey string, registry *state.Registry, opts ...Option) http.Handler {
 	keyHash := sha256.Sum256([]byte(apiKey))
-	h := &handler{registry: registry}
+	h := &handler{
+		registry: registry,
+		// Injecting this here for now so tests can complete
+		// replace with interface and mocks for testing
+		startContainer: docker.Start,
+	}
+	for _, opt := range opts {
+		opt(h)
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("POST /deployment", h.handlePostDeployment)
