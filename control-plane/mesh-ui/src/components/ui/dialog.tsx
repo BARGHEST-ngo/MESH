@@ -10,12 +10,12 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm" 
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+      <div
+        className="fixed inset-0 bg-black/55 backdrop-blur-[2px] motion-safe:[animation:cpFade_.18s_ease]"
         onClick={() => onOpenChange(false)}
       />
-      <div className="relative z-50">
+      <div className="relative z-50 w-full max-w-lg motion-safe:[animation:cpPop_.22s_cubic-bezier(0.16,1,0.3,1)]">
         {children}
       </div>
     </div>
@@ -29,7 +29,7 @@ interface DialogContentProps {
 
 export function DialogContent({ children, className = "" }: DialogContentProps) {
   return (
-    <div className={`bg-card border border-border rounded-lg shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto ${className}`}>
+    <div className={`bg-bg-raised border border-border rounded-[18px] shadow-[0_24px_70px_rgba(0,0,0,0.5)] p-6 w-full max-h-[90vh] overflow-y-auto ${className}`}>
       {children}
     </div>
   )
@@ -48,7 +48,7 @@ interface DialogTitleProps {
 }
 
 export function DialogTitle({ children }: DialogTitleProps) {
-  return <h2 className="text-2xl font-bold text-foreground font-mono">{children}</h2>
+  return <h2 className="text-xl font-bold text-foreground tracking-tight">{children}</h2>
 }
 
 interface DialogDescriptionProps {

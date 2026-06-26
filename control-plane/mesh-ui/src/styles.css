@@ -4,93 +4,146 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('./assets/fonts/HankenGrotesk-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('./assets/fonts/HankenGrotesk-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./assets/fonts/JetBrainsMono-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./assets/fonts/JetBrainsMono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 body {
   @apply m-0;
-  font-family:
-    'Fira Code', 'JetBrains Mono', 'Source Code Pro', 'Roboto Mono', 'Courier New',
-    Consolas, Monaco, monospace;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family:
-    'Fira Code', 'JetBrains Mono', 'Source Code Pro', 'Roboto Mono', 'Courier New',
-    Consolas, Monaco, monospace;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* Light theme. Warm-neutral "calm forensics" palette. */
 :root {
-  --background: oklch(1 0 0); 
-  --foreground: oklch(0.15 0 0); 
-  --card: oklch(0.98 0 0); 
-  --card-foreground: oklch(0.15 0 0); 
-  --popover: oklch(1 0 0); 
-  --popover-foreground: oklch(0.15 0 0); 
-  --primary: oklch(0.45 0.1 250); 
-  --primary-foreground: oklch(1 0 0); 
-  --secondary: oklch(0.92 0.01 250); 
-  --secondary-foreground: oklch(0.15 0 0); 
-  --muted: oklch(0.94 0.01 250); 
-  --muted-foreground: oklch(0.5 0.01 250); 
-  --accent: oklch(0.88 0.02 250); 
-  --accent-foreground: oklch(0.15 0 0); 
-  --destructive: oklch(0.55 0.25 25); 
-  --destructive-foreground: oklch(0.98 0 0); 
-  --border: oklch(0.88 0.01 250); 
-  --input: oklch(0.98 0 0); 
-  --ring: oklch(0.45 0.1 250); 
-  --chart-1: oklch(0.5 0.15 250); 
-  --chart-2: oklch(0.5 0.15 200); 
-  --chart-3: oklch(0.5 0.15 150); 
-  --chart-4: oklch(0.5 0.15 100); 
-  --chart-5: oklch(0.5 0.15 50); 
-  --radius: 0.5rem;
-  --sidebar: oklch(0.98 0 0); 
-  --sidebar-foreground: oklch(0.15 0 0); 
-  --sidebar-primary: oklch(0.45 0.1 250); 
-  --sidebar-primary-foreground: oklch(1 0 0); 
-  --sidebar-accent: oklch(0.92 0.01 250); 
-  --sidebar-accent-foreground: oklch(0.15 0 0); 
-  --sidebar-border: oklch(0.88 0.01 250); 
-  --sidebar-ring: oklch(0.45 0.1 250); 
+  --background: #f4f2ec;
+  --foreground: #2a2722;
+  --card: #ffffff;
+  --card-foreground: #2a2722;
+  --popover: #ffffff;
+  --popover-foreground: #2a2722;
+  --primary: #d2774b;
+  --primary-foreground: #ffffff;
+  --secondary: #efebe2;
+  --secondary-foreground: #6c665c;
+  --muted: #efebe2;
+  --muted-foreground: #6c665c;
+  --accent: #fbf9f4;
+  --accent-foreground: #2a2722;
+  --destructive: #e0654f;
+  --destructive-foreground: #ffffff;
+  --border: #e4dfd4;
+  --input: #e4dfd4;
+  --ring: #d2774b;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #2a2722;
+  --sidebar-primary: #d2774b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fbf9f4;
+  --sidebar-accent-foreground: #2a2722;
+  --sidebar-border: #e4dfd4;
+  --sidebar-ring: #d2774b;
+
+  /* Prototype extras shadcn doesn't ship. */
+  --bg-raised: #ffffff;
+  --card-hi: #fbf9f4;
+  --inset: #efebe2;
+  --border-hi: #d6d0c3;
+  --text2: #6c665c;
+  --soft: #9a9386;
+
+  /* Semantic colors are shared across both themes. */
+  --success: #4fb97e;
+  --success-dim: rgba(79, 185, 126, 0.16);
+  --warning: #d99a2b;
+  --warning-dim: rgba(217, 154, 43, 0.16);
+  --destructive-dim: rgba(224, 101, 79, 0.16);
+
+  --radius: 0.65rem;
+  --radius-card: 1rem;
 }
 
 .dark {
-  --background: oklch(0.15 0 0); 
-  --foreground: oklch(0.98 0 0); 
-  --card: oklch(0.18 0 0); 
-  --card-foreground: oklch(0.98 0 0); 
-  --popover: oklch(0.15 0 0); 
-  --popover-foreground: oklch(0.98 0 0); 
-  --primary: oklch(0.55 0.15 250); 
-  --primary-foreground: oklch(0.98 0 0); 
-  --secondary: oklch(0.25 0.02 250); 
-  --secondary-foreground: oklch(0.98 0 0); 
-  --muted: oklch(0.22 0.02 250); 
-  --muted-foreground: oklch(0.65 0.02 250); 
-  --accent: oklch(0.35 0.05 250); 
-  --accent-foreground: oklch(0.98 0 0); 
-  --destructive: oklch(0.55 0.25 25); 
-  --destructive-foreground: oklch(0.98 0 0); 
-  --border: oklch(0.3 0.02 250); 
-  --input: oklch(0.2 0 0); 
-  --ring: oklch(0.55 0.15 250); 
-  --chart-1: oklch(0.6 0.15 250); 
-  --chart-2: oklch(0.6 0.15 200); 
-  --chart-3: oklch(0.6 0.15 150); 
-  --chart-4: oklch(0.6 0.15 100); 
-  --chart-5: oklch(0.6 0.15 50); 
-  --sidebar: oklch(0.18 0 0); 
-  --sidebar-foreground: oklch(0.98 0 0); 
-  --sidebar-primary: oklch(0.55 0.15 250); 
-  --sidebar-primary-foreground: oklch(0.98 0 0); 
-  --sidebar-accent: oklch(0.25 0.02 250); 
-  --sidebar-accent-foreground: oklch(0.98 0 0); 
-  --sidebar-border: oklch(0.3 0.02 250); 
-  --sidebar-ring: oklch(0.55 0.15 250); 
+  --background: #171614;
+  --foreground: #f4f2ed;
+  --card: #232220;
+  --card-foreground: #f4f2ed;
+  --popover: #1e1d1a;
+  --popover-foreground: #f4f2ed;
+  --primary: #d2774b;
+  --primary-foreground: #ffffff;
+  --secondary: #100f0d;
+  --secondary-foreground: #aca79e;
+  --muted: #100f0d;
+  --muted-foreground: #aca79e;
+  --accent: #2a2926;
+  --accent-foreground: #f4f2ed;
+  --destructive: #e0654f;
+  --destructive-foreground: #ffffff;
+  --border: #34322e;
+  --input: #34322e;
+  --ring: #d2774b;
+
+  --sidebar: #1e1d1a;
+  --sidebar-foreground: #f4f2ed;
+  --sidebar-primary: #d2774b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2926;
+  --sidebar-accent-foreground: #f4f2ed;
+  --sidebar-border: #34322e;
+  --sidebar-ring: #d2774b;
+
+  --bg-raised: #1e1d1a;
+  --card-hi: #2a2926;
+  --inset: #100f0d;
+  --border-hi: #45433d;
+  --text2: #aca79e;
+  --soft: #7c766c;
 }
 
 @theme inline {
+  --font-sans: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -110,15 +163,25 @@ code {
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+
+  --color-bg-raised: var(--bg-raised);
+  --color-card-hi: var(--card-hi);
+  --color-inset: var(--inset);
+  --color-border-hi: var(--border-hi);
+  --color-text2: var(--text2);
+  --color-soft: var(--soft);
+  --color-success: var(--success);
+  --color-success-dim: var(--success-dim);
+  --color-warning: var(--warning);
+  --color-warning-dim: var(--warning-dim);
+  --color-destructive-dim: var(--destructive-dim);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-card: var(--radius-card);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -137,3 +200,34 @@ code {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes cpPulse {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+@keyframes cpFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cpPop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* NOTE: removed !imporant overide, use motion-safe instead */
