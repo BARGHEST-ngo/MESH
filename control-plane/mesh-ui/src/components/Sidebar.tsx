@@ -23,7 +23,7 @@ export default function Sidebar() {
     <aside className="w-[252px] shrink-0 bg-sidebar border-r border-border flex flex-col">
       <div className="flex items-end gap-2.5 px-[18px] h-[60px] border-b border-border">
         <Wordmark height={17} className="mb-5 text-foreground" />
-        <span className="text-[13px] text-muted-foreground mb-5 leading-none">Control Plane</span>
+        <span className="text-[13px] text-muted-foreground mb-[17px] leading-none">Control Plane</span>
       </div>
 
       <nav className="flex-1 p-3 flex flex-col gap-1">
