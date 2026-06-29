@@ -9,6 +9,7 @@ vars:
 
 dotenv:
   - .env
+  - .provisioner.env
 
 silent: true
 
@@ -142,25 +143,22 @@ tasks:
   ephemeralDomain:
     internal: true
     if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null && [ -z "$MESH_SUBDOMAIN" ]'
-    vars:
-      SLUG:
-        sh: LC_ALL=C head -c 256 /dev/urandom | tr -dc 'a-z0-9' | head -c 10
-      TOKEN: 'ask-dave'
-      VPS_HOST: 'ask-dave'
     cmds:
-      - printf "\033[1;32mGenerated deployment ID {{.SLUG}} with auth token {{.TOKEN}}\033[0m\n\n"
-      - echo "MESH_SUBDOMAIN={{.SLUG}}" >> .env
-      - echo "FRP_AUTH_TOKEN={{.TOKEN}}" >> .env
-      - echo "CONTROL_PLANE_URL=http://{{.VPS_HOST}}:8090" >> .env
-      - echo "LOGIN_URL=http://{{.VPS_HOST}}:8090" >> .env
-      - cmd: >
-          sed -e "s|VPS_HOST|{{.VPS_HOST}}|g" -e "s|FRP_AUTH_TOKEN|{{.TOKEN}}|g"
-          control-plane/frpc.toml.example > control-plane/frpc.toml
-        platforms: [linux, darwin]
-      - cmd: >
-          sed -e "s|CONTROL_PLANE_URL|http://{{.VPS_HOST}}:8090|g"
-          control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
-        platforms: [linux, darwin]
+      - |
+        if [ -z "$PROVISIONER_URL" ] || [ -z "$PROVISIONER_API_KEY" ]; then
+          printf "\033[1;31mMissing provisioner config. Ensure .provisioner.env contains PROVISIONER_URL and PROVISIONER_API_KEY.\033[0m\n"
+          exit 1
+        fi
+        if ! RESPONSE=$(curl -sf -X POST "$PROVISIONER_URL/deployment" -H "Authorization: Bearer $PROVISIONER_API_KEY"); then
+          printf "\033[1;31mFailed to provision a new deployment.\033[0m\n"
+          exit 1
+        fi
+        SLUG=$(echo "$RESPONSE" | jq -r '.slug')
+        TOKEN=$(echo "$RESPONSE" | jq -r '.token')
+        FRPS_PORT=$(echo "$RESPONSE" | jq -r '.frps_port')
+        printf "\033[1;32mCreated deployment $SLUG on port $FRPS_PORT\033[0m\n\n"
+        echo "MESH_SUBDOMAIN=$SLUG" >> .env
+        echo "FRP_AUTH_TOKEN=$TOKEN" >> .env
     deps:
       - createDotEnv
 
