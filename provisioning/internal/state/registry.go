@@ -47,7 +47,7 @@ func New(path string, portMin, portMax int) (*Registry, error) {
 	return r, nil
 }
 
-func (r *Registry) AllocatePort(slug, token string) (int, error) {
+func (r *Registry) AllocatePort(slug, token string) (Deployment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -58,17 +58,18 @@ func (r *Registry) AllocatePort(slug, token string) (int, error) {
 
 	for port := r.portMin; port <= r.portMax; port++ {
 		if !used[port] {
-			r.state.Deployments[slug] = Deployment{
+			d := Deployment{
 				Slug:      slug,
 				Token:     token,
 				FrpsPort:  port,
 				CreatedAt: time.Now().UTC(),
 			}
-			return port, r.save()
+			r.state.Deployments[slug] = d
+			return d, r.save()
 		}
 	}
 
-	return 0, fmt.Errorf("no available port")
+	return Deployment{}, fmt.Errorf("no available port")
 }
 
 func (r *Registry) Release(slug string) error {
