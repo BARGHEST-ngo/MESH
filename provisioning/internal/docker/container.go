@@ -42,6 +42,13 @@ func (Manager) Start(d state.Deployment) error {
 	resp, err := client.ContainerCreate(ctx,
 		&container.Config{
 			Image: frps_image,
+			Labels: map[string]string{
+				"traefik.enable": "true",
+				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnel.meshforensics.app`)", d.Slug),
+				fmt.Sprintf("traefik.http.routers.%s.tls", d.Slug):                       "true",
+				fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", d.Slug): "8080",
+				"traefik.docker.network":                                                 "mesh-proxy",
+			},
 		},
 		&container.HostConfig{
 			RestartPolicy: container.RestartPolicy{Name: container.RestartPolicyUnlessStopped},
@@ -50,7 +57,11 @@ func (Manager) Start(d state.Deployment) error {
 				nat.Port("7000/tcp"): []nat.PortBinding{{HostPort: fmt.Sprintf("%d", d.FrpsPort)}},
 			},
 		},
-		&network.NetworkingConfig{},
+		&network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{
+				"mesh-proxy": {},
+			},
+		},
 		nil, fmt.Sprintf("frps-%s", d.Slug))
 	if err != nil {
 		return fmt.Errorf("failed to create container: %w", err)

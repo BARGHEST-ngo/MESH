@@ -1,0 +1,13 @@
+entryPoints:
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: mesh-proxy
+  file:
+    filename: /tls.yml
+
+log:
+  level: INFO
