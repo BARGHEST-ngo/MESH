@@ -1,5 +1,5 @@
 serverAddr = "FRP_HOST"
-serverPort = "FRP_PORT"
+serverPort = FRP_PORT
 
 auth.token = "FRP_AUTH_TOKEN"
 
