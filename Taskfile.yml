@@ -168,7 +168,7 @@ tasks:
         echo "MESH_SUBDOMAIN=$FRP_SLUG" >> .env
         echo "FRP_AUTH_TOKEN=$TOKEN" >> .env
         echo "CONTROL_PLANE_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
-        echo "LOGIN_URL=https://$FRP_SLUG..tunnel.meshforensics.app" >> .env
+        echo "LOGIN_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
     deps:
       - createDotEnv
 
