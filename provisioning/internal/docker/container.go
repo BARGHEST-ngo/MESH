@@ -46,7 +46,9 @@ func (Manager) Start(d state.Deployment) error {
 		&container.HostConfig{
 			RestartPolicy: container.RestartPolicy{Name: container.RestartPolicyUnlessStopped},
 			Binds:         []string{fmt.Sprintf("%s:/etc/frp/frps.toml:ro", configPath)},
-			PortBindings:  nat.PortMap{nat.Port("7000/tcp"): []nat.PortBinding{{HostPort: fmt.Sprintf("%d", d.FrpsPort)}}},
+			PortBindings: nat.PortMap{
+				nat.Port("7000/tcp"): []nat.PortBinding{{HostPort: fmt.Sprintf("%d", d.FrpsPort)}},
+			},
 		},
 		&network.NetworkingConfig{},
 		nil, fmt.Sprintf("frps-%s", d.Slug))
@@ -69,7 +71,7 @@ func writeConfig(d state.Deployment) (string, error) {
 	}
 
 	path := filepath.Join(dir, "frps.toml")
-	content := fmt.Sprintf("bindPort = 7000\nauth.token = %q\n", d.Token)
+	content := fmt.Sprintf("bindPort = 7000\nauth.token = %q\nvhostHTTPPort = 8080\n", d.Token)
 	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 		return "", err
 	}

@@ -146,7 +146,7 @@ tasks:
     cmds:
       - |
         if [ -z "$PROVISIONER_URL" ] || [ -z "$PROVISIONER_API_KEY" ]; then
-          printf "\033[1;31mMissing provisioner config. Ensure .provisioner.env contains PROVISIONER_URL and PROVISIONER_API_KEY.\033[0m\n"
+          printf "\033[1;31mMissing provisioner config. Create a '.provisioner.env' file from the provided example.\033[0m\n"
           exit 1
         fi
         if ! RESPONSE=$(curl -sf -X POST "$PROVISIONER_URL/deployment" -H "Authorization: Bearer $PROVISIONER_API_KEY"); then
@@ -154,20 +154,21 @@ tasks:
           exit 1
         fi
         FRP_HOST=$(echo "$PROVISIONER_URL" | sed -E 's|https?://([^:/]+).*|\1|')
-        SLUG=$(echo "$RESPONSE" | jq -r '.slug')
+        FRP_SLUG=$(echo "$RESPONSE" | jq -r '.slug')
         TOKEN=$(echo "$RESPONSE" | jq -r '.token')
         FRP_PORT=$(echo "$RESPONSE" | jq -r '.frps_port')
-        printf "\033[1;32mCreated deployment $SLUG on port $FRP_PORT\033[0m\n\n"
+        printf "\033[1;32mCreated deployment $FRP_SLUG on port $FRP_PORT\033[0m\n\n"
         sed -e "s|FRP_HOST|$FRP_HOST|g" \
             -e "s|FRP_PORT|$FRP_PORT|g" \
             -e "s|FRP_AUTH_TOKEN|$TOKEN|g" \
+            -e "s|FRP_SLUG|$FRP_SLUG|g" \
             control-plane/frpc.toml.example > control-plane/frpc.toml
-        sed -e "s|CONTROL_PLANE_URL|http://$FRP_HOST:8080|g" \
+        sed -e "s|CONTROL_PLANE_URL|https://$FRP_SLUG.tunnel.meshforensics.app|g" \
             control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
-        echo "MESH_SUBDOMAIN=$SLUG" >> .env
+        echo "MESH_SUBDOMAIN=$FRP_SLUG" >> .env
         echo "FRP_AUTH_TOKEN=$TOKEN" >> .env
-        echo "CONTROL_PLANE_URL=http://$FRP_HOST:8080" >> .env
-        echo "LOGIN_URL=http://$FRP_HOST:8080" >> .env
+        echo "CONTROL_PLANE_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
+        echo "LOGIN_URL=https://$FRP_SLUG..tunnel.meshforensics.app" >> .env
     deps:
       - createDotEnv
 
