@@ -1,5 +1,5 @@
-serverAddr = "VPS_HOST"
-serverPort = 7000
+serverAddr = "FRP_HOST"
+serverPort = "FRP_PORT"
 
 auth.token = "FRP_AUTH_TOKEN"
 
