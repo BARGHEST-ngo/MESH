@@ -5,8 +5,6 @@ services:
       context: ../
       dockerfile: provisioning/Dockerfile
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:8081:8080"
     env_file:
       - provisioner.env
     environment:
@@ -14,3 +12,27 @@ services:
     volumes:
       - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - mesh-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.provisioner.rule=Host(`provisioner.tunnel.meshforensics.app`)"
+      - "traefik.http.routers.provisioner.tls=true"
+      - "traefik.http.services.provisioner.loadbalancer.server.port=8080"
+
+  traefik:
+    image: traefik:v3.7.5
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/ssl/mesh:/certs:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./tls.yml:/tls.yml:ro
+    networks:
+      - mesh-proxy
+
+networks:
+  mesh-proxy:
+    name: mesh-proxy

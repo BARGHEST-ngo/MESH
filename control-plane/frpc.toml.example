@@ -1,18 +1,11 @@
-serverAddr = "VPS_HOST"
-serverPort = 7000
+serverAddr = "FRP_HOST"
+serverPort = FRP_PORT
 
 auth.token = "FRP_AUTH_TOKEN"
 
 [[proxies]]
-name = "headscale"
-type = "tcp"
-localIP = "headscale"
-localPort = 8080
-remotePort = 8090
-
-[[proxies]]
-name = "ui"
-type = "tcp"
+name = "mesh"
+type = "http"
 localIP = "ui"
 localPort = 8080
-remotePort = 8091
+customDomains = ["FRP_SLUG.tunnel.meshforensics.app"]

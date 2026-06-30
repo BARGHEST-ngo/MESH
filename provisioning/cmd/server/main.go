@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
 
@@ -50,6 +51,15 @@ func main() {
 		log.Fatal("HOST_DATA_PATH must be set")
 	}
 
+	frpsImage := os.Getenv("FRPS_IMAGE")
+	if frpsImage == "" {
+		log.Fatal("FRPS_IMAGE must be set")
+	}
+
+	if err := docker.PullImage(frpsImage); err != nil {
+		log.Fatalf("failed to pull frps image: %v", err)
+	}
+
 	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMinInt, portMaxInt)
 	if err != nil {
 		log.Fatal("failed to initialise port registry")
@@ -57,7 +67,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(apiKey, registry),
+		Handler:      api.NewRouter(apiKey, registry, frpsImage),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

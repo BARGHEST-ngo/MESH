@@ -24,15 +24,9 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	port, err := h.registry.AllocatePort(slug, token)
+	d, err := h.registry.AllocatePort(slug, token)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to allocate port: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	d, ok := h.registry.Get(slug)
-	if !ok {
-		http.Error(w, fmt.Sprintf("%s not found", slug), http.StatusNotFound)
 		return
 	}
 
@@ -45,7 +39,7 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 	response := &DeploymentResponse{
 		Slug:     slug,
 		Token:    token,
-		FrpsPort: port,
+		FrpsPort: d.FrpsPort,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
