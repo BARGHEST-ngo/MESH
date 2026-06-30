@@ -9,6 +9,7 @@ vars:
 
 dotenv:
   - .env
+  - .provisioner.env
 
 silent: true
 
@@ -142,25 +143,32 @@ tasks:
   ephemeralDomain:
     internal: true
     if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null && [ -z "$MESH_SUBDOMAIN" ]'
-    vars:
-      SLUG:
-        sh: LC_ALL=C head -c 256 /dev/urandom | tr -dc 'a-z0-9' | head -c 10
-      TOKEN: 'ask-dave'
-      VPS_HOST: 'ask-dave'
     cmds:
-      - printf "\033[1;32mGenerated deployment ID {{.SLUG}} with auth token {{.TOKEN}}\033[0m\n\n"
-      - echo "MESH_SUBDOMAIN={{.SLUG}}" >> .env
-      - echo "FRP_AUTH_TOKEN={{.TOKEN}}" >> .env
-      - echo "CONTROL_PLANE_URL=http://{{.VPS_HOST}}:8090" >> .env
-      - echo "LOGIN_URL=http://{{.VPS_HOST}}:8090" >> .env
-      - cmd: >
-          sed -e "s|VPS_HOST|{{.VPS_HOST}}|g" -e "s|FRP_AUTH_TOKEN|{{.TOKEN}}|g"
-          control-plane/frpc.toml.example > control-plane/frpc.toml
-        platforms: [linux, darwin]
-      - cmd: >
-          sed -e "s|CONTROL_PLANE_URL|http://{{.VPS_HOST}}:8090|g"
-          control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
-        platforms: [linux, darwin]
+      - |
+        if [ -z "$PROVISIONER_URL" ] || [ -z "$PROVISIONER_API_KEY" ]; then
+          printf "\033[1;31mMissing provisioner config. Create a '.provisioner.env' file from the provided example.\033[0m\n"
+          exit 1
+        fi
+        if ! RESPONSE=$(curl -sf -X POST "$PROVISIONER_URL/deployment" -H "Authorization: Bearer $PROVISIONER_API_KEY"); then
+          printf "\033[1;31mFailed to provision a new deployment.\033[0m\n"
+          exit 1
+        fi
+        FRP_HOST=$(echo "$PROVISIONER_URL" | sed -E 's|https?://([^:/]+).*|\1|')
+        FRP_SLUG=$(echo "$RESPONSE" | jq -r '.slug')
+        FRP_TOKEN=$(echo "$RESPONSE" | jq -r '.token')
+        FRP_PORT=$(echo "$RESPONSE" | jq -r '.frps_port')
+        printf "\033[1;32mCreated deployment $FRP_SLUG on port $FRP_PORT\033[0m\n\n"
+        sed -e "s|FRP_HOST|$FRP_HOST|g" \
+            -e "s|FRP_PORT|$FRP_PORT|g" \
+            -e "s|FRP_AUTH_TOKEN|$FRP_TOKEN|g" \
+            -e "s|FRP_SLUG|$FRP_SLUG|g" \
+            control-plane/frpc.toml.example > control-plane/frpc.toml
+        sed -e "s|CONTROL_PLANE_URL|https://$FRP_SLUG.tunnel.meshforensics.app|g" \
+            control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
+        echo "MESH_SUBDOMAIN=$FRP_SLUG" >> .env
+        echo "FRP_AUTH_TOKEN=$FRP_TOKEN" >> .env
+        echo "CONTROL_PLANE_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
+        echo "LOGIN_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
     deps:
       - createDotEnv
 

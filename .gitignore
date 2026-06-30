@@ -60,6 +60,7 @@ client/web/build/assets
 # Task
 .task
 .env
+.provisioner.env
 .authkey
 
 # MkDocs build output

@@ -1,0 +1,4 @@
+tls:
+  certificates:
+    - certFile: /certs/domain.cert.pem
+      keyFile: /certs/private.key.pem
