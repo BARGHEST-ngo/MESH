@@ -15,12 +15,11 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-type Manager struct{}
+type Manager struct {
+	FrpsImage string
+}
 
-// Todo - pin version?
-const frps_image = "snowdreamtech/frps:latest"
-
-func (Manager) Start(d state.Deployment) error {
+func (m Manager) Start(d state.Deployment) error {
 	configPath, err := writeConfig(d)
 	if err != nil {
 		return fmt.Errorf("failed to write frps config file: %w", err)
@@ -33,7 +32,7 @@ func (Manager) Start(d state.Deployment) error {
 	defer client.Close()
 
 	ctx := context.Background()
-	output, err := client.ImagePull(ctx, frps_image, image.PullOptions{})
+	output, err := client.ImagePull(ctx, m.FrpsImage, image.PullOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to pull frps image: %w", err)
 	}
@@ -41,7 +40,7 @@ func (Manager) Start(d state.Deployment) error {
 	output.Close()
 	resp, err := client.ContainerCreate(ctx,
 		&container.Config{
-			Image: frps_image,
+			Image: m.FrpsImage,
 			Labels: map[string]string{
 				"traefik.enable": "true",
 				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnel.meshforensics.app`)", d.Slug),
