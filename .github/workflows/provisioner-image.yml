@@ -2,7 +2,7 @@ name: Build and push provisioner API image
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop/frp]
     paths:
       - 'provisioning/**'
       - 'go.mod'
