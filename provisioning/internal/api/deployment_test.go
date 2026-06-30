@@ -13,13 +13,18 @@ import (
 
 const testAPIKey = "test-key"
 
+type mockContainerService struct{}
+
+func (mockContainerService) Start(state.Deployment) error { return nil }
+func (mockContainerService) Stop(string) error            { return nil }
+
 func newTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return api.NewRouter(testAPIKey, reg)
+	return api.NewRouter(testAPIKey, reg, api.WithContainerService(mockContainerService{}))
 }
 
 func TestPostDeployment(t *testing.T) {
@@ -54,7 +59,7 @@ func TestPostDeploymentPortExhaustion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router := api.NewRouter(testAPIKey, reg)
+	router := api.NewRouter(testAPIKey, reg, api.WithContainerService(mockContainerService{}))
 
 	makeRequest := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)

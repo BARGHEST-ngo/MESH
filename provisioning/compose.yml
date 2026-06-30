@@ -1,5 +1,6 @@
 services:
   provisioner:
+    image: ghcr.io/barghest-ngo/mesh-provisioner:latest
     build:
       context: ../
       dockerfile: provisioning/Dockerfile
@@ -8,8 +9,8 @@ services:
       - "127.0.0.1:8081:8080"
     env_file:
       - provisioner.env
+    environment:
+      - HOST_DATA_PATH=/var/lib/mesh-provisioner
     volumes:
-      - provisioner-state:/var/lib/mesh-provisioner
-
-volumes:
-  provisioner-state:
+      - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
+      - /var/run/docker.sock:/var/run/docker.sock

@@ -6,12 +6,15 @@ toolchain go1.26.3
 
 require (
 	github.com/BARGHEST-ngo/amnezia-wireguard-go v0.2.0-alpha.2
+	github.com/docker/docker v28.5.2+incompatible
+	github.com/docker/go-connections v0.7.0
 	golang.org/x/mobile v0.0.0-20260217195705-b56b3793a9c4
 	tailscale.com v1.94.1
 )
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/a8m/envsubst v1.4.3 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/akutz/memconn v0.1.0 // indirect
@@ -33,10 +36,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.13 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.6 // indirect
 	github.com/aws/smithy-go v1.24.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/displaywidth v0.8.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.4.0 // indirect
 	github.com/coder/websocket v1.8.12 // indirect
+	github.com/containerd/errdefs v1.0.0 // indirect
+	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.18.2 // indirect
 	github.com/containerd/typeurl/v2 v2.2.3 // indirect
 	github.com/coreos/go-iptables v0.7.1-0.20240112124308-65c67c9f46e6 // indirect
@@ -46,16 +52,21 @@ require (
 	github.com/deckarep/golang-set/v2 v2.8.0 // indirect
 	github.com/digitalocean/go-smbios v0.0.0-20180907143718-390a4f403a8e // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
+	github.com/distribution/reference v0.6.0 // indirect
 	github.com/djherbis/times v1.6.0 // indirect
 	github.com/docker/cli v29.4.0+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.5 // indirect
+	github.com/docker/go-units v0.5.0 // indirect
 	github.com/elliotchance/orderedmap v1.8.0 // indirect
 	github.com/fatih/color v1.18.0 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gaissmai/bart v0.26.1 // indirect
 	github.com/go-git/go-billy/v5 v5.8.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-json-experiment/json v0.0.0-20250813024750-ebf49471dced // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
@@ -95,6 +106,8 @@ require (
 	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/moby/buildkit v0.28.1 // indirect
+	github.com/moby/docker-image-spec v1.3.1 // indirect
+	github.com/moby/sys/atomicwriter v0.1.0 // indirect
 	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
 	github.com/olekukonko/errors v1.2.0 // indirect
 	github.com/olekukonko/ll v0.1.4 // indirect
@@ -126,6 +139,11 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/zclconf/go-cty v1.18.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0 // indirect
+	go.opentelemetry.io/otel v1.39.0 // indirect
+	go.opentelemetry.io/otel/metric v1.39.0 // indirect
+	go.opentelemetry.io/otel/trace v1.39.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.3 // indirect

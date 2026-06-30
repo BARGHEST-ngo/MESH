@@ -45,7 +45,12 @@ func main() {
 		log.Fatal("failed to parse FRPS_PORT_MAX")
 	}
 
-	registry, err := state.New(filepath.Join(os.TempDir(), "state.json"), portMinInt, portMaxInt)
+	dataPath := os.Getenv("HOST_DATA_PATH")
+	if dataPath == "" {
+		log.Fatal("HOST_DATA_PATH must be set")
+	}
+
+	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMinInt, portMaxInt)
 	if err != nil {
 		log.Fatal("failed to initialise port registry")
 	}
@@ -53,8 +58,8 @@ func main() {
 	srv := &http.Server{
 		Addr:         ":8080",
 		Handler:      api.NewRouter(apiKey, registry),
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
 	}
 
 	go func() {
