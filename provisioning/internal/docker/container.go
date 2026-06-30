@@ -19,6 +19,22 @@ type Manager struct {
 	FrpsImage string
 }
 
+func PullImage(imageName string) error {
+	c, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	ctx := context.Background()
+	output, err := c.ImagePull(ctx, imageName, image.PullOptions{})
+	if err != nil {
+		return err
+	}
+	io.Copy(io.Discard, output)
+	return output.Close()
+}
+
 func (m Manager) Start(d state.Deployment) error {
 	configPath, err := writeConfig(d)
 	if err != nil {
