@@ -10,7 +10,6 @@ import (
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
@@ -76,14 +75,13 @@ func (m Manager) Start(d state.Deployment) error {
 				nat.Port("7000/tcp"): []nat.PortBinding{{HostPort: fmt.Sprintf("%d", d.FrpsPort)}},
 			},
 		},
-		&network.NetworkingConfig{
-			EndpointsConfig: map[string]*network.EndpointSettings{
-				"mesh-proxy": {},
-			},
-		},
-		nil, fmt.Sprintf("frps-%s", d.Slug))
+		nil, nil, fmt.Sprintf("frps-%s", d.Slug))
 	if err != nil {
 		return fmt.Errorf("failed to create container: %w", err)
+	}
+
+	if err := client.NetworkConnect(ctx, "mesh-proxy", resp.ID, nil); err != nil {
+		return fmt.Errorf("failed to connect container to mesh-proxy network: %w", err)
 	}
 
 	return client.ContainerStart(ctx, resp.ID, container.StartOptions{})
