@@ -19,12 +19,12 @@ import (
 // This is an intentionally light-weight and basic HTTP server
 // Don't want to over-engineer at this stage, just prove it works
 func main() {
-	// PROVISIONING_API_KEY during early dev will be a single shared secret
+	// PROVISIONER_API_KEY during early dev will be a single shared secret
 	// Internal use only during development
 	// Moving to per-customer keys as we get closer to prod
-	apiKey := os.Getenv("PROVISIONING_API_KEY")
+	apiKey := os.Getenv("PROVISIONER_API_KEY")
 	if apiKey == "" {
-		log.Fatal("PROVISIONING_API_KEY must be set")
+		log.Fatal("PROVISIONER_API_KEY must be set")
 	}
 
 	portMin := os.Getenv("FRPS_PORT_MIN")
@@ -56,6 +56,11 @@ func main() {
 		log.Fatal("FRPS_IMAGE must be set")
 	}
 
+	meshDomain := os.Getenv("MESH_DOMAIN")
+	if meshDomain == "" {
+		log.Fatal("MESH_DOMAIN must be set")
+	}
+
 	if err := docker.PullImage(frpsImage); err != nil {
 		log.Fatalf("failed to pull frps image: %v", err)
 	}
@@ -67,7 +72,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(apiKey, registry, frpsImage),
+		Handler:      api.NewRouter(apiKey, registry, frpsImage, meshDomain),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
