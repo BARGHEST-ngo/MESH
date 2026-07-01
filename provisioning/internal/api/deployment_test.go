@@ -24,7 +24,7 @@ func newTestRouter(t *testing.T) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return api.NewRouter(testAPIKey, reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	return api.NewRouter(testAPIKey, reg, "some_frps_image", "your-domain", api.WithContainerService(mockContainerService{}))
 }
 
 func TestPostDeployment(t *testing.T) {
@@ -59,7 +59,7 @@ func TestPostDeploymentPortExhaustion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router := api.NewRouter(testAPIKey, reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	router := api.NewRouter(testAPIKey, reg, "some_frps_image", "your-domain", api.WithContainerService(mockContainerService{}))
 
 	makeRequest := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
