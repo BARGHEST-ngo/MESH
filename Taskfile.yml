@@ -44,7 +44,17 @@ tasks:
 
   down:
     desc: Stop MESH Docker containers
-    cmd: docker compose down
+    cmds:
+      - |
+        if grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null && [ -n "$MESH_SUBDOMAIN" ]; then
+          if ! curl -sf -X DELETE "$PROVISIONER_URL/deployment/$MESH_SUBDOMAIN" -H "Authorization: Bearer $PROVISIONER_API_KEY"; then
+            printf "\033[1;31mFailed to delete deployment $MESH_SUBDOMAIN.\nPlease contact support quoting '$MESH_SUBDOMAIN'.\033[0m\n"
+          else
+            printf "\033[1;32mDeleted deployment $MESH_SUBDOMAIN.\033[0m\n"
+          fi
+        fi
+        docker compose down
+        printf "\033[1;32mControl plane stopped.\033[0m\n"
 
   apikey:
     desc: Generate a Headscale API key
