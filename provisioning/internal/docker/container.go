@@ -48,12 +48,6 @@ func (m Manager) Start(d state.Deployment) error {
 	defer client.Close()
 
 	ctx := context.Background()
-	output, err := client.ImagePull(ctx, m.FrpsImage, image.PullOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to pull frps image: %w", err)
-	}
-	io.Copy(io.Discard, output)
-	output.Close()
 	resp, err := client.ContainerCreate(ctx,
 		&container.Config{
 			Image: m.FrpsImage,
