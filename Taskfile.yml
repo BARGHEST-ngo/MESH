@@ -162,13 +162,14 @@ tasks:
             -e "s|FRP_PORT|$FRP_PORT|g" \
             -e "s|FRP_AUTH_TOKEN|$FRP_TOKEN|g" \
             -e "s|FRP_SLUG|$FRP_SLUG|g" \
+            -e "s|MESH_DOMAIN|$MESH_DOMAIN|g" \
             control-plane/frpc.toml.example > control-plane/frpc.toml
-        sed -e "s|CONTROL_PLANE_URL|https://$FRP_SLUG.tunnel.meshforensics.app|g" \
+        sed -e "s|CONTROL_PLANE_URL|https://$FRP_SLUG.tunnel.$MESH_DOMAIN|g" \
             control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
         echo "MESH_SUBDOMAIN=$FRP_SLUG" >> .env
         echo "FRP_AUTH_TOKEN=$FRP_TOKEN" >> .env
-        echo "CONTROL_PLANE_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
-        echo "LOGIN_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
+        echo "CONTROL_PLANE_URL=https://$FRP_SLUG.tunnel.$MESH_DOMAIN" >> .env
+        echo "LOGIN_URL=https://$FRP_SLUG.tunnel.$MESH_DOMAIN" >> .env
     deps:
       - createDotEnv
 

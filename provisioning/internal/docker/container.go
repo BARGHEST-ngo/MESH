@@ -16,7 +16,8 @@ import (
 )
 
 type Manager struct {
-	FrpsImage string
+	FrpsImage  string
+	MeshDomain string
 }
 
 func PullImage(imageName string) error {
@@ -59,10 +60,13 @@ func (m Manager) Start(d state.Deployment) error {
 			Image: m.FrpsImage,
 			Labels: map[string]string{
 				"traefik.enable": "true",
-				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnel.meshforensics.app`)", d.Slug),
+				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnel.%s`)", d.Slug, m.MeshDomain),
 				fmt.Sprintf("traefik.http.routers.%s.tls", d.Slug):                       "true",
+				fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", d.Slug):          "letsencrypt",
+				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].main", d.Slug):       "tunnel." + m.MeshDomain,
+				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].sans", d.Slug):       "*.tunnel." + m.MeshDomain,
 				fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", d.Slug): "8080",
-				"traefik.docker.network":                                                 "mesh-proxy",
+				"traefik.docker.network": "mesh-proxy",
 			},
 		},
 		&container.HostConfig{

@@ -25,12 +25,13 @@ type ContainerService interface {
 	Stop(slug string) error
 }
 
-func NewRouter(apiKey string, registry *state.Registry, frpsImage string, opts ...Option) http.Handler {
+func NewRouter(apiKey string, registry *state.Registry, frpsImage, meshDomain string, opts ...Option) http.Handler {
 	keyHash := sha256.Sum256([]byte(apiKey))
 	h := &handler{
 		registry: registry,
 		service: docker.Manager{
-			FrpsImage: frpsImage,
+			FrpsImage:  frpsImage,
+			MeshDomain: meshDomain,
 		},
 	}
 	for _, opt := range opts {
