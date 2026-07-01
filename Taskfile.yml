@@ -44,7 +44,17 @@ tasks:
 
   down:
     desc: Stop MESH Docker containers
-    cmd: docker compose down
+    cmds:
+      - |
+        if grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null && [ -n "$MESH_SUBDOMAIN" ]; then
+          if ! curl -sf -X DELETE "$PROVISIONER_URL/deployment/$MESH_SUBDOMAIN" -H "Authorization: Bearer $PROVISIONER_API_KEY"; then
+            printf "\033[1;31mFailed to delete deployment $MESH_SUBDOMAIN.\nPlease contact support quoting '$MESH_SUBDOMAIN'.\033[0m\n"
+          else
+            printf "\033[1;32mDeleted deployment $MESH_SUBDOMAIN.\033[0m\n"
+          fi
+        fi
+        docker compose down
+        printf "\033[1;32mControl plane stopped.\033[0m\n"
 
   apikey:
     desc: Generate a Headscale API key
@@ -162,13 +172,14 @@ tasks:
             -e "s|FRP_PORT|$FRP_PORT|g" \
             -e "s|FRP_AUTH_TOKEN|$FRP_TOKEN|g" \
             -e "s|FRP_SLUG|$FRP_SLUG|g" \
+            -e "s|MESH_DOMAIN|$MESH_DOMAIN|g" \
             control-plane/frpc.toml.example > control-plane/frpc.toml
-        sed -e "s|CONTROL_PLANE_URL|https://$FRP_SLUG.tunnel.meshforensics.app|g" \
+        sed -e "s|CONTROL_PLANE_URL|https://$FRP_SLUG.tunnel.$MESH_DOMAIN|g" \
             control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
         echo "MESH_SUBDOMAIN=$FRP_SLUG" >> .env
         echo "FRP_AUTH_TOKEN=$FRP_TOKEN" >> .env
-        echo "CONTROL_PLANE_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
-        echo "LOGIN_URL=https://$FRP_SLUG.tunnel.meshforensics.app" >> .env
+        echo "CONTROL_PLANE_URL=https://$FRP_SLUG.tunnel.$MESH_DOMAIN" >> .env
+        echo "LOGIN_URL=https://$FRP_SLUG.tunnel.$MESH_DOMAIN" >> .env
     deps:
       - createDotEnv
 

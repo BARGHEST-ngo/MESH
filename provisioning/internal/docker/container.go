@@ -10,13 +10,13 @@ import (
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
 
 type Manager struct {
-	FrpsImage string
+	FrpsImage  string
+	MeshDomain string
 }
 
 func PullImage(imageName string) error {
@@ -48,21 +48,18 @@ func (m Manager) Start(d state.Deployment) error {
 	defer client.Close()
 
 	ctx := context.Background()
-	output, err := client.ImagePull(ctx, m.FrpsImage, image.PullOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to pull frps image: %w", err)
-	}
-	io.Copy(io.Discard, output)
-	output.Close()
 	resp, err := client.ContainerCreate(ctx,
 		&container.Config{
 			Image: m.FrpsImage,
 			Labels: map[string]string{
 				"traefik.enable": "true",
-				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnel.meshforensics.app`)", d.Slug),
+				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnel.%s`)", d.Slug, m.MeshDomain),
 				fmt.Sprintf("traefik.http.routers.%s.tls", d.Slug):                       "true",
+				fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", d.Slug):          "letsencrypt",
+				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].main", d.Slug):       "tunnel." + m.MeshDomain,
+				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].sans", d.Slug):       "*.tunnel." + m.MeshDomain,
 				fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", d.Slug): "8080",
-				"traefik.docker.network":                                                 "mesh-proxy",
+				"traefik.docker.network": "mesh-proxy",
 			},
 		},
 		&container.HostConfig{
@@ -72,14 +69,13 @@ func (m Manager) Start(d state.Deployment) error {
 				nat.Port("7000/tcp"): []nat.PortBinding{{HostPort: fmt.Sprintf("%d", d.FrpsPort)}},
 			},
 		},
-		&network.NetworkingConfig{
-			EndpointsConfig: map[string]*network.EndpointSettings{
-				"mesh-proxy": {},
-			},
-		},
-		nil, fmt.Sprintf("frps-%s", d.Slug))
+		nil, nil, fmt.Sprintf("frps-%s", d.Slug))
 	if err != nil {
 		return fmt.Errorf("failed to create container: %w", err)
+	}
+
+	if err := client.NetworkConnect(ctx, "mesh-proxy", resp.ID, nil); err != nil {
+		return fmt.Errorf("failed to connect container to mesh-proxy network: %w", err)
 	}
 
 	return client.ContainerStart(ctx, resp.ID, container.StartOptions{})

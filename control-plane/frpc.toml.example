@@ -8,4 +8,4 @@ name = "mesh"
 type = "http"
 localIP = "ui"
 localPort = 8080
-customDomains = ["FRP_SLUG.tunnel.meshforensics.app"]
+customDomains = ["FRP_SLUG.tunnel.MESH_DOMAIN"]
