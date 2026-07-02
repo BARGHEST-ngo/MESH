@@ -36,8 +36,9 @@ tasks:
   configureControlPlane:
     cmds:
       - task: controlPlaneType
-      - task: ephemeralDomain
-      - task: controlPlaneDomain
+      - task: proxyType
+      - task: autoDomain
+      - task: manualDomain
       - task: headscaleConfig
         if: '! grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
       - task: confirmDotEnv
@@ -121,9 +122,33 @@ tasks:
     deps:
       - createDotEnv
 
-  controlPlaneDomain:
+  proxyType:
     internal: true
-    if: '[ -z "$CONTROL_PLANE_DOMAIN" ] && ! grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
+    if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
+    cmds:
+      - |
+        printf "\033[1;36m╔══════════════════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m║\033[0m\033[1;37m Choose a domain for your network: \033[0m\033[1;36m║\033[0m\n"
+        printf "\033[1;36m╚══════════════════════════════════════════════════════════════════╝\033[0m\n"
+      - task: promptProxyType
+
+  promptProxyType:
+    internal: true
+    if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
+    requires:
+      vars:
+        - name: PROXY_DOMAIN_TYPE
+          enum:
+            - Automatic (MESH will automatically assign a domain)
+            - Manual (You will provision a domain)
+    vars:
+      PROXY_DOMAIN_TYPE_VALUE: "{{.PROXY_DOMAIN_TYPE}}"
+      FINAL_PROXY_DOMAIN_TYPE: '{{if .PROXY_DOMAIN_TYPE_VALUE | contains "Automatic"}}Automatic{{else}}Manual{{end}}'
+    cmd: echo PROXY_DOMAIN_TYPE={{.FINAL_PROXY_DOMAIN_TYPE}} >> .env && printf "\033[1;32m{{.FINAL_PROXY_DOMAIN_TYPE}} domain selected.\033[0m\n\n"
+
+  manualDomain:
+    internal: true
+    if: '[ -z "$CONTROL_PLANE_DOMAIN" ] && grep -q "PROXY_DOMAIN_TYPE=Manual" .env 2>/dev/null'
     cmds:
       - |
         printf "\033[1;36m╔═════════════════════════════════════════════════════════════════════════════════════╗\033[0m\n"
@@ -131,9 +156,9 @@ tasks:
         printf "\033[1;36m╚═════════════════════════════════════════════════════════════════════════════════════╝\033[0m\n"
         printf "\033[1;35mThis can be a domain name you own or one provided by your tunneling service.\033[0m\n"
         printf "\033[1;35mLeave blank to use "localhost" (only for testing).\033[0m\n"
-      - task: promptControlPlaneDomain
+      - task: promptManualDomain
 
-  promptControlPlaneDomain:
+  promptManualDomain:
     internal: true
     requires:
       vars:
@@ -150,9 +175,9 @@ tasks:
     deps:
       - createDotEnv
 
-  ephemeralDomain:
+  autoDomain:
     internal: true
-    if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null && [ -z "$MESH_SUBDOMAIN" ]'
+    if: 'grep -q "PROXY_DOMAIN_TYPE=Automatic" .env 2>/dev/null && [ -z "$MESH_SUBDOMAIN" ]'
     cmds:
       - |
         if [ -z "$PROVISIONER_URL" ] || [ -z "$PROVISIONER_API_KEY" ]; then
