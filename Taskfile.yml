@@ -54,6 +54,7 @@ tasks:
             printf "\033[1;32mDeleted deployment $MESH_SUBDOMAIN.\033[0m\n"
           fi
         fi
+        rm -f .env
         docker compose down
         printf "\033[1;32mControl plane stopped.\033[0m\n"
 
