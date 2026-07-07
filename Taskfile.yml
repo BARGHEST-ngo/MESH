@@ -103,7 +103,7 @@ tasks:
 
   confirmDotEnv:
     cmds:
-      - defer: '{{if .EXIT_CODE}}echo Please manually edit .env or delete it and re-run the task.{{end}}'
+      - defer: '{{if .EXIT_CODE}}rm -f .env && printf "\033[1;33mConfiguration cleared. Run task controlPlane to start again.\033[0m\n"{{end}}'
       - task -t Taskfile.dev.yml promptConfirmDotEnv 2>/dev/null
 
   controlPlaneType:
@@ -136,9 +136,9 @@ tasks:
     if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
     cmds:
       - |
-        printf "\033[1;36m╔══════════════════════════════════════════════════════════════════╗\033[0m\n"
+        printf "\033[1;36m╔═══════════════════════════════════╗\033[0m\n"
         printf "\033[1;36m║\033[0m\033[1;37m Choose a domain for your network: \033[0m\033[1;36m║\033[0m\n"
-        printf "\033[1;36m╚══════════════════════════════════════════════════════════════════╝\033[0m\n"
+        printf "\033[1;36m╚═══════════════════════════════════╝\033[0m\n"
       - task: promptProxyType
 
   promptProxyType:
