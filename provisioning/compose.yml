@@ -16,7 +16,7 @@ services:
       - mesh-proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.provisioner.rule=Host(`provisioner.tunnel.${MESH_DOMAIN}`)"
+      - "traefik.http.routers.provisioner.rule=Host(`provisioner.tunnel.meshforensics.app`)"
       - "traefik.http.routers.provisioner.tls=true"
       - "traefik.http.routers.provisioner.tls.certresolver=letsencrypt"
       - "traefik.http.services.provisioner.loadbalancer.server.port=8080"
