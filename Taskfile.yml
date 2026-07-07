@@ -26,10 +26,11 @@ tasks:
   controlPlane:
     desc: Start MESH control plane
     cmds:
-      - cmd: docker compose up -d headscale ui frpc
+      - cmd: docker compose up -d --wait headscale ui frpc
         if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
-      - cmd: docker compose up -d headscale ui
+      - cmd: docker compose up -d --wait headscale ui
         if: '! grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
+      - task: generateAuthKey
     deps:
       - configureControlPlane
 
@@ -92,6 +93,13 @@ tasks:
 #################################
 # Internal tasks
 #################################
+  generateAuthKey:
+    internal: true
+    cmds:
+      - |
+        KEY=$(docker compose exec -T headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}})
+        printf "\033[1;37mControl plane API key (enter this in the web UI to log in):\033[0m\n"
+        printf "\033[1;32m$KEY\033[0m\n"
 
   confirmDotEnv:
     cmds:
