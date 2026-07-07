@@ -101,6 +101,14 @@ func writeConfig(d state.Deployment) (string, error) {
 }
 
 func (Manager) Stop(slug string) error {
+	hostDataPath := os.Getenv("HOST_DATA_PATH")
+	if hostDataPath == "" {
+		return fmt.Errorf("HOST_DATA_PATH not set")
+	}
+
+	dir := filepath.Join(hostDataPath, slug)
+	os.RemoveAll(dir)
+
 	c, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
