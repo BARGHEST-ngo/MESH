@@ -44,22 +44,6 @@ func newTestRouter(t *testing.T) http.Handler {
 	return api.NewRouter(testAPIKey, reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
 }
 
-func validTestDeployment(t *testing.T) api.DeploymentResponse {
-	req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", testAPIKey))
-	w := httptest.NewRecorder()
-	newTestRouter(t).ServeHTTP(w, req)
-
-	if w.Code != http.StatusCreated {
-		t.Fatalf("failed to create deployment")
-	}
-	var resp api.DeploymentResponse
-	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
-	return resp
-}
-
 func TestHealth(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
@@ -97,25 +81,25 @@ func TestPostDeployment(t *testing.T) {
 }
 
 func TestPostDeploymentStructure(t *testing.T) {
-	cases := []struct {
-		name string
-		test func(api.DeploymentResponse) bool
-	}{
-		{"valid slug", func(d api.DeploymentResponse) bool {
-			return len(d.Slug) == 10
-		}},
-		{"valid port", func(d api.DeploymentResponse) bool {
-			return d.FrpsPort >= minPort && d.FrpsPort <= maxPort
-		}},
+	req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", testAPIKey))
+	w := httptest.NewRecorder()
+	newTestRouter(t).ServeHTTP(w, req)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("failed to create deployment")
 	}
 
-	d := validTestDeployment(t)
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if ok := tc.test(d); !ok {
-				t.Errorf("%s failed", tc.name)
-			}
-		})
+	var d api.DeploymentResponse
+	if err := json.NewDecoder(w.Body).Decode(&d); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if len(d.Slug) != 10 {
+		t.Errorf("expected valid slug")
+	}
+
+	if d.FrpsPort < minPort || d.FrpsPort > maxPort {
+		t.Errorf("expected valid port")
 	}
 }
 
