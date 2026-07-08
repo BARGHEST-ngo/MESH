@@ -77,22 +77,46 @@ git clone https://github.com/BARGHEST-ngo/mesh.git
 cd MESH
 ```
 
-### 2. Start control plane and get an API key
+### 2. Start control plane
 
 ```
 task build
 task controlPlane
-task apikey
 ```
 
-### 3. Access web UI with API key
+`task controlPlane` walks you through setup interactively and starts all required services. For most users selecting **Ephemeral** with an **Automatic** domain is the recommended route - it requires no server or DNS configuration.
 
+**Choose a deployment type.** An ephemeral control plane runs on your workstation and is accessible over the internet via a secure tunnel. A persistent control plane runs on a dedicated internet-facing server you manage.
+<img src="https://github.com/user-attachments/assets/4633a0e4-95e9-4db9-b85b-606075c0e8c3" />
+
+**Choose a domain.** Selecting Automatic lets MESH provision a public HTTPS address for you. Select Manual if you want to use your own domain.
+
+<img src="https://github.com/user-attachments/assets/5c76c30d-8821-4efa-8f5f-3e4c6db7b932" />
+
+**Confirm configuration.** Review the generated settings before MESH starts.  
+If these settings are incorrect, or if setup was interrupted, delete `.env` and run `task controlPlane` to start again.
 ```
-Local:  https://localhost
-Remote: https://your-domain:8443/login
+CONTROL_PLANE_TYPE=Ephemeral
+PROXY_DOMAIN_TYPE=Automatic
+MESH_SUBDOMAIN=<random 10 character slug>
+FRP_AUTH_TOKEN=<secret token>
+CONTROL_PLANE_URL=https://<slug>.tunnel.meshforensics.app
+LOGIN_URL=https://<slug>.tunnel.meshforensics.app
 ```
 
-The Web UI uses a self-signed certificate by default.
+**Containers start and an API key is generated.** Once all services are healthy, MESH prints a one-time API key to log into the web UI.
+```
+Control plane API key (enter this in the web UI to log in):
+<SECRET API KEY>
+```
+
+### 3. Access the web UI
+
+Navigate to your control plane URL and enter the API key when prompted to log in.
+
+`https://<slug>.tunnel.meshforensics.app`
+
+The web UI is served over HTTPS with a certificate issued automatically by Let's Encrypt.
 
 > [!IMPORTANT]
 > The default ACL allows nodes in each network talk to each other.
@@ -102,6 +126,9 @@ The Web UI uses a self-signed certificate by default.
 
 Your MESH network is now ready to accept nodes.  
 See the documentation for node enrollment and forensic workflows.
+
+### 4. Teardown
+`task down` destroys the MESH network, disconnecting all users, and if you chose an **Ephemeral** deployment with an **Automatic** domain, these and all traces are removed and can no longer be accessed.
 
 ## Architecture summary
 
