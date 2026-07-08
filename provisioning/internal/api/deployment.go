@@ -70,6 +70,9 @@ func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.registry.Release(slug)
+	if err := h.registry.Release(slug); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
