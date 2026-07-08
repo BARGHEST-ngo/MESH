@@ -56,11 +56,6 @@ func main() {
 		log.Fatal("FRPS_IMAGE must be set")
 	}
 
-	meshDomain := os.Getenv("MESH_DOMAIN")
-	if meshDomain == "" {
-		log.Fatal("MESH_DOMAIN must be set")
-	}
-
 	if err := docker.PullImage(frpsImage); err != nil {
 		log.Fatalf("failed to pull frps image: %v", err)
 	}
@@ -72,7 +67,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(apiKey, registry, frpsImage, meshDomain),
+		Handler:      api.NewRouter(apiKey, registry, frpsImage),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

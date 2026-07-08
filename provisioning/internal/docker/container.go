@@ -14,9 +14,10 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
+const meshDomain = "meshforensics.app"
+
 type Manager struct {
-	FrpsImage  string
-	MeshDomain string
+	FrpsImage string
 }
 
 func PullImage(imageName string) error {
@@ -53,11 +54,11 @@ func (m Manager) Start(d state.Deployment) error {
 			Image: m.FrpsImage,
 			Labels: map[string]string{
 				"traefik.enable": "true",
-				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnel.%s`)", d.Slug, m.MeshDomain),
+				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnel.%s`)", d.Slug, meshDomain),
 				fmt.Sprintf("traefik.http.routers.%s.tls", d.Slug):                       "true",
 				fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", d.Slug):          "letsencrypt",
-				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].main", d.Slug):       "tunnel." + m.MeshDomain,
-				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].sans", d.Slug):       "*.tunnel." + m.MeshDomain,
+				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].main", d.Slug):       "tunnel." + meshDomain,
+				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].sans", d.Slug):       "*.tunnel." + meshDomain,
 				fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", d.Slug): "8080",
 				"traefik.docker.network": "mesh-proxy",
 			},
