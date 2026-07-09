@@ -1,8 +1,9 @@
 package api
 
 import (
+	"context"
 	"crypto/sha256"
-	"crypto/subtle"
+	"fmt"
 	"net/http"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
@@ -25,8 +26,11 @@ type ContainerService interface {
 	Stop(slug string) error
 }
 
-func NewRouter(apiKey string, registry *state.Registry, frpsImage string, opts ...Option) http.Handler {
-	keyHash := sha256.Sum256([]byte(apiKey))
+type contextKey string
+
+const apiKeyContextKey contextKey = "ownerID"
+
+func NewRouter(keys *state.KeyStore, registry *state.Registry, frpsImage string, opts ...Option) http.Handler {
 	h := &handler{
 		registry: registry,
 		service: docker.Manager{
@@ -41,28 +45,39 @@ func NewRouter(apiKey string, registry *state.Registry, frpsImage string, opts .
 	mux.HandleFunc("POST /deployment", h.handlePostDeployment)
 	mux.HandleFunc("DELETE /deployment/{slug}", h.handleDeleteDeployment)
 
-	return authRequest(keyHash, mux)
+	return authRequest(keys, mux)
 }
 
-func authRequest(keyHash [32]byte, next http.Handler) http.Handler {
+func authRequest(keys *state.KeyStore, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/health" {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		bearer := r.Header.Get("Authorization")
-		if len(bearer) < 8 || bearer[:7] != "Bearer " {
+		incoming, err := getAuthToken(r)
+		if err != nil {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		incoming := sha256.Sum256([]byte(bearer[7:]))
-		if subtle.ConstantTimeCompare(incoming[:], keyHash[:]) != 1 {
+		key, ok := keys.Lookup(incoming)
+		if !ok {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), apiKeyContextKey, key)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func getAuthToken(r *http.Request) ([32]byte, error) {
+	bearer := r.Header.Get("Authorization")
+	if len(bearer) < 8 || bearer[:7] != "Bearer " {
+		return [32]byte{}, fmt.Errorf("invalid auth token")
+	}
+
+	token := sha256.Sum256([]byte(bearer[7:]))
+	return token, nil
 }

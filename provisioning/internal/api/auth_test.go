@@ -1,21 +1,20 @@
-package api
+package api_test
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
 )
 
 func TestAuthRequest(t *testing.T) {
-	keyHash := sha256.Sum256([]byte("test-key"))
-
 	dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	handler := authRequest(keyHash, dummy)
+	handler := api.AuthRequest(newTestKeyStore(t), dummy)
 
 	cases := []struct {
 		name     string
