@@ -1,13 +1,17 @@
 package api_test
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
@@ -41,7 +45,38 @@ func newTestRouter(t *testing.T) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return api.NewRouter(testAPIKey, reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	return api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+}
+
+func newTestKeyStore(t *testing.T) *state.KeyStore {
+	t.Helper()
+	hash := sha256.Sum256([]byte(testAPIKey))
+	created := time.Now()
+	expires := created.Add(time.Hour)
+	key := state.APIKey{
+		ID:            "test-owner",
+		Label:         "test",
+		HashHex:       hex.EncodeToString(hash[:]),
+		MaxConcurrent: 0,
+		Revoked:       false,
+		CreatedAt:     created,
+		ExpiresAt:     &expires,
+	}
+	data, err := json.Marshal(struct {
+		Keys []state.APIKey `json:"keys"`
+	}{Keys: []state.APIKey{key}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "keys.json")
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	ks, err := state.NewKeyStore(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return ks
 }
 
 func TestHealth(t *testing.T) {
@@ -108,7 +143,7 @@ func TestPostDeploymentPortExhaustion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router := api.NewRouter(testAPIKey, reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	router := api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
 
 	makeRequest := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
@@ -133,7 +168,7 @@ func TestStartFailureRollsBackPort(t *testing.T) {
 		t.Fatal(err)
 	}
 	mock := &failOnceMock{}
-	router := api.NewRouter(testAPIKey, reg, "some_frps_image", api.WithContainerService(mock))
+	router := api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mock))
 
 	post := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
@@ -160,7 +195,7 @@ func TestConcurrentDeployments(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create registry")
 	}
-	router := api.NewRouter(testAPIKey, reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	router := api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
 
 	var wg sync.WaitGroup
 	for range 10 {
