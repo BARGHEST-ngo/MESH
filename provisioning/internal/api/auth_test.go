@@ -1,12 +1,10 @@
-package api_test
+package api
 
 import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
 )
 
 func TestAuthRequest(t *testing.T) {
@@ -14,7 +12,7 @@ func TestAuthRequest(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	handler := api.AuthRequest(newTestKeyStore(t), dummy)
+	handler := authRequest(newTestKeyStore(t), dummy)
 
 	cases := []struct {
 		name     string

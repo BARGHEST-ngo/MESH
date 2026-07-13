@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"crypto/sha256"
-	"fmt"
 	"net/http"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
@@ -44,13 +43,15 @@ func authRequest(keys *state.KeyStore, next http.Handler) http.Handler {
 			return
 		}
 
-		incoming, err := getAuthToken(r)
-		if err != nil {
+		bearer := r.Header.Get("Authorization")
+		if len(bearer) < 8 || bearer[:7] != "Bearer " {
+
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		key, ok := keys.Lookup(incoming)
+		token := sha256.Sum256([]byte(bearer[7:]))
+		key, ok := keys.Lookup(token)
 		if !ok {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
@@ -59,14 +60,4 @@ func authRequest(keys *state.KeyStore, next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), apiKeyContextKey, key)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func getAuthToken(r *http.Request) ([32]byte, error) {
-	bearer := r.Header.Get("Authorization")
-	if len(bearer) < 8 || bearer[:7] != "Bearer " {
-		return [32]byte{}, fmt.Errorf("invalid auth token")
-	}
-
-	token := sha256.Sum256([]byte(bearer[7:]))
-	return token, nil
 }

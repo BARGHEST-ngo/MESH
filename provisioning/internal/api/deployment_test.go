@@ -1,4 +1,4 @@
-package api_test
+package api
 
 import (
 	"crypto/sha256"
@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 	"github.com/google/uuid"
 )
@@ -62,7 +61,7 @@ func newTestRouterWIthKey(t *testing.T, key state.APIKey) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return api.NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{})
+	return NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{})
 }
 
 func newTestRouter(t *testing.T) http.Handler {
@@ -71,7 +70,7 @@ func newTestRouter(t *testing.T) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return api.NewRouter(newTestKeyStore(t), reg, mockContainerService{})
+	return NewRouter(newTestKeyStore(t), reg, mockContainerService{})
 }
 
 func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
@@ -143,7 +142,7 @@ func TestPostDeploymentStructure(t *testing.T) {
 		t.Fatalf("failed to create deployment")
 	}
 
-	var d api.DeploymentResponse
+	var d DeploymentResponse
 	if err := json.NewDecoder(w.Body).Decode(&d); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -162,7 +161,7 @@ func TestPostDeploymentPortExhaustion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router := api.NewRouter(newTestKeyStore(t), reg, mockContainerService{})
+	router := NewRouter(newTestKeyStore(t), reg, mockContainerService{})
 
 	makeRequest := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
@@ -187,7 +186,7 @@ func TestStartFailureRollsBackPort(t *testing.T) {
 		t.Fatal(err)
 	}
 	mock := &failOnceMock{}
-	router := api.NewRouter(newTestKeyStore(t), reg, mock)
+	router := NewRouter(newTestKeyStore(t), reg, mock)
 
 	post := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
@@ -207,14 +206,14 @@ func TestStartFailureRollsBackPort(t *testing.T) {
 
 func TestConcurrentDeployments(t *testing.T) {
 	var mu sync.Mutex
-	var deployments []api.DeploymentResponse
+	var deployments []DeploymentResponse
 	var codes []int
 
 	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
 	if err != nil {
 		t.Fatalf("failed to create registry")
 	}
-	router := api.NewRouter(newTestKeyStore(t), reg, mockContainerService{})
+	router := NewRouter(newTestKeyStore(t), reg, mockContainerService{})
 
 	var wg sync.WaitGroup
 	for range 10 {
@@ -228,7 +227,7 @@ func TestConcurrentDeployments(t *testing.T) {
 			mu.Lock()
 			codes = append(codes, w.Code)
 			if w.Code == http.StatusCreated {
-				var created api.DeploymentResponse
+				var created DeploymentResponse
 				json.NewDecoder(w.Body).Decode(&created)
 				deployments = append(deployments, created)
 			}
@@ -245,11 +244,11 @@ func TestConcurrentDeployments(t *testing.T) {
 
 	cases := []struct {
 		name  string
-		check func([]api.DeploymentResponse) error
+		check func([]DeploymentResponse) error
 	}{
 		{
 			"duplicate-ports",
-			func(results []api.DeploymentResponse) error {
+			func(results []DeploymentResponse) error {
 				seen := make(map[int]struct{})
 				for _, d := range results {
 					if _, exists := seen[d.FrpsPort]; exists {
@@ -262,7 +261,7 @@ func TestConcurrentDeployments(t *testing.T) {
 		},
 		{
 			"duplicate-slugs",
-			func(results []api.DeploymentResponse) error {
+			func(results []DeploymentResponse) error {
 				seen := make(map[string]struct{})
 				for _, d := range results {
 					if _, exists := seen[d.Slug]; exists {
@@ -319,7 +318,7 @@ func TestApiKeyStates(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		router := api.NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{})
+		router := NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{})
 		// 2 valid deployments, fail on the 3rd
 		if code := post(router); code != http.StatusCreated {
 			t.Errorf("expected %d, got %d", http.StatusCreated, code)
@@ -342,7 +341,7 @@ func TestDeleteDeployment(t *testing.T) {
 	if w.Code != http.StatusCreated {
 		t.Fatal("failed to create deployment")
 	}
-	var created api.DeploymentResponse
+	var created DeploymentResponse
 	json.NewDecoder(w.Body).Decode(&created)
 
 	cases := []struct {
