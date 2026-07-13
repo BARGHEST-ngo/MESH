@@ -1,6 +1,7 @@
 package state
 
 import (
+	"bytes"
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
@@ -77,10 +78,14 @@ func (ks *KeyStore) load() error {
 	if os.IsNotExist(err) {
 		return nil
 	}
+
 	if err != nil {
 		return fmt.Errorf("error reading keys file: %w", err)
 	}
-	return json.Unmarshal(data, &ks.state)
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	return decoder.Decode(&ks.state)
 }
 
 func (ks *KeyStore) save() error {

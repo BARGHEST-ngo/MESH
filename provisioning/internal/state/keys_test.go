@@ -1,0 +1,156 @@
+package state_test
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"testing"
+	"time"
+
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
+	"github.com/google/uuid"
+)
+
+func defaultKeyHash() [32]byte {
+	return sha256.Sum256([]byte("test-key"))
+}
+
+func defaultTestKey() state.APIKey {
+	hash := defaultKeyHash()
+	created := time.Now()
+	return state.APIKey{
+		ID:            uuid.NewString(),
+		OwnerID:       "tests",
+		Label:         "automated-testing",
+		HashHex:       hex.EncodeToString(hash[:]),
+		MaxConcurrent: 0,
+		Revoked:       false,
+		CreatedAt:     created,
+		ExpiresAt:     nil,
+	}
+}
+
+func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
+	t.Helper()
+	data, err := json.Marshal(struct {
+		Keys []state.APIKey `json:"keys"`
+	}{Keys: []state.APIKey{key}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "keys.json")
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	ks, err := state.NewKeyStore(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return ks
+}
+
+func newDefaultTestKeyStore(t *testing.T) *state.KeyStore {
+	t.Helper()
+	return newTestKeyStoreWithKey(t, defaultTestKey())
+}
+
+func TestLookUpKey(t *testing.T) {
+	t.Run("valid-key", func(t *testing.T) {
+		ks := newDefaultTestKeyStore(t)
+		if _, ok := ks.Lookup(defaultKeyHash()); !ok {
+			t.Errorf("expected to find valid key")
+		}
+	})
+
+	t.Run("unknown", func(t *testing.T) {
+		ks := newDefaultTestKeyStore(t)
+		hash := sha256.Sum256([]byte("unknown-key"))
+		if _, ok := ks.Lookup(hash); ok {
+			t.Errorf("expected not to find key")
+		}
+	})
+
+	t.Run("revoked", func(t *testing.T) {
+		key := defaultTestKey()
+		key.Revoked = true
+		ks := newTestKeyStoreWithKey(t, key)
+
+		if _, ok := ks.Lookup(defaultKeyHash()); ok {
+			t.Errorf("expected key to be revoked")
+		}
+	})
+
+	t.Run("expired", func(t *testing.T) {
+		key := defaultTestKey()
+		expired := time.Now().Add(-time.Hour)
+		key.ExpiresAt = &expired
+		ks := newTestKeyStoreWithKey(t, key)
+
+		if _, ok := ks.Lookup(defaultKeyHash()); ok {
+			t.Errorf("expected key to be expired")
+		}
+	})
+
+	t.Run("future-expiry", func(t *testing.T) {
+		key := defaultTestKey()
+		expired := time.Now().Add(time.Hour)
+		key.ExpiresAt = &expired
+		ks := newTestKeyStoreWithKey(t, key)
+
+		if _, ok := ks.Lookup(defaultKeyHash()); !ok {
+			t.Errorf("expected key to be valid")
+		}
+	})
+
+	t.Run("malformed-hash", func(t *testing.T) {
+		key := defaultTestKey()
+		key.HashHex = "not-hex-value"
+		ks := newTestKeyStoreWithKey(t, key)
+
+		if _, ok := ks.Lookup(defaultKeyHash()); ok {
+			t.Errorf("expected key to be invalid")
+		}
+	})
+}
+
+func TestKeysFile(t *testing.T) {
+	t.Run("no-existing-keys-file", func(t *testing.T) {
+		ks, err := state.NewKeyStore(filepath.Join(t.TempDir(), "state.json"))
+		if err != nil {
+			t.Fatalf("failed to create blank keystore")
+		}
+
+		if _, ok := ks.Lookup(defaultKeyHash()); ok {
+			t.Errorf("expected no key")
+		}
+	})
+
+	t.Run("invalid-json", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "keys.json")
+		if err := os.WriteFile(path, []byte("not valid json"), 0600); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := state.NewKeyStore(path); err == nil {
+			t.Errorf("no error thrown on broken data")
+		}
+	})
+
+	t.Run("unexpected-json", func(t *testing.T) {
+		data, err := json.Marshal(struct{ Foo string }{Foo: "invalid content"})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		path := filepath.Join(t.TempDir(), "keys.json")
+		if err := os.WriteFile(path, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := state.NewKeyStore(path); err == nil {
+			t.Errorf("no error thrown on broken data")
+		}
+	})
+}
