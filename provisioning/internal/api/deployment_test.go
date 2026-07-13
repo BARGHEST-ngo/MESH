@@ -42,7 +42,6 @@ func (m *failOnceMock) Stop(string) error { return nil }
 func defaultTestKey() state.APIKey {
 	hash := sha256.Sum256([]byte(testAPIKey))
 	created := time.Now()
-	expires := created.Add(time.Hour)
 	return state.APIKey{
 		ID:            uuid.NewString(),
 		OwnerID:       "tests",
@@ -51,11 +50,11 @@ func defaultTestKey() state.APIKey {
 		MaxConcurrent: 0,
 		Revoked:       false,
 		CreatedAt:     created,
-		ExpiresAt:     &expires,
+		ExpiresAt:     nil,
 	}
 }
 
-func newTestRouterWIthKey(t *testing.T, key state.APIKey) http.Handler {
+func newTestRouterWithKey(t *testing.T, key state.APIKey) http.Handler {
 	t.Helper()
 	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
 	if err != nil {
@@ -297,7 +296,7 @@ func TestApiKeyStates(t *testing.T) {
 		key := defaultTestKey()
 		key.ExpiresAt = &expires
 
-		if code := post(newTestRouterWIthKey(t, key)); code != http.StatusUnauthorized {
+		if code := post(newTestRouterWithKey(t, key)); code != http.StatusUnauthorized {
 			t.Errorf("expected %d, got %d", http.StatusUnauthorized, code)
 		}
 	})
@@ -306,7 +305,7 @@ func TestApiKeyStates(t *testing.T) {
 		key := defaultTestKey()
 		key.Revoked = true
 
-		if code := post(newTestRouterWIthKey(t, key)); code != http.StatusUnauthorized {
+		if code := post(newTestRouterWithKey(t, key)); code != http.StatusUnauthorized {
 			t.Errorf("expected %d, got %d", http.StatusUnauthorized, code)
 		}
 	})
