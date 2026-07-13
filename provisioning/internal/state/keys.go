@@ -13,8 +13,9 @@ import (
 
 type APIKey struct {
 	ID            string     `json:"id"`
-	Label         string     `json:"label"`
-	HashHex       string     `json:"hash"` // SHA256 of key
+	OwnerID       string     `json:"owner_id"`
+	Label         string     `json:"label"` // human-redable key purpose ("internal-testing")
+	HashHex       string     `json:"hash"`  // SHA256 of key
 	CreatedAt     time.Time  `json:"created_at"`
 	ExpiresAt     *time.Time `json:"expires_at"`     // nil - does not expire
 	MaxConcurrent int        `json:"max_concurrent"` // 0 - no limit

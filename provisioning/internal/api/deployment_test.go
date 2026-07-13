@@ -15,6 +15,7 @@ import (
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
+	"github.com/google/uuid"
 )
 
 const (
@@ -44,8 +45,9 @@ func defaultTestKey() state.APIKey {
 	created := time.Now()
 	expires := created.Add(time.Hour)
 	return state.APIKey{
-		ID:            "test-owner",
-		Label:         "test",
+		ID:            uuid.NewString(),
+		OwnerID:       "tests",
+		Label:         "automated-testing",
 		HashHex:       hex.EncodeToString(hash[:]),
 		MaxConcurrent: 0,
 		Revoked:       false,

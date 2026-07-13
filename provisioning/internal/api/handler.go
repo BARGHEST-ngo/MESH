@@ -21,7 +21,7 @@ type ContainerService interface {
 
 type contextKey string
 
-const apiKeyContextKey contextKey = "ownerID"
+const apiKeyContextKey contextKey = "apikey"
 
 func NewRouter(keys *state.KeyStore, registry *state.Registry, containerSvc ContainerService) http.Handler {
 	h := &handler{
