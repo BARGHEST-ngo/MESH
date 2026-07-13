@@ -39,6 +39,30 @@ func (m *failOnceMock) Start(state.Deployment) error {
 }
 func (m *failOnceMock) Stop(string) error { return nil }
 
+func defaultTestKey() state.APIKey {
+	hash := sha256.Sum256([]byte(testAPIKey))
+	created := time.Now()
+	expires := created.Add(time.Hour)
+	return state.APIKey{
+		ID:            "test-owner",
+		Label:         "test",
+		HashHex:       hex.EncodeToString(hash[:]),
+		MaxConcurrent: 0,
+		Revoked:       false,
+		CreatedAt:     created,
+		ExpiresAt:     &expires,
+	}
+}
+
+func newTestRouterWIthKey(t *testing.T, key state.APIKey) http.Handler {
+	t.Helper()
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return api.NewRouter(newTestKeyStoreWithKey(t, key), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+}
+
 func newTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
@@ -48,20 +72,8 @@ func newTestRouter(t *testing.T) http.Handler {
 	return api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
 }
 
-func newTestKeyStore(t *testing.T) *state.KeyStore {
+func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
 	t.Helper()
-	hash := sha256.Sum256([]byte(testAPIKey))
-	created := time.Now()
-	expires := created.Add(time.Hour)
-	key := state.APIKey{
-		ID:            "test-owner",
-		Label:         "test",
-		HashHex:       hex.EncodeToString(hash[:]),
-		MaxConcurrent: 0,
-		Revoked:       false,
-		CreatedAt:     created,
-		ExpiresAt:     &expires,
-	}
 	data, err := json.Marshal(struct {
 		Keys []state.APIKey `json:"keys"`
 	}{Keys: []state.APIKey{key}})
@@ -77,6 +89,11 @@ func newTestKeyStore(t *testing.T) *state.KeyStore {
 		t.Fatal(err)
 	}
 	return ks
+}
+
+func newTestKeyStore(t *testing.T) *state.KeyStore {
+	t.Helper()
+	return newTestKeyStoreWithKey(t, defaultTestKey())
 }
 
 func TestHealth(t *testing.T) {
@@ -263,6 +280,57 @@ func TestConcurrentDeployments(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestApiKeyStates(t *testing.T) {
+	//keyHash := sha256.Sum256([]byte(testAPIKey))
+
+	post := func(router http.Handler) int {
+		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", testAPIKey))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		return w.Code
+	}
+
+	t.Run("expired-key", func(t *testing.T) {
+		expires := time.Now().Add(-time.Hour)
+		key := defaultTestKey()
+		key.ExpiresAt = &expires
+
+		if code := post(newTestRouterWIthKey(t, key)); code != http.StatusUnauthorized {
+			t.Errorf("expected %d, got %d", http.StatusUnauthorized, code)
+		}
+	})
+
+	t.Run("revoked-key", func(t *testing.T) {
+		key := defaultTestKey()
+		key.Revoked = true
+
+		if code := post(newTestRouterWIthKey(t, key)); code != http.StatusUnauthorized {
+			t.Errorf("expected %d, got %d", http.StatusUnauthorized, code)
+		}
+	})
+
+	t.Run("over-max-concurrent-deploys", func(t *testing.T) {
+		key := defaultTestKey()
+		key.MaxConcurrent = 2
+		reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+		if err != nil {
+			t.Fatal(err)
+		}
+		router := api.NewRouter(newTestKeyStoreWithKey(t, key), reg, "some-frps-image", api.WithContainerService(mockContainerService{}))
+		// 2 valid deployments, fail on the 3rd
+		if code := post(router); code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, code)
+		}
+		if code := post(router); code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, code)
+		}
+		if code := post(router); code != http.StatusInternalServerError {
+			t.Errorf("expected %d, got %d", http.StatusInternalServerError, code)
+		}
+	})
 }
 
 func TestDeleteDeployment(t *testing.T) {
