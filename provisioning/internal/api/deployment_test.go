@@ -60,7 +60,7 @@ func newTestRouterWIthKey(t *testing.T, key state.APIKey) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return api.NewRouter(newTestKeyStoreWithKey(t, key), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	return api.NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{})
 }
 
 func newTestRouter(t *testing.T) http.Handler {
@@ -69,7 +69,7 @@ func newTestRouter(t *testing.T) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	return api.NewRouter(newTestKeyStore(t), reg, mockContainerService{})
 }
 
 func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
@@ -160,7 +160,7 @@ func TestPostDeploymentPortExhaustion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router := api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	router := api.NewRouter(newTestKeyStore(t), reg, mockContainerService{})
 
 	makeRequest := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
@@ -185,7 +185,7 @@ func TestStartFailureRollsBackPort(t *testing.T) {
 		t.Fatal(err)
 	}
 	mock := &failOnceMock{}
-	router := api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mock))
+	router := api.NewRouter(newTestKeyStore(t), reg, mock)
 
 	post := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
@@ -212,7 +212,7 @@ func TestConcurrentDeployments(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create registry")
 	}
-	router := api.NewRouter(newTestKeyStore(t), reg, "some_frps_image", api.WithContainerService(mockContainerService{}))
+	router := api.NewRouter(newTestKeyStore(t), reg, mockContainerService{})
 
 	var wg sync.WaitGroup
 	for range 10 {
@@ -319,7 +319,7 @@ func TestApiKeyStates(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		router := api.NewRouter(newTestKeyStoreWithKey(t, key), reg, "some-frps-image", api.WithContainerService(mockContainerService{}))
+		router := api.NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{})
 		// 2 valid deployments, fail on the 3rd
 		if code := post(router); code != http.StatusCreated {
 			t.Errorf("expected %d, got %d", http.StatusCreated, code)

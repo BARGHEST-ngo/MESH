@@ -64,7 +64,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(keyStore, registry, frpsImage),
+		Handler:      api.NewRouter(keyStore, registry, docker.Manager{FrpsImage: frpsImage}),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

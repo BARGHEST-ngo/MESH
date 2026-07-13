@@ -6,19 +6,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
 
 type handler struct {
 	registry *state.Registry
 	service  ContainerService
-}
-
-type Option func(*handler)
-
-func WithContainerService(svc ContainerService) Option {
-	return func(h *handler) { h.service = svc }
 }
 
 type ContainerService interface {
@@ -30,16 +23,12 @@ type contextKey string
 
 const apiKeyContextKey contextKey = "ownerID"
 
-func NewRouter(keys *state.KeyStore, registry *state.Registry, frpsImage string, opts ...Option) http.Handler {
+func NewRouter(keys *state.KeyStore, registry *state.Registry, containerSvc ContainerService) http.Handler {
 	h := &handler{
 		registry: registry,
-		service: docker.Manager{
-			FrpsImage: frpsImage,
-		},
+		service:  containerSvc,
 	}
-	for _, opt := range opts {
-		opt(h)
-	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("POST /deployment", h.handlePostDeployment)
