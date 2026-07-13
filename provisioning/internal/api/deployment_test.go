@@ -285,8 +285,6 @@ func TestConcurrentDeployments(t *testing.T) {
 }
 
 func TestApiKeyStates(t *testing.T) {
-	//keyHash := sha256.Sum256([]byte(testAPIKey))
-
 	post := func(router http.Handler) int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", testAPIKey))
