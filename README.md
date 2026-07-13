@@ -100,8 +100,8 @@ CONTROL_PLANE_TYPE=Ephemeral
 PROXY_DOMAIN_TYPE=Automatic
 MESH_SUBDOMAIN=<random 10 character slug>
 FRP_AUTH_TOKEN=<secret token>
-CONTROL_PLANE_URL=https://<slug>.tunnel.meshforensics.app
-LOGIN_URL=https://<slug>.tunnel.meshforensics.app
+CONTROL_PLANE_URL=https://<slug>.tunnels.meshforensics.app
+LOGIN_URL=https://<slug>.tunnels.meshforensics.app
 ```
 
 **Containers start and an API key is generated.** Once all services are healthy, MESH prints a one-time API key to log into the web UI.
@@ -114,7 +114,7 @@ Control plane API key (enter this in the web UI to log in):
 
 Navigate to your control plane URL and enter the API key when prompted to log in.
 
-`https://<slug>.tunnel.meshforensics.app`
+`https://<slug>.tunnels.meshforensics.app`
 
 The web UI is served over HTTPS with a certificate issued automatically by Let's Encrypt.
 
