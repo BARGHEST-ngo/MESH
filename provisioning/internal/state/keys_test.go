@@ -58,9 +58,15 @@ func newDefaultTestKeyStore(t *testing.T) *state.KeyStore {
 
 func TestLookUpKey(t *testing.T) {
 	t.Run("valid-key", func(t *testing.T) {
-		ks := newDefaultTestKeyStore(t)
-		if _, ok := ks.Lookup(defaultKeyHash()); !ok {
+		storedKey := defaultTestKey()
+		ks := newTestKeyStoreWithKey(t, storedKey)
+		key, ok := ks.Lookup(defaultKeyHash())
+		if !ok {
 			t.Errorf("expected to find valid key")
+		}
+
+		if key.ID != storedKey.ID {
+			t.Errorf("key.ID mismatch: expected %s, got %s", storedKey.ID, key.ID)
 		}
 	})
 
