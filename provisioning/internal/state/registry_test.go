@@ -26,17 +26,24 @@ func defaultTestRegistry(t *testing.T) *state.Registry {
 func TestAllocatePort(t *testing.T) {
 	reg := defaultTestRegistry(t)
 
-	d, err := reg.AllocatePort(testSlug, "test-token", "test-owner", 0)
+	created, err := reg.AllocatePort(testSlug, "test-token", "test-owner", 0)
 	if err != nil {
 		t.Errorf("expected valid allocation")
 	}
 
-	if d.FrpsPort < minPort || d.FrpsPort > maxPort {
-		t.Errorf("port allocated outside of permitted range: %d", d.FrpsPort)
+	if created.FrpsPort < minPort || created.FrpsPort > maxPort {
+		t.Errorf("port allocated outside of permitted range: %d", created.FrpsPort)
 	}
 
-	if _, ok := reg.Get(d.Slug); !ok {
-		t.Errorf("valid deployment expected")
+	found, ok := reg.Get(created.Slug)
+	if !ok {
+		t.Fatal("expected deployment to exist")
+	}
+	if found.FrpsPort != created.FrpsPort {
+		t.Errorf("expected port %d, got %d", created.FrpsPort, found.FrpsPort)
+	}
+	if found.OwnerID != "test-owner" {
+		t.Errorf("expected owner %q, got %q", "test-owner", found.OwnerID)
 	}
 
 	if _, ok := reg.Get("some-random-slug"); ok {
@@ -108,7 +115,8 @@ func TestRegistryPersistence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := reg.AllocatePort(testSlug, "test-token", "test-owner", 0); err != nil {
+	created, err := reg.AllocatePort(testSlug, "test-token", "test-owner", 0)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -117,7 +125,14 @@ func TestRegistryPersistence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := reg2.Get(testSlug); !ok {
+	found, ok := reg2.Get(testSlug)
+	if !ok {
 		t.Errorf("port allocation did not persist between restarts")
+	}
+	if found.FrpsPort != created.FrpsPort {
+		t.Errorf("expected port %d, got %d", created.FrpsPort, found.FrpsPort)
+	}
+	if found.OwnerID != "test-owner" {
+		t.Errorf("expected owner %q, got %q", "test-owner", found.OwnerID)
 	}
 }
