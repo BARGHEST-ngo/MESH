@@ -19,14 +19,6 @@ import (
 // This is an intentionally light-weight and basic HTTP server
 // Don't want to over-engineer at this stage, just prove it works
 func main() {
-	// PROVISIONER_API_KEY during early dev will be a single shared secret
-	// Internal use only during development
-	// Moving to per-customer keys as we get closer to prod
-	apiKey := os.Getenv("PROVISIONER_API_KEY")
-	if apiKey == "" {
-		log.Fatal("PROVISIONER_API_KEY must be set")
-	}
-
 	portMin := os.Getenv("FRPS_PORT_MIN")
 	if portMin == "" {
 		log.Fatal("FRPS_PORT_MIN must be set")
@@ -65,9 +57,14 @@ func main() {
 		log.Fatal("failed to initialise port registry")
 	}
 
+	keyStore, err := state.NewKeyStore(filepath.Join(dataPath, "keys.json"))
+	if err != nil {
+		log.Fatal("failed to initialise key store")
+	}
+
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(apiKey, registry, frpsImage),
+		Handler:      api.NewRouter(keyStore, registry, docker.Manager{FrpsImage: frpsImage}),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

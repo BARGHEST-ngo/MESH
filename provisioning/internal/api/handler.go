@@ -1,11 +1,10 @@
 package api
 
 import (
+	"context"
 	"crypto/sha256"
-	"crypto/subtle"
 	"net/http"
 
-	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
 
@@ -14,37 +13,30 @@ type handler struct {
 	service  ContainerService
 }
 
-type Option func(*handler)
-
-func WithContainerService(svc ContainerService) Option {
-	return func(h *handler) { h.service = svc }
-}
-
 type ContainerService interface {
 	Start(d state.Deployment) error
 	Stop(slug string) error
 }
 
-func NewRouter(apiKey string, registry *state.Registry, frpsImage string, opts ...Option) http.Handler {
-	keyHash := sha256.Sum256([]byte(apiKey))
+type contextKey string
+
+const apiKeyContextKey contextKey = "apikey"
+
+func NewRouter(keys *state.KeyStore, registry *state.Registry, containerSvc ContainerService) http.Handler {
 	h := &handler{
 		registry: registry,
-		service: docker.Manager{
-			FrpsImage: frpsImage,
-		},
+		service:  containerSvc,
 	}
-	for _, opt := range opts {
-		opt(h)
-	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("POST /deployment", h.handlePostDeployment)
 	mux.HandleFunc("DELETE /deployment/{slug}", h.handleDeleteDeployment)
 
-	return authRequest(keyHash, mux)
+	return authRequest(keys, mux)
 }
 
-func authRequest(keyHash [32]byte, next http.Handler) http.Handler {
+func authRequest(keys *state.KeyStore, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/health" {
 			next.ServeHTTP(w, r)
@@ -53,16 +45,19 @@ func authRequest(keyHash [32]byte, next http.Handler) http.Handler {
 
 		bearer := r.Header.Get("Authorization")
 		if len(bearer) < 8 || bearer[:7] != "Bearer " {
+
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		incoming := sha256.Sum256([]byte(bearer[7:]))
-		if subtle.ConstantTimeCompare(incoming[:], keyHash[:]) != 1 {
+		token := sha256.Sum256([]byte(bearer[7:]))
+		key, ok := keys.Lookup(token)
+		if !ok {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), apiKeyContextKey, key)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

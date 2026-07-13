@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,13 +8,11 @@ import (
 )
 
 func TestAuthRequest(t *testing.T) {
-	keyHash := sha256.Sum256([]byte("test-key"))
-
 	dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	handler := authRequest(keyHash, dummy)
+	handler := authRequest(newTestKeyStore(t), dummy)
 
 	cases := []struct {
 		name     string
