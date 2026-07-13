@@ -17,6 +17,7 @@ type Deployment struct {
 	Token     string    `json:"token"`
 	FrpsPort  int       `json:"frps_port"`
 	CreatedAt time.Time `json:"created_at"`
+	OwnerID   string    `json:"owner_id"`
 }
 
 type registryState struct {
@@ -47,13 +48,21 @@ func New(path string, portMin, portMax int) (*Registry, error) {
 	return r, nil
 }
 
-func (r *Registry) AllocatePort(slug, token string) (Deployment, error) {
+func (r *Registry) AllocatePort(slug, token, ownerID string, maxConcurrent int) (Deployment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	used := make(map[int]bool)
+	var count int
 	for _, d := range r.state.Deployments {
 		used[d.FrpsPort] = true
+		if d.OwnerID == ownerID {
+			count++
+		}
+	}
+
+	if maxConcurrent != 0 && count >= maxConcurrent {
+		return Deployment{}, fmt.Errorf("max deployments reached")
 	}
 
 	for port := r.portMin; port <= r.portMax; port++ {
@@ -63,6 +72,7 @@ func (r *Registry) AllocatePort(slug, token string) (Deployment, error) {
 				Token:     token,
 				FrpsPort:  port,
 				CreatedAt: time.Now().UTC(),
+				OwnerID:   ownerID,
 			}
 			r.state.Deployments[slug] = d
 			return d, r.save()

@@ -1,0 +1,102 @@
+package state
+
+import (
+	"bytes"
+	"crypto/subtle"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+)
+
+type APIKey struct {
+	ID            string     `json:"id"`
+	OwnerID       string     `json:"owner_id"`
+	Label         string     `json:"label"` // human-redable key purpose ("internal-testing")
+	HashHex       string     `json:"hash"`  // SHA256 of key
+	CreatedAt     time.Time  `json:"created_at"`
+	ExpiresAt     *time.Time `json:"expires_at"`     // nil - does not expire
+	MaxConcurrent int        `json:"max_concurrent"` // 0 - no limit
+	Revoked       bool       `json:"revoked"`
+}
+
+type keysState struct {
+	Keys []APIKey `json:"keys"`
+}
+
+type KeyStore struct {
+	mu    sync.Mutex
+	path  string
+	state keysState
+}
+
+func NewKeyStore(path string) (*KeyStore, error) {
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return nil, fmt.Errorf("failed to create state directory: %w", err)
+	}
+
+	ks := &KeyStore{
+		path:  path,
+		state: keysState{Keys: make([]APIKey, 0)},
+	}
+	if err := ks.load(); err != nil {
+		return nil, err
+	}
+	return ks, nil
+}
+
+func (ks *KeyStore) Lookup(hash [32]byte) (APIKey, bool) {
+	ks.mu.Lock()
+	defer ks.mu.Unlock()
+
+	for _, k := range ks.state.Keys {
+		decoded, err := hex.DecodeString(k.HashHex)
+		if err != nil {
+			continue
+		}
+
+		if subtle.ConstantTimeCompare(hash[:], decoded) != 1 {
+			continue
+		}
+		if k.Revoked {
+			return APIKey{}, false
+		}
+		if k.ExpiresAt != nil && time.Now().After(*k.ExpiresAt) {
+			return APIKey{}, false
+		}
+		return k, true
+	}
+
+	return APIKey{}, false
+}
+
+func (ks *KeyStore) load() error {
+	data, err := os.ReadFile(ks.path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("error reading keys file: %w", err)
+	}
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	return decoder.Decode(&ks.state)
+}
+
+func (ks *KeyStore) save() error {
+	data, err := json.MarshalIndent(ks.state, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal error: %w", err)
+	}
+
+	tmp := ks.path + ".tmp"
+	if err := os.WriteFile(tmp, data, 0600); err != nil {
+		return fmt.Errorf("write file error: %w", err)
+	}
+	return os.Rename(tmp, ks.path)
+}
