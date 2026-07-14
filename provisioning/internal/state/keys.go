@@ -118,6 +118,24 @@ func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.D
 	return apiKey, b64Key, nil
 }
 
+func (ks *KeyStore) Revoke(keyID string) error {
+	ks.mu.Lock()
+	defer ks.mu.Unlock()
+
+	for i, k := range ks.state.Keys {
+		if k.ID == keyID {
+			ks.state.Keys[i].Revoked = true
+			if err := ks.save(); err != nil {
+				ks.state.Keys[i].Revoked = false
+				return err
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("unable to find key with ID %s", keyID)
+}
+
 func (ks *KeyStore) load() error {
 	data, err := os.ReadFile(ks.path)
 	if os.IsNotExist(err) {
