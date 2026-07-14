@@ -93,7 +93,7 @@ task controlPlane
 
 <img src="https://github.com/user-attachments/assets/5c76c30d-8821-4efa-8f5f-3e4c6db7b932" />
 
-**Enter API key.** If you have chosen and Automatic domain then you will be prompted to enter an API key. This will be provided to you by the team at Barghest, contact us to request access.
+**Enter API key.** If you have chosen an Automatic domain then you will be prompted to enter an API key. This will be provided to you by the team at Barghest, contact us to request access.
 
 <img src="https://github.com/user-attachments/assets/144a83f2-8e1a-45c6-9e49-7e97cde67f1c" />
 
