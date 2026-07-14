@@ -160,3 +160,97 @@ func TestKeysFile(t *testing.T) {
 		}
 	})
 }
+
+func TestCreate(t *testing.T) {
+	t.Run("valid-no-ttl", func(t *testing.T) {
+		keystore := newDefaultTestKeyStore(t)
+		ownerID := "new-owner-id"
+		label := "internal-testing"
+		maxConcurrent := 0
+		k, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil)
+		if err != nil {
+			t.Errorf("failed to create valid key: %v", err)
+		}
+
+		if k.OwnerID != ownerID {
+			t.Errorf("expected OwnerID '%s', got '%s'", ownerID, k.OwnerID)
+		}
+
+		if k.Label != label {
+			t.Errorf("expected Label '%s', got '%s'", label, k.Label)
+		}
+
+		if k.MaxConcurrent != maxConcurrent {
+			t.Errorf("expected MaxConcurrent '%d', got '%d'", maxConcurrent, k.MaxConcurrent)
+		}
+
+		if k.Revoked {
+			t.Error("created key is revoked")
+		}
+
+		if k.ID == "" {
+			t.Error("key created with blank ID")
+		}
+
+		keyHash := sha256.Sum256([]byte(b64Key))
+		found, ok := keystore.Lookup(keyHash)
+		if !ok {
+			t.Errorf("failed to lookup created key")
+		}
+
+		if found.ID != k.ID {
+			t.Errorf("key IDs do not match")
+		}
+	})
+
+	t.Run("valid-with-ttl", func(t *testing.T) {
+		keystore := newDefaultTestKeyStore(t)
+		ownerID := "new-owner-id"
+		label := "internal-testing"
+		maxConcurrent := 0
+		d := time.Duration(time.Hour)
+		ttl := &d
+		k, _, err := keystore.Create(ownerID, label, maxConcurrent, ttl)
+		if err != nil {
+			t.Errorf("failed to create valid key: %v", err)
+		}
+
+		if k.ExpiresAt == nil {
+			t.Errorf("key expected to have an expiry time")
+		}
+
+		remaining := time.Until(*k.ExpiresAt)
+		if remaining < d-time.Second || remaining > d+time.Second {
+			t.Errorf("key expiry time is not within tolerance")
+		}
+	})
+
+	t.Run("persistance", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "keys.json")
+		keystore, err := state.NewKeyStore(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ownerID := "new-owner-id"
+		label := "internal-testing"
+		maxConcurrent := 0
+		createdKey, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		keyStore2, err := state.NewKeyStore(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		keyHash := sha256.Sum256([]byte(b64Key))
+		foundKey, ok := keyStore2.Lookup(keyHash)
+		if !ok {
+			t.Errorf("key did not persist between keystores")
+		}
+
+		if createdKey.ID != foundKey.ID {
+			t.Errorf("key IDs do not match")
+		}
+	})
+}

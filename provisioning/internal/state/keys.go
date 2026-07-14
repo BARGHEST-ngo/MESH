@@ -2,7 +2,10 @@ package state
 
 import (
 	"bytes"
+	"crypto/rand"
+	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -10,6 +13,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type APIKey struct {
@@ -71,6 +76,46 @@ func (ks *KeyStore) Lookup(hash [32]byte) (APIKey, bool) {
 	}
 
 	return APIKey{}, false
+}
+
+func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.Duration) (APIKey, string, error) {
+	key := make([]byte, 32)
+	_, err := rand.Read(key)
+	if err != nil {
+		return APIKey{}, "", err
+	}
+
+	b64Key := base64.URLEncoding.EncodeToString(key)
+	hash := sha256.Sum256([]byte(b64Key))
+	hashHex := hex.EncodeToString(hash[:])
+	createdAt := time.Now().UTC()
+	var expiresAt *time.Time
+	if ttl != nil {
+		t := createdAt.Add(*ttl)
+		expiresAt = &t
+	}
+
+	apiKey := APIKey{
+		ID:            uuid.NewString(),
+		OwnerID:       ownerID,
+		Label:         label,
+		MaxConcurrent: maxConcurrent,
+		Revoked:       false,
+		HashHex:       hashHex,
+		CreatedAt:     createdAt,
+		ExpiresAt:     expiresAt,
+	}
+
+	ks.mu.Lock()
+	defer ks.mu.Unlock()
+
+	ks.state.Keys = append(ks.state.Keys, apiKey)
+	if err := ks.save(); err != nil {
+		ks.state.Keys = ks.state.Keys[:len(ks.state.Keys)-1]
+		return APIKey{}, "", err
+	}
+
+	return apiKey, b64Key, nil
 }
 
 func (ks *KeyStore) load() error {
