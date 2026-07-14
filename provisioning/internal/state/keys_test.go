@@ -254,3 +254,72 @@ func TestCreate(t *testing.T) {
 		}
 	})
 }
+
+func TestRevoke(t *testing.T) {
+	t.Run("valid", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		k, b64Key, err := keyStore.Create("foo", "bar", 0, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := keyStore.Revoke(k.ID); err != nil {
+			t.Fatal(err)
+		}
+
+		keyHash := sha256.Sum256([]byte(b64Key))
+		_, ok := keyStore.Lookup(keyHash)
+		if ok {
+			t.Errorf("expected to fail lookup")
+		}
+	})
+
+	t.Run("invalid-id", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		if err := keyStore.Revoke("some-unknown-id"); err == nil {
+			t.Error("expected error on unknown id")
+		}
+	})
+
+	t.Run("persistance", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "keys.json")
+		keystore, err := state.NewKeyStore(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		k, b64Key, err := keystore.Create("foo", "bar", 0, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := keystore.Revoke(k.ID); err != nil {
+			t.Fatal(err)
+		}
+
+		keyStore2, err := state.NewKeyStore(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		keyHash := sha256.Sum256([]byte(b64Key))
+		if _, ok := keyStore2.Lookup(keyHash); ok {
+			t.Errorf("revocation did not persist between keystores")
+		}
+	})
+
+	t.Run("already-revoked", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		k, _, err := keyStore.Create("foo", "bar", 0, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := keyStore.Revoke(k.ID); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := keyStore.Revoke(k.ID); err != nil {
+			t.Errorf("expected success on second call to Revoke")
+		}
+	})
+}
