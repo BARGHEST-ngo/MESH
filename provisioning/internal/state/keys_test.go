@@ -323,3 +323,111 @@ func TestRevoke(t *testing.T) {
 		}
 	})
 }
+
+func TestUpdate(t *testing.T) {
+	t.Run("update-label", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 0, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		newLabel := "new-label"
+		if err := keyStore.Update(k.ID, &newLabel, nil, state.ExpiryUpdate{}); err != nil {
+			t.Fatal(err)
+		}
+
+		keyHash := sha256.Sum256([]byte(b64Key))
+		found, ok := keyStore.Lookup(keyHash)
+		if !ok {
+			t.Fatal("failed to find updated key")
+		}
+
+		if found.Label != newLabel {
+			t.Error("Label update did not save")
+		}
+	})
+
+	t.Run("update-max-concurrent", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 0, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		newMaxConcurrent := 1
+		if err := keyStore.Update(k.ID, nil, &newMaxConcurrent, state.ExpiryUpdate{Op: state.ExpiryNoChange}); err != nil {
+			t.Fatal(err)
+		}
+
+		keyHash := sha256.Sum256([]byte(b64Key))
+		found, ok := keyStore.Lookup(keyHash)
+		if !ok {
+			t.Fatal("failed to find updated key")
+		}
+
+		if found.MaxConcurrent != newMaxConcurrent {
+			t.Error("MaxConcurrent update did not save")
+		}
+	})
+
+	t.Run("set-expiry", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 0, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		newExpiry := k.CreatedAt.Add(time.Hour)
+		if err := keyStore.Update(k.ID, nil, nil, state.ExpiryUpdate{
+			Op:    state.ExpirySet,
+			Value: &newExpiry,
+		}); err != nil {
+			t.Fatal(err)
+		}
+
+		keyHash := sha256.Sum256([]byte(b64Key))
+		found, ok := keyStore.Lookup(keyHash)
+		if !ok {
+			t.Fatal("failed to find updated key")
+		}
+
+		if found.ExpiresAt == nil {
+			t.Fatal("ExpiresAt was not set")
+		}
+
+		if !found.ExpiresAt.Equal(newExpiry) {
+			t.Error("Expiry time update did not save")
+		}
+	})
+
+	t.Run("clear-expiry", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		ttl := time.Hour
+		k, b64Key, err := keyStore.Create("foo", "original-label", 0, &ttl)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := keyStore.Update(k.ID, nil, nil, state.ExpiryUpdate{Op: state.ExpiryClear}); err != nil {
+			t.Fatal(err)
+		}
+
+		keyHash := sha256.Sum256([]byte(b64Key))
+		found, ok := keyStore.Lookup(keyHash)
+		if !ok {
+			t.Fatal("failed to find updated key")
+		}
+
+		if found.ExpiresAt != nil {
+			t.Error("Expiry time update did not clear")
+		}
+	})
+
+	t.Run("invalid-id", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		if err := keyStore.Update("some-invalid-id", nil, nil, state.ExpiryUpdate{}); err == nil {
+			t.Error("expected error for invalid id")
+		}
+	})
+}
