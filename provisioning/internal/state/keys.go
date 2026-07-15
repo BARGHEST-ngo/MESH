@@ -183,6 +183,12 @@ func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expi
 	return fmt.Errorf("%w: unable to find key with ID %s", ErrNotFound, keyID)
 }
 
+func (ks *KeyStore) List() []APIKey {
+	ks.mu.Lock()
+	defer ks.mu.Unlock()
+	return ks.state.Keys
+}
+
 func (ks *KeyStore) load() error {
 	data, err := os.ReadFile(ks.path)
 	if os.IsNotExist(err) {

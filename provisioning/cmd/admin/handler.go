@@ -32,6 +32,20 @@ type updateKeyRequest struct {
 	ClearExpiry   bool       `json:"clear_expiry"`
 }
 
+type getKeysResponse struct {
+	Keys map[string]keyResponse `json:"keys"`
+}
+
+type keyResponse struct {
+	ID            string     `json:"id"`
+	OwnerID       string     `json:"owner_id"`
+	Label         string     `json:"label"`
+	CreatedAt     time.Time  `json:"created_at"`
+	ExpiresAt     *time.Time `json:"expires_at"`
+	MaxConcurrent int        `json:"max_concurrent"`
+	Revoked       bool       `json:"revoked"`
+}
+
 type handler struct {
 	keys *state.KeyStore
 }
@@ -42,11 +56,34 @@ func NewAdminRouter(keys *state.KeyStore) http.Handler {
 	}
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /keys", h.handleGetKeys)
 	mux.HandleFunc("POST /keys", h.handlePostKey)
 	mux.HandleFunc("DELETE /keys/{key_id}", h.handleDeleteKey)
 	mux.HandleFunc("PATCH /keys/{key_id}", h.handlePatchKey)
 
 	return mux
+}
+
+func (h *handler) handleGetKeys(w http.ResponseWriter, r *http.Request) {
+	keys := h.keys.List()
+	respKeys := make(map[string]keyResponse, len(keys))
+	for _, k := range keys {
+		respKeys[k.ID] = keyResponse{
+			ID:            k.ID,
+			OwnerID:       k.OwnerID,
+			Label:         k.Label,
+			CreatedAt:     k.CreatedAt,
+			ExpiresAt:     k.ExpiresAt,
+			MaxConcurrent: k.MaxConcurrent,
+			Revoked:       k.Revoked,
+		}
+	}
+	response := getKeysResponse{
+		Keys: respKeys,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *handler) handlePostKey(w http.ResponseWriter, r *http.Request) {
