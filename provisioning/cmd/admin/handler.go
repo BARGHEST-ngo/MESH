@@ -57,6 +57,11 @@ func (h *handler) handlePostKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Label == "" || req.OwnerID == "" || req.MaxConcurrent < 0 {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
 	var ttl *time.Duration
 	if req.TTLHours > 0 {
 		dur := time.Hour * time.Duration(req.TTLHours)
