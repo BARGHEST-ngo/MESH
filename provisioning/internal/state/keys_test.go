@@ -333,7 +333,7 @@ func TestUpdate(t *testing.T) {
 		}
 
 		newLabel := "new-label"
-		if err := keyStore.Update(k.ID, &newLabel, nil, nil); err != nil {
+		if err := keyStore.Update(k.ID, &newLabel, nil, state.ExpiryUpdate{}); err != nil {
 			t.Fatal(err)
 		}
 
@@ -356,7 +356,7 @@ func TestUpdate(t *testing.T) {
 		}
 
 		newMaxConcurrent := 1
-		if err := keyStore.Update(k.ID, nil, &newMaxConcurrent, nil); err != nil {
+		if err := keyStore.Update(k.ID, nil, &newMaxConcurrent, state.ExpiryUpdate{Op: state.ExpiryNoChange}); err != nil {
 			t.Fatal(err)
 		}
 
@@ -379,8 +379,10 @@ func TestUpdate(t *testing.T) {
 		}
 
 		newExpiry := k.CreatedAt.Add(time.Hour)
-		newExpiryPtr := &newExpiry
-		if err := keyStore.Update(k.ID, nil, nil, &newExpiryPtr); err != nil {
+		if err := keyStore.Update(k.ID, nil, nil, state.ExpiryUpdate{
+			Op:    state.ExpirySet,
+			Value: &newExpiry,
+		}); err != nil {
 			t.Fatal(err)
 		}
 
@@ -407,8 +409,7 @@ func TestUpdate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		var nilExpiry *time.Time
-		if err := keyStore.Update(k.ID, nil, nil, &nilExpiry); err != nil {
+		if err := keyStore.Update(k.ID, nil, nil, state.ExpiryUpdate{Op: state.ExpiryClear}); err != nil {
 			t.Fatal(err)
 		}
 
@@ -425,7 +426,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("invalid-id", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		if err := keyStore.Update("some-invalid-id", nil, nil, nil); err == nil {
+		if err := keyStore.Update("some-invalid-id", nil, nil, state.ExpiryUpdate{}); err == nil {
 			t.Error("expected error for invalid id")
 		}
 	})
