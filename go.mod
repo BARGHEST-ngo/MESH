@@ -8,6 +8,7 @@ require (
 	github.com/BARGHEST-ngo/amnezia-wireguard-go v0.2.0-alpha.2
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.7.0
+	github.com/google/uuid v1.6.0
 	golang.org/x/mobile v0.0.0-20260217195705-b56b3793a9c4
 	tailscale.com v1.94.1
 )
@@ -80,7 +81,6 @@ require (
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/go-tpm v0.9.4 // indirect
 	github.com/google/nftables v0.2.1-0.20240414091927-5e242ec57806 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.24.0 // indirect
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
