@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -37,6 +38,8 @@ type KeyStore struct {
 	path  string
 	state keysState
 }
+
+var ErrNotFound = errors.New("key not found")
 
 func NewKeyStore(path string) (*KeyStore, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
@@ -133,7 +136,7 @@ func (ks *KeyStore) Revoke(keyID string) error {
 		}
 	}
 
-	return fmt.Errorf("unable to find key with ID %s", keyID)
+	return fmt.Errorf("%w: unable to find key with ID %s", ErrNotFound, keyID)
 }
 
 type ExpiryOp int
@@ -176,7 +179,8 @@ func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expi
 			return nil
 		}
 	}
-	return fmt.Errorf("unable to find key with ID %s", keyID)
+
+	return fmt.Errorf("%w: unable to find key with ID %s", ErrNotFound, keyID)
 }
 
 func (ks *KeyStore) load() error {
