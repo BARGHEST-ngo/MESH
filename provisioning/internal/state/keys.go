@@ -136,6 +136,49 @@ func (ks *KeyStore) Revoke(keyID string) error {
 	return fmt.Errorf("unable to find key with ID %s", keyID)
 }
 
+type ExpiryOp int
+
+const (
+	ExpiryNoChange ExpiryOp = iota
+	ExpirySet
+	ExpiryClear
+)
+
+type ExpiryUpdate struct {
+	Op    ExpiryOp
+	Value *time.Time
+}
+
+func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expiresAt ExpiryUpdate) error {
+	ks.mu.Lock()
+	defer ks.mu.Unlock()
+	for i, k := range ks.state.Keys {
+		if k.ID == keyID {
+			original := ks.state.Keys[i]
+
+			if label != nil {
+				ks.state.Keys[i].Label = *label
+			}
+			if maxConcurrent != nil {
+				ks.state.Keys[i].MaxConcurrent = *maxConcurrent
+			}
+			switch expiresAt.Op {
+			case ExpirySet:
+				ks.state.Keys[i].ExpiresAt = expiresAt.Value
+			case ExpiryClear:
+				ks.state.Keys[i].ExpiresAt = nil
+			}
+
+			if err := ks.save(); err != nil {
+				ks.state.Keys[i] = original
+				return err
+			}
+			return nil
+		}
+	}
+	return fmt.Errorf("unable to find key with ID %s", keyID)
+}
+
 func (ks *KeyStore) load() error {
 	data, err := os.ReadFile(ks.path)
 	if os.IsNotExist(err) {
