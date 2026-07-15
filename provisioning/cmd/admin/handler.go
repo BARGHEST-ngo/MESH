@@ -152,11 +152,6 @@ func (h *handler) handlePatchKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	keyID := r.PathValue("key_id")
-	if keyID == "" {
-		http.Error(w, "unknown key ID", http.StatusBadRequest)
-		return
-	}
-
 	if req.MaxConcurrent != nil && *req.MaxConcurrent < 0 {
 		http.Error(w, "max_concurrent must be >= 0", http.StatusBadRequest)
 		return

@@ -186,7 +186,9 @@ func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expi
 func (ks *KeyStore) List() []APIKey {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
-	return ks.state.Keys
+	out := make([]APIKey, len(ks.state.Keys))
+	copy(out, ks.state.Keys)
+	return out
 }
 
 func (ks *KeyStore) load() error {
