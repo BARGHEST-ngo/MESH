@@ -2,6 +2,7 @@ package admin
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -88,12 +89,12 @@ func (h *handler) handlePostKey(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) handleDeleteKey(w http.ResponseWriter, r *http.Request) {
 	keyID := r.PathValue("key_id")
-	if keyID == "" {
-		http.Error(w, "unknown key ID", http.StatusBadRequest)
-		return
-	}
-
-	if err := h.keys.Revoke(keyID); err != nil {
+	err := h.keys.Revoke(keyID)
+	if err != nil {
+		if errors.Is(err, state.ErrNotFound) {
+			http.Error(w, "unknown key_id", http.StatusNotFound)
+			return
+		}
 		http.Error(w, fmt.Sprintf("failed to revoke key: %s", keyID), http.StatusInternalServerError)
 		return
 	}
@@ -101,6 +102,9 @@ func (h *handler) handleDeleteKey(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// TODO: If maxConcurrent is less than current number of deployments - what to do?
+// Don't kill existing deployments and just block new requests?
+// Killing existing deployments requires choosing one and communicating that to the end-user
 func (h *handler) handlePatchKey(w http.ResponseWriter, r *http.Request) {
 	var req updateKeyRequest
 	dec := json.NewDecoder(r.Body)
@@ -116,6 +120,16 @@ func (h *handler) handlePatchKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.MaxConcurrent != nil && *req.MaxConcurrent < 0 {
+		http.Error(w, "max_concurrent must be >= 0", http.StatusBadRequest)
+		return
+	}
+
+	if req.Label != nil && *req.Label == "" {
+		http.Error(w, "label cannot be empty string", http.StatusBadRequest)
+		return
+	}
+
 	// defaults to state.ExpiryNoChange
 	var expiryUpdate state.ExpiryUpdate
 	if req.ClearExpiry {
@@ -124,8 +138,13 @@ func (h *handler) handlePatchKey(w http.ResponseWriter, r *http.Request) {
 		expiryUpdate = state.ExpiryUpdate{Op: state.ExpirySet, Value: req.ExpiresAt}
 	}
 
-	if err := h.keys.Update(keyID, req.Label, req.MaxConcurrent, expiryUpdate); err != nil {
-		http.Error(w, fmt.Sprintf("failed to revoke key: %s", keyID), http.StatusInternalServerError)
+	err := h.keys.Update(keyID, req.Label, req.MaxConcurrent, expiryUpdate)
+	if err != nil {
+		if errors.Is(err, state.ErrNotFound) {
+			http.Error(w, "unknown key_id", http.StatusNotFound)
+			return
+		}
+		http.Error(w, fmt.Sprintf("failed to update key: %s", keyID), http.StatusInternalServerError)
 		return
 	}
 
