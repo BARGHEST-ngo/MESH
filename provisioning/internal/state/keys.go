@@ -136,11 +136,20 @@ func (ks *KeyStore) Revoke(keyID string) error {
 	return fmt.Errorf("unable to find key with ID %s", keyID)
 }
 
-// double pointer for expiresAt:
-// nil - do not touch
-// &nil - remove expiry time
-// &&time - set new expiry time
-func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expiresAt **time.Time) error {
+type ExpiryOp int
+
+const (
+	ExpiryNoChange ExpiryOp = iota
+	ExpirySet
+	ExpiryClear
+)
+
+type ExpiryUpdate struct {
+	Op    ExpiryOp
+	Value *time.Time
+}
+
+func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expiresAt ExpiryUpdate) error {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
 	for i, k := range ks.state.Keys {
@@ -153,9 +162,13 @@ func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expi
 			if maxConcurrent != nil {
 				ks.state.Keys[i].MaxConcurrent = *maxConcurrent
 			}
-			if expiresAt != nil {
-				ks.state.Keys[i].ExpiresAt = *expiresAt
+			switch expiresAt.Op {
+			case ExpirySet:
+				ks.state.Keys[i].ExpiresAt = expiresAt.Value
+			case ExpiryClear:
+				ks.state.Keys[i].ExpiresAt = nil
 			}
+
 			if err := ks.save(); err != nil {
 				ks.state.Keys[i] = original
 				return err
