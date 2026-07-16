@@ -27,6 +27,48 @@ func newTestAdminRouter(t *testing.T) http.Handler {
 	return NewAdminRouter(newTestKeyStore(t))
 }
 
+func createPatchTestKey(t *testing.T, router http.Handler) createKeyResponse {
+	t.Helper()
+	requestData := createKeyRequest{
+		OwnerID:       "test-owner",
+		Label:         "test-label",
+		MaxConcurrent: 0,
+		TTLHours:      1,
+	}
+	b, err := json.Marshal(&requestData)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	createReq := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, createReq)
+	if w.Code != http.StatusCreated {
+		t.Fatal("expected success")
+	}
+	var response createKeyResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+	return response
+}
+
+func listKeys(t *testing.T, router http.Handler) getKeysResponse {
+	t.Helper()
+	getReq := httptest.NewRequest(http.MethodGet, "/keys", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, getReq)
+	if w.Code != http.StatusOK {
+		t.Fatal("expected success")
+	}
+	var response getKeysResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+
+	return response
+}
+
 func TestCreateKey(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		const ownerId = "test-owner"
@@ -44,18 +86,24 @@ func TestCreateKey(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
-		newTestAdminRouter(t).ServeHTTP(w, req)
+		router := newTestAdminRouter(t)
+		router.ServeHTTP(w, req)
 		if w.Code != http.StatusCreated {
 			t.Errorf("expected %d, got %d", http.StatusCreated, w.Code)
 		}
 
-		var response createKeyResponse
-		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		var created createKeyResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &created); err != nil {
 			t.Fatal(err)
 		}
 
-		if response.ID == "" || response.Key == "" || response.Label != label || response.OwnerID != ownerId || response.ExpiresAt != nil {
+		if created.ID == "" || created.Key == "" || created.Label != label || created.OwnerID != ownerId || created.ExpiresAt != nil {
 			t.Error("invalid response")
+		}
+
+		listKeysResponse := listKeys(t, router)
+		if _, ok := listKeysResponse.Keys[created.ID]; !ok {
+			t.Errorf("created key is not present in GET keys")
 		}
 	})
 
@@ -190,16 +238,21 @@ func TestDeleteKey(t *testing.T) {
 			t.Errorf("expected %d, got %d", http.StatusCreated, w.Code)
 		}
 
-		var response createKeyResponse
-		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		var created createKeyResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &created); err != nil {
 			t.Fatal(err)
 		}
 
-		deleteReq := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/keys/%s", response.ID), nil)
+		deleteReq := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/keys/%s", created.ID), nil)
 		w = httptest.NewRecorder()
 		router.ServeHTTP(w, deleteReq)
 		if w.Code != http.StatusOK {
-			t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
+			t.Fatalf("expected %d, got %d", http.StatusOK, w.Code)
+		}
+
+		listKeysResponse := listKeys(t, router)
+		if k, ok := listKeysResponse.Keys[created.ID]; !ok || !k.Revoked {
+			t.Errorf("created key is not revoked")
 		}
 	})
 
@@ -213,76 +266,62 @@ func TestDeleteKey(t *testing.T) {
 	})
 }
 
-func createPatchTestKey(t *testing.T, router http.Handler) createKeyResponse {
-	t.Helper()
-	requestData := createKeyRequest{
-		OwnerID:       "test-owner",
-		Label:         "test-label",
-		MaxConcurrent: 0,
-		TTLHours:      0,
-	}
-	b, err := json.Marshal(&requestData)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	createReq := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, createReq)
-	if w.Code != http.StatusCreated {
-		t.Fatal("expected success")
-	}
-	var response createKeyResponse
-	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
-		t.Fatal(err)
-	}
-	return response
-}
-
 func TestPatchKey(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		router := newTestAdminRouter(t)
-		response := createPatchTestKey(t, router)
+		created := createPatchTestKey(t, router)
 		newLabel := "new-label"
 		maxConcurrent := 1
 		patchData := updateKeyRequest{
 			Label:         &newLabel,
 			MaxConcurrent: &maxConcurrent,
-			ExpiresAt:     nil,
-			ClearExpiry:   false,
 		}
 		b, err := json.Marshal(&patchData)
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", response.ID), bytes.NewBuffer(b))
+		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusOK {
-			t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
+			t.Fatalf("expected %d, got %d", http.StatusOK, w.Code)
+		}
+
+		listKeysResponse := listKeys(t, router)
+		if k, ok := listKeysResponse.Keys[created.ID]; !ok {
+			t.Fatalf("patched key is not present in GET keys")
+		} else if k.Label != newLabel || k.MaxConcurrent != maxConcurrent || !k.ExpiresAt.Equal(*created.ExpiresAt) {
+			t.Errorf("key has unexpected changes")
 		}
 	})
 
 	t.Run("valid-no-change", func(t *testing.T) {
 		router := newTestAdminRouter(t)
-		response := createPatchTestKey(t, router)
+		created := createPatchTestKey(t, router)
 
 		patchData := updateKeyRequest{}
 		b, err := json.Marshal(&patchData)
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", response.ID), bytes.NewBuffer(b))
+		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusOK {
 			t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
 		}
+
+		listKeysResponse := listKeys(t, router)
+		if k, ok := listKeysResponse.Keys[created.ID]; !ok {
+			t.Fatalf("patched key is not present in GET keys")
+		} else if k.Label != created.Label || k.MaxConcurrent != 0 || !k.ExpiresAt.Equal(*created.ExpiresAt) {
+			t.Errorf("key has unexpected changes")
+		}
 	})
 
 	t.Run("clear-expiry", func(t *testing.T) {
 		router := newTestAdminRouter(t)
-		response := createPatchTestKey(t, router)
+		created := createPatchTestKey(t, router)
 		patchData := updateKeyRequest{
 			ClearExpiry: true,
 		}
@@ -290,30 +329,44 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", response.ID), bytes.NewBuffer(b))
+		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusOK {
 			t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
+		}
+
+		listKeysResponse := listKeys(t, router)
+		if k, ok := listKeysResponse.Keys[created.ID]; !ok {
+			t.Fatalf("patched key is not present in GET keys")
+		} else if k.Label != created.Label || k.MaxConcurrent != 0 || k.ExpiresAt != nil {
+			t.Errorf("key has unexpected changes")
 		}
 	})
 
 	t.Run("set-expiry", func(t *testing.T) {
 		router := newTestAdminRouter(t)
-		response := createPatchTestKey(t, router)
-		expiry := time.Now().Add(time.Hour)
+		created := createPatchTestKey(t, router)
+		newExpiry := time.Now().Add(time.Hour)
 		patchData := updateKeyRequest{
-			ExpiresAt: &expiry,
+			ExpiresAt: &newExpiry,
 		}
 		b, err := json.Marshal(&patchData)
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", response.ID), bytes.NewBuffer(b))
+		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusOK {
 			t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
+		}
+
+		listKeysResponse := listKeys(t, router)
+		if k, ok := listKeysResponse.Keys[created.ID]; !ok {
+			t.Fatalf("patched key is not present in GET keys")
+		} else if k.Label != created.Label || k.MaxConcurrent != 0 || !k.ExpiresAt.Equal(newExpiry) {
+			t.Errorf("key has unexpected changes")
 		}
 	})
 
@@ -362,9 +415,9 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		deleteReq := httptest.NewRequest(http.MethodPatch, "/keys/unknown-id", bytes.NewBuffer(b))
+		patchReq := httptest.NewRequest(http.MethodPatch, "/keys/unknown-id", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
-		newTestAdminRouter(t).ServeHTTP(w, deleteReq)
+		newTestAdminRouter(t).ServeHTTP(w, patchReq)
 		if w.Code != http.StatusNotFound {
 			t.Errorf("expected %d, got %d", http.StatusNotFound, w.Code)
 		}
