@@ -33,6 +33,12 @@ var statusArgs struct {
 
 var localClient local.Client
 
+// sanitizeForTerminal strips ASCII control characters, including ESC, from
+// peer-supplied strings before they are written to a terminal.
+func sanitizeForTerminal(s string) string {
+	return fmt.Sprintf("%q", s)
+}
+
 func StatusCmd() *ffcli.Command {
 	fs := flag.NewFlagSet("status", flag.ContinueOnError)
 	fs.BoolVar(&statusArgs.json, "json", false, "output in JSON format")
@@ -140,7 +146,7 @@ func runStatus(ctx context.Context, args []string) error {
 			ip = st.Self.TailscaleIPs[0].String()
 		}
 		fmt.Fprintf(w, "*%s\t%s\t%s\t%s\t%s\n",
-			ip, st.Self.DNSName, "-", "-", st.Self.HostName)
+			ip, st.Self.DNSName, "-", "-", sanitizeForTerminal(st.Self.HostName))
 	}
 
 	if statusArgs.peers {
@@ -161,7 +167,7 @@ func runStatus(ctx context.Context, args []string) error {
 			}
 
 			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
-				ip, peer.DNSName, peer.OS, relay, peer.HostName)
+				ip, peer.DNSName, sanitizeForTerminal(peer.OS), relay, sanitizeForTerminal(peer.HostName))
 		}
 		w.Flush()
 	}

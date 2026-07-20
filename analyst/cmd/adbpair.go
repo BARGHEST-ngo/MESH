@@ -312,7 +312,7 @@ func getAndroidPeers(ctx context.Context) ([]AndroidPeer, error) {
 
 		out = append(out, AndroidPeer{
 			IP:       peer.TailscaleIPs[0].String(),
-			HostName: peer.HostName,
+			HostName: sanitizeForTerminal(peer.HostName),
 			DNSName:  peer.DNSName,
 		})
 
