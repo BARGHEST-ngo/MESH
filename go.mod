@@ -152,7 +152,7 @@ require (
 
 replace (
 	gvisor.dev/gvisor => gvisor.dev/gvisor v0.0.0-20260224225140-573d5e7127a8
-	tailscale.com v1.94.1 => github.com/BARGHEST-ngo/mesh-tailscale v1.95.0-pre.0.20260602113745-edfc235e37f0
+	tailscale.com => github.com/BARGHEST-ngo/tailscale-patched v1.95.0-pre.0.20260720135747-96abef288847
 )
 
 tool (
