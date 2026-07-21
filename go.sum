@@ -8,8 +8,8 @@ github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c h1:udKWzYgxTojEK
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/BARGHEST-ngo/amnezia-wireguard-go v0.2.0-alpha.2 h1:KeV67ZeTQHteqERdBSwX33ls+ClZLS05DAUotqw+PEw=
 github.com/BARGHEST-ngo/amnezia-wireguard-go v0.2.0-alpha.2/go.mod h1:ktqMUtn2Wicwa9n/fTSLsaTkkcDFX5+n/TtPMO592i8=
-github.com/BARGHEST-ngo/mesh-tailscale v1.95.0-pre.0.20260602113745-edfc235e37f0 h1:XeTbbLmSkAbVZc63nrJgSxWxTmAGzJyJ3Km3/xYwL+U=
-github.com/BARGHEST-ngo/mesh-tailscale v1.95.0-pre.0.20260602113745-edfc235e37f0/go.mod h1:f5Cw6eA/kTeerxAvAZyZzuuKyuHXW9PgVyPSQ3fEPt0=
+github.com/BARGHEST-ngo/tailscale-patched v1.95.0-pre.0.20260720135747-96abef288847 h1:dcSLEC/9DM3HLf7RnCozHxL48YljTWu0SODDKH/ghUs=
+github.com/BARGHEST-ngo/tailscale-patched v1.95.0-pre.0.20260720135747-96abef288847/go.mod h1:f5Cw6eA/kTeerxAvAZyZzuuKyuHXW9PgVyPSQ3fEPt0=
 github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg=
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
