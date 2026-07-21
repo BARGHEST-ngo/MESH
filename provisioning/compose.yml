@@ -23,7 +23,10 @@ services:
 
   provisioner-admin:
     image: ghcr.io/barghest-ngo/mesh-provisioner:dc781f9
-    entrypoint: ["/admin"]
+    build:
+      context: ../
+      dockerfile: provisioning/Dockerfile
+    command: ["/admin"]
     profiles: [admin]
     environment:
       - HOST_DATA_PATH=/var/lib/mesh-provisioner
