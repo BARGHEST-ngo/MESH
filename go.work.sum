@@ -19,6 +19,8 @@ github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.5.0/go.mod h1:PXe2h+LKcW
 github.com/AzureAD/microsoft-authentication-library-for-go v1.6.0/go.mod h1:HKpQxkWaGLJ+D/5H8QRpyQXA1eKjxkFlOMwck5+33Jk=
 github.com/BARGHEST-ngo/mesh-tailscale v1.94.2-0.20260512151315-5e37e12167e6 h1:xYtiTSCZwf/uiC7CMYlXlL8+wlcvLUGuWZvFVFKOruA=
 github.com/BARGHEST-ngo/mesh-tailscale v1.94.2-0.20260512151315-5e37e12167e6/go.mod h1:67EBC0/fZ1XdIbsylGIsnp1QsrsYXSRMyI60BMnNfsM=
+github.com/BARGHEST-ngo/mesh-tailscale v1.95.0-pre.0.20260602113745-edfc235e37f0 h1:XeTbbLmSkAbVZc63nrJgSxWxTmAGzJyJ3Km3/xYwL+U=
+github.com/BARGHEST-ngo/mesh-tailscale v1.95.0-pre.0.20260602113745-edfc235e37f0/go.mod h1:f5Cw6eA/kTeerxAvAZyZzuuKyuHXW9PgVyPSQ3fEPt0=
 github.com/Djarvur/go-err113 v0.1.0/go.mod h1:4UJr5HIiMZrwgkSPdsjy2uOQExX/WEILpIrO9UPGuXs=
 github.com/GaijinEntertainment/go-exhaustruct/v3 v3.2.0/go.mod h1:Nl76DrGNJTA1KJ0LePKBw/vznBX1EHbAZX8mwjR82nI=
 github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9/go.mod h1:7uhhqiBaR4CpN0k9rMjOtjpcfGd6DG2m04zQxKnWQ0I=
