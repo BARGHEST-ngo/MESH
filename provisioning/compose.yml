@@ -1,6 +1,6 @@
 services:
   provisioner:
-    image: ghcr.io/barghest-ngo/mesh-provisioner:9bc6ab7
+    image: ghcr.io/barghest-ngo/mesh-provisioner:dc781f9
     build:
       context: ../
       dockerfile: provisioning/Dockerfile
@@ -20,6 +20,17 @@ services:
       - "traefik.http.routers.provisioner.tls=true"
       - "traefik.http.routers.provisioner.tls.certresolver=letsencrypt"
       - "traefik.http.services.provisioner.loadbalancer.server.port=8080"
+
+  provisioner-admin:
+    image: ghcr.io/barghest-ngo/mesh-provisioner:dc781f9
+    entrypoint: ["/admin"]
+    profiles: [admin]
+    environment:
+      - HOST_DATA_PATH=/var/lib/mesh-provisioner
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
 
   traefik:
     image: traefik:v3.7.5
