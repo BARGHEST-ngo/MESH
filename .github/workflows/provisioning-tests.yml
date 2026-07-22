@@ -9,6 +9,9 @@ on:
       - 'go.sum'
       - '.github/workflows/provisioning-tests.yml'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
