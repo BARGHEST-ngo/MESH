@@ -1,0 +1,11 @@
+serverAddr = "FRP_HOST"
+serverPort = FRP_PORT
+
+auth.token = "FRP_AUTH_TOKEN"
+
+[[proxies]]
+name = "mesh"
+type = "http"
+localIP = "ui"
+localPort = 8080
+customDomains = ["FRP_SLUG.tunnels.meshforensics.app"]

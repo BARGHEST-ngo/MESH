@@ -1,4 +1,12 @@
 services:
+  frpc:
+    image: snowdreamtech/frpc:latest
+    restart: unless-stopped
+    volumes:
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/frpc.toml:/etc/frp/frpc.toml:ro
+    depends_on:
+      - headscale
+
   headscale:
     image: docker.io/headscale/headscale:0.29.0@sha256:5d464c7ba8f5b2c1472f926fae4cd67f136d66ec108c0b4ad1891856ac6da915
     restart: unless-stopped
@@ -10,6 +18,12 @@ services:
     tmpfs:
       - /var/run/headscale
     command: serve
+    healthcheck:
+      test: ["CMD", "headscale", "health"]
+      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   ui:
     build: ./control-plane/mesh-ui
@@ -45,7 +59,7 @@ services:
       - analyst-data:/home/mesh/.tailscale
     environment:
       - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
-      - AUTH_KEY=${AUTH_KEY}
+      - AUTH_KEY=${AUTH_KEY:-}
       - MESH_PORT=${MESH_PORT:-41641}
 
 volumes:

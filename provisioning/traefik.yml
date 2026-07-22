@@ -1,0 +1,20 @@
+entryPoints:
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      storage: /acme/acme.json
+      dnsChallenge:
+        provider: porkbun
+        resolvers: 
+          - "1.1.1.1:53"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: mesh-proxy
+
+log:
+  level: INFO
