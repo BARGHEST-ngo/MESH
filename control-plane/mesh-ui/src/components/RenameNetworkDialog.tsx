@@ -46,25 +46,25 @@ export function RenameNetworkDialog({ open, onOpenChange, network }: RenameNetwo
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>&gt; RENAME_NETWORK</DialogTitle>
+            <DialogTitle>Rename network</DialogTitle>
             <DialogDescription>
-              Change the name of network: <span className="text-primary font-semibold">{network?.name}</span>
+              Change the name of <span className="text-primary font-semibold">{network?.name}</span>
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 my-6">
+          <div className="space-y-4 my-5">
             <div>
-              <Label htmlFor="newName">New Network Name</Label>
+              <Label htmlFor="newName" className="mb-2">New network name</Label>
               <Input
                 id="newName"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="new-network-name"
                 required
-                className="mt-1"
+                className="font-mono"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Lowercase, no spaces (use hyphens or underscores)
+              <p className="text-xs text-soft mt-1.5">
+                Lowercase, no spaces (use hyphens or underscores).
               </p>
             </div>
           </div>
@@ -72,17 +72,17 @@ export function RenameNetworkDialog({ open, onOpenChange, network }: RenameNetwo
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={() => onOpenChange(false)}
               disabled={renameNetwork.isPending}
             >
-              [ CANCEL ]
+              Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={renameNetwork.isPending || !newName.trim() || newName === network?.name}
             >
-              {renameNetwork.isPending ? '[ RENAMING... ]' : '[ RENAME ]'}
+              {renameNetwork.isPending ? 'Renaming…' : 'Rename'}
             </Button>
           </DialogFooter>
         </form>
