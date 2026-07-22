@@ -3,11 +3,16 @@ import * as React from "react"
 interface CardProps {
   children: React.ReactNode
   className?: string
+  hover?: boolean
 }
 
-export function Card({ children, className = "" }: CardProps) {
+export function Card({ children, className = "", hover = false }: CardProps) {
   return (
-    <div className={`bg-card border border-border rounded-lg shadow-lg ${className}`}>
+    <div
+      className={`bg-card border border-border rounded-[var(--radius-card)] transition-colors ${
+        hover ? "hover:border-primary/50" : ""
+      } ${className}`}
+    >
       {children}
     </div>
   )
@@ -28,7 +33,7 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className = "" }: CardTitleProps) {
-  return <h3 className={`text-xl font-bold text-foreground font-mono ${className}`}>{children}</h3>
+  return <h3 className={`text-lg font-bold text-foreground tracking-tight ${className}`}>{children}</h3>
 }
 
 interface CardDescriptionProps {
@@ -56,4 +61,3 @@ interface CardFooterProps {
 export function CardFooter({ children, className = "" }: CardFooterProps) {
   return <div className={`p-6 pt-0 flex items-center ${className}`}>{children}</div>
 }
-
