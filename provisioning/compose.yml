@@ -1,6 +1,6 @@
 services:
   provisioner:
-    image: ghcr.io/barghest-ngo/mesh-provisioner:dc781f9
+    image: ghcr.io/barghest-ngo/mesh-provisioner:latest
     build:
       context: ../
       dockerfile: provisioning/Dockerfile
@@ -22,7 +22,7 @@ services:
       - "traefik.http.services.provisioner.loadbalancer.server.port=8080"
 
   provisioner-admin:
-    image: ghcr.io/barghest-ngo/mesh-provisioner:dc781f9
+    image: ghcr.io/barghest-ngo/mesh-provisioner:latest
     build:
       context: ../
       dockerfile: provisioning/Dockerfile
