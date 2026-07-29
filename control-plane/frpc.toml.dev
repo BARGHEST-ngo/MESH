@@ -1,0 +1,17 @@
+serverAddr = "frps"
+serverPort = 7000
+
+auth.token = "FRP_AUTH_TOKEN"
+
+[[proxies]]
+name = "mesh"
+type = "https"
+customDomains = ["localhost", "frps"]
+
+[proxies.plugin]
+type = "https2http"
+localAddr = "ui:8080"
+crtPath = "/app/certs/server.crt"
+keyPath = "/app/certs/server.key"
+hostHeaderRewrite = "ui"
+requestHeaders.set.x-from-where = "frp"

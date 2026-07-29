@@ -1,0 +1,5 @@
+bindPort = 7000
+vhostHTTPPort = 80
+vhostHTTPSPort = 443
+
+auth.token = "FRP_AUTH_TOKEN"

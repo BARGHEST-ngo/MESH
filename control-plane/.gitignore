@@ -16,3 +16,4 @@ noise_private.key
 db.sql*
 config.yaml
 frpc.toml
+frps.toml

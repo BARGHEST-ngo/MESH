@@ -71,3 +71,6 @@ site/
 
 # Log files
 *.log
+
+# Local certs
+/certs

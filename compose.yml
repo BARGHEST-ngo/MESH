@@ -1,9 +1,20 @@
 services:
+  frps:
+    image: snowdreamtech/frps:latest
+    restart: unless-stopped
+    volumes:
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/frps.toml:/etc/frp/frps.toml:ro
+      - ./certs:/app/certs:ro
+    ports:
+      - 443:443
+      - 80:80
+
   frpc:
     image: snowdreamtech/frpc:latest
     restart: unless-stopped
     volumes:
       - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/frpc.toml:/etc/frp/frpc.toml:ro
+      - ./certs:/app/certs:ro
     depends_on:
       - headscale
 
@@ -37,7 +48,7 @@ services:
     depends_on:
       - headscale
     ports:
-      - "127.0.0.1:80:8080"
+      - "8080:8080"
     entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE $$CONTROL_PLANE_URL' < /etc/nginx/nginx.conf.template > /tmp/nginx.conf && nginx -c /tmp/nginx.conf -g 'daemon off;'"
 
   analyst:
@@ -57,6 +68,7 @@ services:
       - "${MESH_PORT:-41641}:${MESH_PORT:-41641}/udp"
     volumes:
       - analyst-data:/home/mesh/.tailscale
+      - ~/.local/share/mkcert:/etc/ssl/certs/
     environment:
       - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
       - AUTH_KEY=${AUTH_KEY:-}
