@@ -29,7 +29,9 @@ cd mesh
 task controlPlane
 ```
 
-When first run, you will be prompted for the type of control plane you want to deploy. You can choose between an ephemeral control plane that runs on your local workstation and is only accessible using a third party tunneling service, or a persistent control plane run on a virtual private server (VPS) that is accessible from the internet.
+When first run, you will be prompted for the type of control plane you want to deploy. You can choose between an ephemeral control plane that runs on your local workstation, or a persistent control plane run on a virtual private server (VPS) that is accessible from the internet.  
+
+When choosing an ephemeral control plane you can opt in for automated domain provisioning which generates a public HTTPS for you. If choosing this option, an API key is required and can be provided by Barghest at request.
 
 Verify the containers are running:
 
@@ -54,6 +56,8 @@ You will be prompted to enter an API key in order to use the management function
 ```bash
 task apikey
 ```
+
+>NOTE: This key is also printed in the terminal after successfully starting the control plane.
 
 **Example output:**
 
