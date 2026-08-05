@@ -349,7 +349,10 @@ func TestDeleteDeployment(t *testing.T) {
 		expected int
 	}{
 		{"ok", created.Slug, http.StatusOK},
-		{"slug does not exist", "wrong-slug", http.StatusNotFound},
+		{"slug does not exist", "abc123def4", http.StatusNotFound},
+		{"invalid slug format raw", "foo/bar", http.StatusNotFound},
+		{"invalid slug format encoded", "foo%2Fbar", http.StatusBadRequest},
+		{"traversal via dotdot", "%2e%2e", http.StatusBadRequest},
 	}
 
 	for _, tc := range cases {
