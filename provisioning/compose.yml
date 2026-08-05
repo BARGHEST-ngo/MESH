@@ -29,7 +29,7 @@ services:
     command: ["/admin"]
     profiles: [admin]
     env_file:
-      - provisioner.env
+      - admin.env
     environment:
       - HOST_DATA_PATH=/var/lib/mesh-provisioner
     ports:
@@ -41,7 +41,7 @@ services:
     image: traefik:v3.7.5
     restart: unless-stopped
     env_file:
-      - provisioner.env
+      - traefik.env
     ports:
       - "443:443"
     volumes:
