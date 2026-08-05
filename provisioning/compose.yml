@@ -28,6 +28,8 @@ services:
       dockerfile: provisioning/Dockerfile
     command: ["/admin"]
     profiles: [admin]
+    env_file:
+      - provisioner.env
     environment:
       - HOST_DATA_PATH=/var/lib/mesh-provisioner
     ports:
