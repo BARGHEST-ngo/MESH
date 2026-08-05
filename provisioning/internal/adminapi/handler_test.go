@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
+
+const testAdminToken = "test-admin-token"
 
 func newTestKeyStore(t *testing.T) *state.KeyStore {
 	t.Helper()
@@ -24,7 +27,13 @@ func newTestKeyStore(t *testing.T) *state.KeyStore {
 
 func newTestAdminRouter(t *testing.T) http.Handler {
 	t.Helper()
-	return NewAdminRouter(newTestKeyStore(t))
+	return NewAdminRouter(newTestKeyStore(t), testAdminToken)
+}
+
+func newAuthedRequest(method, target string, body io.Reader) *http.Request {
+	req := httptest.NewRequest(method, target, body)
+	req.Header.Set("Authorization", "Bearer "+testAdminToken)
+	return req
 }
 
 func createPatchTestKey(t *testing.T, router http.Handler) createKeyResponse {
@@ -40,7 +49,7 @@ func createPatchTestKey(t *testing.T, router http.Handler) createKeyResponse {
 		t.Fatal(err)
 	}
 
-	createReq := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+	createReq := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, createReq)
 	if w.Code != http.StatusCreated {
@@ -55,7 +64,7 @@ func createPatchTestKey(t *testing.T, router http.Handler) createKeyResponse {
 
 func listKeys(t *testing.T, router http.Handler) getKeysResponse {
 	t.Helper()
-	getReq := httptest.NewRequest(http.MethodGet, "/keys", nil)
+	getReq := newAuthedRequest(http.MethodGet, "/keys", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, getReq)
 	if w.Code != http.StatusOK {
@@ -84,7 +93,7 @@ func TestCreateKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		req := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router := newTestAdminRouter(t)
 		router.ServeHTTP(w, req)
@@ -121,7 +130,7 @@ func TestCreateKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		req := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		newTestAdminRouter(t).ServeHTTP(w, req)
 		if w.Code != http.StatusCreated {
@@ -144,7 +153,7 @@ func TestCreateKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		req := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		newTestAdminRouter(t).ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -154,7 +163,7 @@ func TestCreateKey(t *testing.T) {
 
 	t.Run("malformed-json", func(t *testing.T) {
 		b := []byte("not json")
-		req := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		newTestAdminRouter(t).ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -171,7 +180,7 @@ func TestCreateKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		req := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		newTestAdminRouter(t).ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -188,7 +197,7 @@ func TestCreateKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		req := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		newTestAdminRouter(t).ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -206,7 +215,7 @@ func TestCreateKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		req := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		newTestAdminRouter(t).ServeHTTP(w, req)
 		if w.Code != http.StatusBadRequest {
@@ -230,7 +239,7 @@ func TestDeleteKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		createReq := httptest.NewRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		createReq := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router := newTestAdminRouter(t)
 		router.ServeHTTP(w, createReq)
@@ -243,7 +252,7 @@ func TestDeleteKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		deleteReq := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/keys/%s", created.ID), nil)
+		deleteReq := newAuthedRequest(http.MethodDelete, fmt.Sprintf("/keys/%s", created.ID), nil)
 		w = httptest.NewRecorder()
 		router.ServeHTTP(w, deleteReq)
 		if w.Code != http.StatusOK {
@@ -257,7 +266,7 @@ func TestDeleteKey(t *testing.T) {
 	})
 
 	t.Run("unknown-key", func(t *testing.T) {
-		deleteReq := httptest.NewRequest(http.MethodDelete, "/keys/unknown-id", nil)
+		deleteReq := newAuthedRequest(http.MethodDelete, "/keys/unknown-id", nil)
 		w := httptest.NewRecorder()
 		newTestAdminRouter(t).ServeHTTP(w, deleteReq)
 		if w.Code != http.StatusNotFound {
@@ -280,7 +289,7 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
+		patchReq := newAuthedRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusOK {
@@ -304,7 +313,7 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
+		patchReq := newAuthedRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusOK {
@@ -329,7 +338,7 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
+		patchReq := newAuthedRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusOK {
@@ -355,7 +364,7 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
+		patchReq := newAuthedRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", created.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusOK {
@@ -382,7 +391,7 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", response.ID), bytes.NewBuffer(b))
+		patchReq := newAuthedRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", response.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusBadRequest {
@@ -401,7 +410,7 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", response.ID), bytes.NewBuffer(b))
+		patchReq := newAuthedRequest(http.MethodPatch, fmt.Sprintf("/keys/%s", response.ID), bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, patchReq)
 		if w.Code != http.StatusBadRequest {
@@ -415,11 +424,47 @@ func TestPatchKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		patchReq := httptest.NewRequest(http.MethodPatch, "/keys/unknown-id", bytes.NewBuffer(b))
+		patchReq := newAuthedRequest(http.MethodPatch, "/keys/unknown-id", bytes.NewBuffer(b))
 		w := httptest.NewRecorder()
 		newTestAdminRouter(t).ServeHTTP(w, patchReq)
 		if w.Code != http.StatusNotFound {
 			t.Errorf("expected %d, got %d", http.StatusNotFound, w.Code)
+		}
+	})
+}
+
+func TestAdminAuth(t *testing.T) {
+	router := newTestAdminRouter(t)
+
+	cases := []struct {
+		name   string
+		header string
+	}{
+		{"no header", ""},
+		{"malformed header", testAdminToken},
+		{"wrong token", "Bearer wrong-token"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/keys", nil)
+			if tc.header != "" {
+				req.Header.Set("Authorization", tc.header)
+			}
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			if w.Code != http.StatusUnauthorized {
+				t.Errorf("expected %d, got %d", http.StatusUnauthorized, w.Code)
+			}
+		})
+	}
+
+	t.Run("valid token", func(t *testing.T) {
+		req := newAuthedRequest(http.MethodGet, "/keys", nil)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
 		}
 	})
 }
