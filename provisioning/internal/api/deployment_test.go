@@ -72,11 +72,11 @@ func newTestRouter(t *testing.T) http.Handler {
 	return NewRouter(newTestKeyStore(t), reg, mockContainerService{})
 }
 
-func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
+func newTestKeyStoreWithKeys(t *testing.T, keys ...state.APIKey) *state.KeyStore {
 	t.Helper()
 	data, err := json.Marshal(struct {
 		Keys []state.APIKey `json:"keys"`
-	}{Keys: []state.APIKey{key}})
+	}{Keys: keys})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,9 +91,23 @@ func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
 	return ks
 }
 
+func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
+	t.Helper()
+	return newTestKeyStoreWithKeys(t, key)
+}
+
 func newTestKeyStore(t *testing.T) *state.KeyStore {
 	t.Helper()
 	return newTestKeyStoreWithKey(t, defaultTestKey())
+}
+
+func newTestRouterWithKeys(t *testing.T, keys ...state.APIKey) http.Handler {
+	t.Helper()
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return NewRouter(newTestKeyStoreWithKeys(t, keys...), reg, mockContainerService{})
 }
 
 func TestHealth(t *testing.T) {
@@ -366,4 +380,46 @@ func TestDeleteDeployment(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDeleteDeploymentOwnership(t *testing.T) {
+	const userAToken = "user-a-token"
+	const userBToken = "user-b-token"
+	hashA := sha256.Sum256([]byte(userAToken))
+	hashB := sha256.Sum256([]byte(userBToken))
+
+	keyA := state.APIKey{ID: uuid.NewString(), OwnerID: "user-a", Label: "a", HashHex: hex.EncodeToString(hashA[:]), CreatedAt: time.Now()}
+	keyB := state.APIKey{ID: uuid.NewString(), OwnerID: "user-b", Label: "b", HashHex: hex.EncodeToString(hashB[:]), CreatedAt: time.Now()}
+
+	router := newTestRouterWithKeys(t, keyA, keyB)
+
+	createReq := httptest.NewRequest(http.MethodPost, "/deployment", nil)
+	createReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", userAToken))
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, createReq)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("failed to create deployment for user-a: %d", w.Code)
+	}
+	var created DeploymentResponse
+	json.NewDecoder(w.Body).Decode(&created)
+
+	t.Run("other user cannot delete", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/deployment/%s", created.Slug), nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", userBToken))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected %d, got %d", http.StatusForbidden, w.Code)
+		}
+	})
+
+	t.Run("owner can delete", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/deployment/%s", created.Slug), nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", userAToken))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
+		}
+	})
 }

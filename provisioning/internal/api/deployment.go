@@ -79,6 +79,19 @@ func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	key, ok := r.Context().Value(apiKeyContextKey).(state.APIKey)
+	if !ok {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	if d, ok := h.registry.Get(slug); ok {
+		if d.OwnerID != key.OwnerID {
+			http.Error(w, "not allowed", http.StatusForbidden)
+			return
+		}
+	}
+
 	if err := h.service.Stop(slug); err != nil {
 		http.Error(w, fmt.Sprintf("failed to stop container: %v", err), http.StatusInternalServerError)
 		return
