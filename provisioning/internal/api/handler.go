@@ -45,7 +45,6 @@ func authRequest(keys *state.KeyStore, next http.Handler) http.Handler {
 
 		bearer := r.Header.Get("Authorization")
 		if len(bearer) < 8 || bearer[:7] != "Bearer " {
-
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}

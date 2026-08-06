@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
@@ -73,6 +74,24 @@ func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if !confirmValidSlug(slug) {
+		http.Error(w, "invalid slug", http.StatusBadRequest)
+		return
+	}
+
+	key, ok := r.Context().Value(apiKeyContextKey).(state.APIKey)
+	if !ok {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	if d, ok := h.registry.Get(slug); ok {
+		if d.OwnerID != key.OwnerID {
+			http.Error(w, "not allowed", http.StatusForbidden)
+			return
+		}
+	}
+
 	if err := h.service.Stop(slug); err != nil {
 		http.Error(w, fmt.Sprintf("failed to stop container: %v", err), http.StatusInternalServerError)
 		return
@@ -83,4 +102,10 @@ func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func confirmValidSlug(slug string) bool {
+	// 10 lowercase hex characters
+	slugPattern := regexp.MustCompile(`^[0-9a-f]{10}$`)
+	return slugPattern.MatchString(slug)
 }
