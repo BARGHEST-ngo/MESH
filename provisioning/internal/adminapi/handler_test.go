@@ -41,7 +41,7 @@ func createPatchTestKey(t *testing.T, router http.Handler) createKeyResponse {
 	requestData := createKeyRequest{
 		OwnerID:       "test-owner",
 		Label:         "test-label",
-		MaxConcurrent: 0,
+		MaxConcurrent: 1,
 		TTLHours:      1,
 	}
 	b, err := json.Marshal(&requestData)
@@ -85,7 +85,7 @@ func TestCreateKey(t *testing.T) {
 		requestData := createKeyRequest{
 			OwnerID:       ownerId,
 			Label:         label,
-			MaxConcurrent: 0,
+			MaxConcurrent: 1,
 			TTLHours:      0,
 		}
 		b, err := json.Marshal(&requestData)
@@ -122,7 +122,7 @@ func TestCreateKey(t *testing.T) {
 		requestData := createKeyRequest{
 			OwnerID:       ownerId,
 			Label:         label,
-			MaxConcurrent: 0,
+			MaxConcurrent: 1,
 			TTLHours:      1,
 		}
 		b, err := json.Marshal(&requestData)
@@ -231,7 +231,7 @@ func TestDeleteKey(t *testing.T) {
 		requestData := createKeyRequest{
 			OwnerID:       ownerId,
 			Label:         label,
-			MaxConcurrent: 0,
+			MaxConcurrent: 1,
 			TTLHours:      0,
 		}
 		b, err := json.Marshal(&requestData)
@@ -323,7 +323,7 @@ func TestPatchKey(t *testing.T) {
 		listKeysResponse := listKeys(t, router)
 		if k, ok := listKeysResponse.Keys[created.ID]; !ok {
 			t.Fatalf("patched key is not present in GET keys")
-		} else if k.Label != created.Label || k.MaxConcurrent != 0 || !k.ExpiresAt.Equal(*created.ExpiresAt) {
+		} else if k.Label != created.Label || k.MaxConcurrent != 1 || !k.ExpiresAt.Equal(*created.ExpiresAt) {
 			t.Errorf("key has unexpected changes")
 		}
 	})
@@ -348,7 +348,7 @@ func TestPatchKey(t *testing.T) {
 		listKeysResponse := listKeys(t, router)
 		if k, ok := listKeysResponse.Keys[created.ID]; !ok {
 			t.Fatalf("patched key is not present in GET keys")
-		} else if k.Label != created.Label || k.MaxConcurrent != 0 || k.ExpiresAt != nil {
+		} else if k.Label != created.Label || k.MaxConcurrent != 1 || k.ExpiresAt != nil {
 			t.Errorf("key has unexpected changes")
 		}
 	})
@@ -374,7 +374,7 @@ func TestPatchKey(t *testing.T) {
 		listKeysResponse := listKeys(t, router)
 		if k, ok := listKeysResponse.Keys[created.ID]; !ok {
 			t.Fatalf("patched key is not present in GET keys")
-		} else if k.Label != created.Label || k.MaxConcurrent != 0 || !k.ExpiresAt.Equal(newExpiry) {
+		} else if k.Label != created.Label || k.MaxConcurrent != 1 || !k.ExpiresAt.Equal(newExpiry) {
 			t.Errorf("key has unexpected changes")
 		}
 	})
