@@ -116,7 +116,7 @@ func (h *handler) handlePostKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Label == "" || req.OwnerID == "" || req.MaxConcurrent < 0 {
+	if req.Label == "" || req.OwnerID == "" || req.MaxConcurrent <= 0 {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -173,8 +173,8 @@ func (h *handler) handlePatchKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	keyID := r.PathValue("key_id")
-	if req.MaxConcurrent != nil && *req.MaxConcurrent < 0 {
-		http.Error(w, "max_concurrent must be >= 0", http.StatusBadRequest)
+	if req.MaxConcurrent != nil && *req.MaxConcurrent <= 0 {
+		http.Error(w, "max_concurrent must be greater than 0", http.StatusBadRequest)
 		return
 	}
 

@@ -24,8 +24,8 @@ type APIKey struct {
 	Label         string     `json:"label"` // human-redable key purpose ("internal-testing")
 	HashHex       string     `json:"hash"`  // SHA256 of key
 	CreatedAt     time.Time  `json:"created_at"`
-	ExpiresAt     *time.Time `json:"expires_at"`     // nil - does not expire
-	MaxConcurrent int        `json:"max_concurrent"` // 0 - no limit
+	ExpiresAt     *time.Time `json:"expires_at"` // nil - does not expire
+	MaxConcurrent int        `json:"max_concurrent"`
 	Revoked       bool       `json:"revoked"`
 }
 
@@ -86,6 +86,10 @@ func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.D
 	_, err := rand.Read(key)
 	if err != nil {
 		return APIKey{}, "", err
+	}
+
+	if maxConcurrent <= 0 {
+		return APIKey{}, "", fmt.Errorf("maxConcurrent must be greater than 0")
 	}
 
 	b64Key := base64.URLEncoding.EncodeToString(key)
@@ -163,6 +167,10 @@ func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expi
 				ks.state.Keys[i].Label = *label
 			}
 			if maxConcurrent != nil {
+				if *maxConcurrent <= 0 {
+					ks.state.Keys[i] = original
+					return fmt.Errorf("maxConcurrent must be greater than 0")
+				}
 				ks.state.Keys[i].MaxConcurrent = *maxConcurrent
 			}
 			switch expiresAt.Op {

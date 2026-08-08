@@ -14,6 +14,7 @@ import (
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
+	"golang.org/x/time/rate"
 )
 
 // This is an intentionally light-weight and basic HTTP server
@@ -62,9 +63,12 @@ func main() {
 		log.Fatal("failed to initialise key store")
 	}
 
+	deploymentRateLimit := rate.Every(10 * time.Second)
+	deploymentRateBurst := 3
+	rateLimiter := api.NewLimiter(deploymentRateLimit, deploymentRateBurst)
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(keyStore, registry, docker.Manager{FrpsImage: frpsImage}),
+		Handler:      api.NewRouter(keyStore, registry, docker.Manager{FrpsImage: frpsImage}, rateLimiter),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

@@ -9,8 +9,9 @@ import (
 )
 
 type handler struct {
-	registry *state.Registry
-	service  ContainerService
+	registry    *state.Registry
+	service     ContainerService
+	rateLimiter *rateLimiter
 }
 
 type ContainerService interface {
@@ -22,15 +23,16 @@ type contextKey string
 
 const apiKeyContextKey contextKey = "apikey"
 
-func NewRouter(keys *state.KeyStore, registry *state.Registry, containerSvc ContainerService) http.Handler {
+func NewRouter(keys *state.KeyStore, registry *state.Registry, containerSvc ContainerService, rateLimiter *rateLimiter) http.Handler {
 	h := &handler{
-		registry: registry,
-		service:  containerSvc,
+		registry:    registry,
+		service:     containerSvc,
+		rateLimiter: rateLimiter,
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handleHealth)
-	mux.HandleFunc("POST /deployment", h.handlePostDeployment)
+	mux.HandleFunc("POST /deployment", rateLimit(h.rateLimiter, h.handlePostDeployment))
 	mux.HandleFunc("DELETE /deployment/{slug}", h.handleDeleteDeployment)
 
 	return authRequest(keys, mux)
@@ -58,5 +60,22 @@ func authRequest(keys *state.KeyStore, next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), apiKeyContextKey, key)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func rateLimit(l *rateLimiter, next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		key, ok := r.Context().Value(apiKeyContextKey).(state.APIKey)
+		if !ok {
+			http.Error(w, "invalid context", http.StatusBadRequest)
+			return
+		}
+
+		if !l.allow(key.ID) {
+			http.Error(w, "too many requests", http.StatusTooManyRequests)
+			return
+		}
+
+		next(w, r)
 	})
 }
