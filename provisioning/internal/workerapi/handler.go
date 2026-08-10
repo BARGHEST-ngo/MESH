@@ -57,6 +57,11 @@ func (h *handler) handleStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !confirmValidSlug(d.Slug) {
+		http.Error(w, "invalid slug", http.StatusBadRequest)
+		return
+	}
+
 	if err := h.runner.Start(d); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
