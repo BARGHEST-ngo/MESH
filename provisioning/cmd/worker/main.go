@@ -14,10 +14,6 @@ import (
 )
 
 func main() {
-	if os.Getenv("HOST_DATA_PATH") == "" {
-		log.Fatal("HOST_DATA_PATH must be set")
-	}
-
 	frpsImage := os.Getenv("FRPS_IMAGE")
 	if frpsImage == "" {
 		log.Fatal("FRPS_IMAGE must be set")
