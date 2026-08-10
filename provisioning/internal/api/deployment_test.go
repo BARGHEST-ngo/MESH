@@ -15,6 +15,7 @@ import (
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 	"github.com/google/uuid"
+	"golang.org/x/time/rate"
 )
 
 const (
@@ -54,13 +55,17 @@ func defaultTestKey() state.APIKey {
 	}
 }
 
+func defaultRateLimiter() *rateLimiter {
+	return NewLimiter(rate.Every(1*time.Second), 1000)
+}
+
 func newTestRouterWithKey(t *testing.T, key state.APIKey) http.Handler {
 	t.Helper()
 	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{})
+	return NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{}, defaultRateLimiter())
 }
 
 func newTestRouter(t *testing.T) http.Handler {
@@ -69,14 +74,14 @@ func newTestRouter(t *testing.T) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewRouter(newTestKeyStore(t), reg, mockContainerService{})
+	return NewRouter(newTestKeyStore(t), reg, mockContainerService{}, defaultRateLimiter())
 }
 
-func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
+func newTestKeyStoreWithKeys(t *testing.T, keys ...state.APIKey) *state.KeyStore {
 	t.Helper()
 	data, err := json.Marshal(struct {
 		Keys []state.APIKey `json:"keys"`
-	}{Keys: []state.APIKey{key}})
+	}{Keys: keys})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,9 +96,23 @@ func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
 	return ks
 }
 
+func newTestKeyStoreWithKey(t *testing.T, key state.APIKey) *state.KeyStore {
+	t.Helper()
+	return newTestKeyStoreWithKeys(t, key)
+}
+
 func newTestKeyStore(t *testing.T) *state.KeyStore {
 	t.Helper()
 	return newTestKeyStoreWithKey(t, defaultTestKey())
+}
+
+func newTestRouterWithKeys(t *testing.T, keys ...state.APIKey) http.Handler {
+	t.Helper()
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return NewRouter(newTestKeyStoreWithKeys(t, keys...), reg, mockContainerService{}, defaultRateLimiter())
 }
 
 func TestHealth(t *testing.T) {
@@ -160,7 +179,7 @@ func TestPostDeploymentPortExhaustion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router := NewRouter(newTestKeyStore(t), reg, mockContainerService{})
+	router := NewRouter(newTestKeyStore(t), reg, mockContainerService{}, defaultRateLimiter())
 
 	makeRequest := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
@@ -185,7 +204,7 @@ func TestStartFailureRollsBackPort(t *testing.T) {
 		t.Fatal(err)
 	}
 	mock := &failOnceMock{}
-	router := NewRouter(newTestKeyStore(t), reg, mock)
+	router := NewRouter(newTestKeyStore(t), reg, mock, defaultRateLimiter())
 
 	post := func() int {
 		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
@@ -212,7 +231,7 @@ func TestConcurrentDeployments(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create registry")
 	}
-	router := NewRouter(newTestKeyStore(t), reg, mockContainerService{})
+	router := NewRouter(newTestKeyStore(t), reg, mockContainerService{}, defaultRateLimiter())
 
 	var wg sync.WaitGroup
 	for range 10 {
@@ -317,7 +336,7 @@ func TestApiKeyStates(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		router := NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{})
+		router := NewRouter(newTestKeyStoreWithKey(t, key), reg, mockContainerService{}, defaultRateLimiter())
 		// 2 valid deployments, fail on the 3rd
 		if code := post(router); code != http.StatusCreated {
 			t.Errorf("expected %d, got %d", http.StatusCreated, code)
@@ -349,7 +368,10 @@ func TestDeleteDeployment(t *testing.T) {
 		expected int
 	}{
 		{"ok", created.Slug, http.StatusOK},
-		{"slug does not exist", "wrong-slug", http.StatusNotFound},
+		{"slug does not exist", "abc123def4", http.StatusNotFound},
+		{"invalid slug format raw", "foo/bar", http.StatusNotFound},
+		{"invalid slug format encoded", "foo%2Fbar", http.StatusBadRequest},
+		{"traversal via dotdot", "%2e%2e", http.StatusBadRequest},
 	}
 
 	for _, tc := range cases {
@@ -363,4 +385,83 @@ func TestDeleteDeployment(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDeleteDeploymentOwnership(t *testing.T) {
+	const userAToken = "user-a-token"
+	const userBToken = "user-b-token"
+	hashA := sha256.Sum256([]byte(userAToken))
+	hashB := sha256.Sum256([]byte(userBToken))
+
+	keyA := state.APIKey{ID: uuid.NewString(), OwnerID: "user-a", Label: "a", HashHex: hex.EncodeToString(hashA[:]), CreatedAt: time.Now()}
+	keyB := state.APIKey{ID: uuid.NewString(), OwnerID: "user-b", Label: "b", HashHex: hex.EncodeToString(hashB[:]), CreatedAt: time.Now()}
+
+	router := newTestRouterWithKeys(t, keyA, keyB)
+
+	createReq := httptest.NewRequest(http.MethodPost, "/deployment", nil)
+	createReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", userAToken))
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, createReq)
+	if w.Code != http.StatusCreated {
+		t.Fatalf("failed to create deployment for user-a: %d", w.Code)
+	}
+	var created DeploymentResponse
+	json.NewDecoder(w.Body).Decode(&created)
+
+	t.Run("other user cannot delete", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/deployment/%s", created.Slug), nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", userBToken))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected %d, got %d", http.StatusForbidden, w.Code)
+		}
+	})
+
+	t.Run("owner can delete", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/deployment/%s", created.Slug), nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", userAToken))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Errorf("expected %d, got %d", http.StatusOK, w.Code)
+		}
+	})
+}
+
+func TestRateLimit(t *testing.T) {
+	const userAToken = "user-a-token"
+	const userBToken = "user-b-token"
+	hashA := sha256.Sum256([]byte(userAToken))
+	hashB := sha256.Sum256([]byte(userBToken))
+
+	keyA := state.APIKey{ID: uuid.NewString(), OwnerID: "user-a", Label: "a", HashHex: hex.EncodeToString(hashA[:]), CreatedAt: time.Now()}
+	keyB := state.APIKey{ID: uuid.NewString(), OwnerID: "user-b", Label: "b", HashHex: hex.EncodeToString(hashB[:]), CreatedAt: time.Now()}
+
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	strictRateLimit := NewLimiter(rate.Every(1*time.Minute), 1)
+	router := NewRouter(newTestKeyStoreWithKeys(t, keyA, keyB), reg, mockContainerService{}, strictRateLimit)
+	post := func(key string) int {
+		req := httptest.NewRequest(http.MethodPost, "/deployment", nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", key))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		return w.Code
+	}
+
+	t.Run("rate-limited", func(t *testing.T) {
+		if code := post(userAToken); code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, code)
+		}
+		if code := post(userAToken); code != http.StatusTooManyRequests {
+			t.Errorf("expected %d, got %d", http.StatusTooManyRequests, code)
+		}
+		if code := post(userBToken); code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, code)
+		}
+	})
 }

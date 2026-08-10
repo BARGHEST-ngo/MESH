@@ -74,3 +74,8 @@ docker compose logs -f headscale | grep -i acl
 - Unusual access patterns
 - Failed authentication attempts
 - ACL rule changes
+
+### Provisioner API keys
+- Keys are per-owner with a concurrent session limit and optional expiry time. Clients include the key as a Bearer token
+- Keys are stored as SHA-256 hashes, the plaintext key is only visible at creation time and cannot be recovered
+- The admin service for key management is localhost only and should only be started on demand. Access requires SSH tunnel or direct access

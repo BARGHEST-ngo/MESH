@@ -166,7 +166,7 @@ func TestCreate(t *testing.T) {
 		keystore := newDefaultTestKeyStore(t)
 		ownerID := "new-owner-id"
 		label := "internal-testing"
-		maxConcurrent := 0
+		maxConcurrent := 1
 		k, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil)
 		if err != nil {
 			t.Errorf("failed to create valid key: %v", err)
@@ -207,7 +207,7 @@ func TestCreate(t *testing.T) {
 		keystore := newDefaultTestKeyStore(t)
 		ownerID := "new-owner-id"
 		label := "internal-testing"
-		maxConcurrent := 0
+		maxConcurrent := 1
 		d := time.Duration(time.Hour)
 		ttl := &d
 		k, _, err := keystore.Create(ownerID, label, maxConcurrent, ttl)
@@ -225,6 +225,20 @@ func TestCreate(t *testing.T) {
 		}
 	})
 
+	t.Run("zero-max-concurrent-rejected", func(t *testing.T) {
+		keystore := newDefaultTestKeyStore(t)
+		if _, _, err := keystore.Create("owner", "label", 0, nil); err == nil {
+			t.Error("expected error for zero max concurrent")
+		}
+	})
+
+	t.Run("negative-max-concurrent-rejected", func(t *testing.T) {
+		keystore := newDefaultTestKeyStore(t)
+		if _, _, err := keystore.Create("owner", "label", -1, nil); err == nil {
+			t.Error("expected error for negative max concurrent")
+		}
+	})
+
 	t.Run("persistance", func(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "keys.json")
 		keystore, err := state.NewKeyStore(path)
@@ -233,7 +247,7 @@ func TestCreate(t *testing.T) {
 		}
 		ownerID := "new-owner-id"
 		label := "internal-testing"
-		maxConcurrent := 0
+		maxConcurrent := 1
 		createdKey, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil)
 		if err != nil {
 			t.Fatal(err)
@@ -258,7 +272,7 @@ func TestCreate(t *testing.T) {
 func TestRevoke(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "bar", 0, nil)
+		k, b64Key, err := keyStore.Create("foo", "bar", 1, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -288,7 +302,7 @@ func TestRevoke(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		k, b64Key, err := keystore.Create("foo", "bar", 0, nil)
+		k, b64Key, err := keystore.Create("foo", "bar", 1, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -309,7 +323,7 @@ func TestRevoke(t *testing.T) {
 
 	t.Run("already-revoked", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, _, err := keyStore.Create("foo", "bar", 0, nil)
+		k, _, err := keyStore.Create("foo", "bar", 1, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -327,7 +341,7 @@ func TestRevoke(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	t.Run("update-label", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 0, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -350,7 +364,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("update-max-concurrent", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 0, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -371,9 +385,31 @@ func TestUpdate(t *testing.T) {
 		}
 	})
 
+	t.Run("zero-max-concurrent-rejected", func(t *testing.T) {
+		keyStore := newDefaultTestKeyStore(t)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		zero := 0
+		if err := keyStore.Update(k.ID, nil, &zero, state.ExpiryUpdate{Op: state.ExpiryNoChange}); err == nil {
+			t.Error("expected error for zero max concurrent")
+		}
+
+		keyHash := sha256.Sum256([]byte(b64Key))
+		found, ok := keyStore.Lookup(keyHash)
+		if !ok {
+			t.Fatal("failed to find key")
+		}
+		if found.MaxConcurrent != 1 {
+			t.Error("rejected update should not change stored MaxConcurrent")
+		}
+	})
+
 	t.Run("set-expiry", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 0, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -404,7 +440,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("clear-expiry", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
 		ttl := time.Hour
-		k, b64Key, err := keyStore.Create("foo", "original-label", 0, &ttl)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, &ttl)
 		if err != nil {
 			t.Fatal(err)
 		}

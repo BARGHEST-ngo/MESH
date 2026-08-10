@@ -20,6 +20,11 @@ func main() {
 		log.Fatal("HOST_DATA_PATH must be set")
 	}
 
+	adminToken := os.Getenv("ADMIN_TOKEN")
+	if adminToken == "" {
+		log.Fatal("ADMIN_TOKEN must be set")
+	}
+
 	keyStore, err := state.NewKeyStore(filepath.Join(dataPath, "keys.json"))
 	if err != nil {
 		log.Fatal("failed to initialise key store")
@@ -27,7 +32,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         ":9090",
-		Handler:      adminapi.NewAdminRouter(keyStore),
+		Handler:      adminapi.NewAdminRouter(keyStore, adminToken),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

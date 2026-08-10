@@ -1,6 +1,8 @@
 package adminapi
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -50,7 +52,7 @@ type handler struct {
 	keys *state.KeyStore
 }
 
-func NewAdminRouter(keys *state.KeyStore) http.Handler {
+func NewAdminRouter(keys *state.KeyStore, adminToken string) http.Handler {
 	h := &handler{
 		keys: keys,
 	}
@@ -61,7 +63,26 @@ func NewAdminRouter(keys *state.KeyStore) http.Handler {
 	mux.HandleFunc("DELETE /keys/{key_id}", h.handleDeleteKey)
 	mux.HandleFunc("PATCH /keys/{key_id}", h.handlePatchKey)
 
-	return mux
+	return authRequest(adminToken, mux)
+}
+
+func authRequest(adminToken string, next http.Handler) http.Handler {
+	expected := sha256.Sum256([]byte(adminToken))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		bearer := r.Header.Get("Authorization")
+		if len(bearer) < 8 || bearer[:7] != "Bearer " {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		token := sha256.Sum256([]byte(bearer[7:]))
+		if subtle.ConstantTimeCompare(token[:], expected[:]) != 1 {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (h *handler) handleGetKeys(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +116,7 @@ func (h *handler) handlePostKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Label == "" || req.OwnerID == "" || req.MaxConcurrent < 0 {
+	if req.Label == "" || req.OwnerID == "" || req.MaxConcurrent <= 0 {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -152,8 +173,8 @@ func (h *handler) handlePatchKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	keyID := r.PathValue("key_id")
-	if req.MaxConcurrent != nil && *req.MaxConcurrent < 0 {
-		http.Error(w, "max_concurrent must be >= 0", http.StatusBadRequest)
+	if req.MaxConcurrent != nil && *req.MaxConcurrent <= 0 {
+		http.Error(w, "max_concurrent must be greater than 0", http.StatusBadRequest)
 		return
 	}
 
