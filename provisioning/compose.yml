@@ -5,13 +5,15 @@ services:
       context: ../
       dockerfile: provisioning/Dockerfile
     restart: unless-stopped
+    depends_on:
+      - provisioner-worker
     env_file:
       - provisioner.env
     environment:
       - HOST_DATA_PATH=/var/lib/mesh-provisioner
+      - WORKER_ADDR=http://provisioner-worker:8081
     volumes:
       - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
-      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - mesh-proxy
     labels:
@@ -36,6 +38,23 @@ services:
       - "127.0.0.1:9090:9090"
     volumes:
       - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
+
+  provisioner-worker:
+    image: ghcr.io/barghest-ngo/mesh-provisioner:latest
+    build:
+      context: ../
+      dockerfile: provisioning/Dockerfile
+    command: ["/worker"]
+    restart: unless-stopped
+    env_file:
+      - worker.env
+    environment:
+      - HOST_DATA_PATH=/var/lib/mesh-provisioner
+    volumes:
+      - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - mesh-proxy
 
   traefik:
     image: traefik:v3.7.5
