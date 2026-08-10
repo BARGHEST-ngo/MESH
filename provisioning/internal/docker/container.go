@@ -36,8 +36,8 @@ func PullImage(imageName string) error {
 	return output.Close()
 }
 
-func (m Manager) Start(d state.Deployment) error {
-	configPath, err := writeConfig(d)
+func (m Manager) Start(d state.Deployment, token string) error {
+	configPath, err := writeConfig(d, token)
 	if err != nil {
 		return fmt.Errorf("failed to write frps config file: %w", err)
 	}
@@ -82,7 +82,7 @@ func (m Manager) Start(d state.Deployment) error {
 	return client.ContainerStart(ctx, resp.ID, container.StartOptions{})
 }
 
-func writeConfig(d state.Deployment) (string, error) {
+func writeConfig(d state.Deployment, token string) (string, error) {
 	hostDataPath := os.Getenv("HOST_DATA_PATH")
 	if hostDataPath == "" {
 		return "", fmt.Errorf("HOST_DATA_PATH not set")
@@ -94,7 +94,7 @@ func writeConfig(d state.Deployment) (string, error) {
 	}
 
 	path := filepath.Join(dir, "frps.toml")
-	content := fmt.Sprintf("bindPort = 7000\nauth.token = %q\nvhostHTTPPort = 8080\n", d.Token)
+	content := fmt.Sprintf("bindPort = 7000\nauth.token = %q\nvhostHTTPPort = 8080\n", token)
 	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 		return "", err
 	}
