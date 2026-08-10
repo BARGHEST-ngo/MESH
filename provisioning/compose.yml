@@ -16,6 +16,7 @@ services:
       - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
     networks:
       - mesh-proxy
+      - mesh-internal
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.provisioner.rule=Host(`provisioner.tunnels.meshforensics.app`)"
@@ -54,7 +55,7 @@ services:
       - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - mesh-proxy
+      - mesh-internal
 
   traefik:
     image: traefik:v3.7.5
@@ -73,6 +74,8 @@ services:
 networks:
   mesh-proxy:
     name: mesh-proxy
+  mesh-internal:
+    name: mesh-internal
 
 volumes:
   acme:
