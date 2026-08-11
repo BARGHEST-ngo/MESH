@@ -433,6 +433,55 @@ func TestPatchKey(t *testing.T) {
 	})
 }
 
+func TestBodySizeLimit(t *testing.T) {
+	t.Run("oversized body rejected", func(t *testing.T) {
+		requestData := createKeyRequest{
+			OwnerID:       "owner",
+			Label:         string(bytes.Repeat([]byte("a"), maxBodyBytes)),
+			MaxConcurrent: 1,
+		}
+		b, err := json.Marshal(&requestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		w := httptest.NewRecorder()
+		newTestAdminRouter(t).ServeHTTP(w, req)
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("expected %d, got %d", http.StatusBadRequest, w.Code)
+		}
+	})
+
+	t.Run("body at limit accepted", func(t *testing.T) {
+		empty, err := json.Marshal(&createKeyRequest{OwnerID: "owner", MaxConcurrent: 1})
+		if err != nil {
+			t.Fatal(err)
+		}
+		overhead := len(empty)
+
+		requestData := createKeyRequest{
+			OwnerID:       "owner",
+			Label:         string(bytes.Repeat([]byte("a"), maxBodyBytes-overhead)),
+			MaxConcurrent: 1,
+		}
+		b, err := json.Marshal(&requestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(b) != maxBodyBytes {
+			t.Fatalf("test body is %d bytes, want exactly maxBodyBytes (%d)", len(b), maxBodyBytes)
+		}
+
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		w := httptest.NewRecorder()
+		newTestAdminRouter(t).ServeHTTP(w, req)
+		if w.Code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, w.Code)
+		}
+	})
+}
+
 func TestAdminAuth(t *testing.T) {
 	router := newTestAdminRouter(t)
 
