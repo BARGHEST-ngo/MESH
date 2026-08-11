@@ -8,6 +8,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o admin ./provisioning/cmd/admi
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o worker ./provisioning/cmd/worker
 
 FROM scratch
+USER 65532:65532
 COPY --from=builder /app/provisioner /provisioner
 COPY --from=builder /app/admin /admin
 COPY --from=builder /app/worker /worker
