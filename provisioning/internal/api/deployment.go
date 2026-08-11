@@ -39,7 +39,7 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Start(d); err != nil {
+	if err := h.service.Start(d, token); err != nil {
 		http.Error(w, fmt.Sprintf("failed to start container: %v", err), http.StatusInternalServerError)
 		h.registry.Release(slug)
 		return

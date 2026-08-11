@@ -14,14 +14,16 @@ import (
 const testToken = "test-worker-token"
 
 type mockRunner struct {
-	startErr    error
-	stopErr     error
-	startedWith state.Deployment
-	stoppedSlug string
+	startErr         error
+	stopErr          error
+	startedWith      state.Deployment
+	startedWithToken string
+	stoppedSlug      string
 }
 
-func (m *mockRunner) Start(d state.Deployment) error {
+func (m *mockRunner) Start(d state.Deployment, token string) error {
 	m.startedWith = d
+	m.startedWithToken = token
 	return m.startErr
 }
 
@@ -42,12 +44,15 @@ func TestClientStart(t *testing.T) {
 
 		client := New(srv.URL, testToken)
 		d := state.Deployment{Slug: "abc123def4", FrpsPort: 7001, CreatedAt: time.Now().UTC(), OwnerID: "owner-a"}
-		if err := client.Start(d); err != nil {
+		if err := client.Start(d, "frp-tok"); err != nil {
 			t.Fatalf("expected success, got %v", err)
 		}
 
 		if runner.startedWith.Slug != d.Slug || runner.startedWith.OwnerID != d.OwnerID {
 			t.Errorf("worker received unexpected deployment: %+v", runner.startedWith)
+		}
+		if runner.startedWithToken != "frp-tok" {
+			t.Errorf("expected worker to receive token %q, got %q", "frp-tok", runner.startedWithToken)
 		}
 	})
 
@@ -57,7 +62,7 @@ func TestClientStart(t *testing.T) {
 		defer srv.Close()
 
 		client := New(srv.URL, testToken)
-		err := client.Start(state.Deployment{Slug: "abc123def4"})
+		err := client.Start(state.Deployment{Slug: "abc123def4"}, "frp-tok")
 		if err == nil {
 			t.Fatal("expected error")
 		}
@@ -72,7 +77,7 @@ func TestClientStart(t *testing.T) {
 		defer srv.Close()
 
 		client := New(srv.URL, "wrong-token")
-		err := client.Start(state.Deployment{Slug: "abc123def4"})
+		err := client.Start(state.Deployment{Slug: "abc123def4"}, "frp-tok")
 		if err == nil {
 			t.Fatal("expected error")
 		}

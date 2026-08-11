@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/workerapi"
 )
 
 // Client implements api.ContainerService by delegating to the internal
@@ -29,8 +30,12 @@ func New(baseURL, token string) *Client {
 	}
 }
 
-func (c *Client) Start(d state.Deployment) error {
-	body, err := json.Marshal(d)
+func (c *Client) Start(d state.Deployment, token string) error {
+	bodyStruct := workerapi.HandleStartRequest{
+		Deployment: d,
+		Token:      token,
+	}
+	body, err := json.Marshal(bodyStruct)
 	if err != nil {
 		return fmt.Errorf("failed to marshal deployment: %w", err)
 	}

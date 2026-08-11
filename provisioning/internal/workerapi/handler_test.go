@@ -18,15 +18,17 @@ type mockRunner struct {
 	startErr error
 	stopErr  error
 
-	startedWith state.Deployment
-	stoppedSlug string
-	startCalled bool
-	stopCalled  bool
+	startedWith      state.Deployment
+	startedWithToken string
+	stoppedSlug      string
+	startCalled      bool
+	stopCalled       bool
 }
 
-func (m *mockRunner) Start(d state.Deployment) error {
+func (m *mockRunner) Start(d state.Deployment, token string) error {
 	m.startCalled = true
 	m.startedWith = d
+	m.startedWithToken = token
 	return m.startErr
 }
 
@@ -47,8 +49,8 @@ func TestHandleStart(t *testing.T) {
 		runner := &mockRunner{}
 		router := NewWorkerRouter(runner, testWorkerToken)
 
-		d := state.Deployment{Slug: "abc123def4", Token: "tok", FrpsPort: 7001, CreatedAt: time.Now().UTC(), OwnerID: "owner-a"}
-		b, err := json.Marshal(d)
+		d := state.Deployment{Slug: "abc123def4", FrpsPort: 7001, CreatedAt: time.Now().UTC(), OwnerID: "owner-a"}
+		b, err := json.Marshal(HandleStartRequest{Deployment: d, Token: "tok"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -65,6 +67,9 @@ func TestHandleStart(t *testing.T) {
 		}
 		if runner.startedWith.Slug != d.Slug || runner.startedWith.OwnerID != d.OwnerID {
 			t.Errorf("runner received unexpected deployment: %+v", runner.startedWith)
+		}
+		if runner.startedWithToken != "tok" {
+			t.Errorf("expected runner to receive token %q, got %q", "tok", runner.startedWithToken)
 		}
 	})
 
@@ -118,7 +123,7 @@ func TestHandleStart(t *testing.T) {
 		runner := &mockRunner{startErr: fmt.Errorf("docker exploded")}
 		router := NewWorkerRouter(runner, testWorkerToken)
 
-		b, err := json.Marshal(state.Deployment{Slug: "abc123def4"})
+		b, err := json.Marshal(HandleStartRequest{Deployment: state.Deployment{Slug: "abc123def4"}, Token: "tok"})
 		if err != nil {
 			t.Fatal(err)
 		}

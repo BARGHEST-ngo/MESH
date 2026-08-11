@@ -11,12 +11,17 @@ import (
 )
 
 type ContainerRunner interface {
-	Start(d state.Deployment) error
+	Start(d state.Deployment, token string) error
 	Stop(slug string) error
 }
 
 type handler struct {
 	runner ContainerRunner
+}
+
+type HandleStartRequest struct {
+	Deployment state.Deployment
+	Token      string
 }
 
 func NewWorkerRouter(runner ContainerRunner, workerToken string) http.Handler {
@@ -49,20 +54,20 @@ func authRequest(workerToken string, next http.Handler) http.Handler {
 }
 
 func (h *handler) handleStart(w http.ResponseWriter, r *http.Request) {
-	var d state.Deployment
+	var requestData HandleStartRequest
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
-	if err := dec.Decode(&d); err != nil {
+	if err := dec.Decode(&requestData); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if !confirmValidSlug(d.Slug) {
+	if !confirmValidSlug(requestData.Deployment.Slug) {
 		http.Error(w, "invalid slug", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.runner.Start(d); err != nil {
+	if err := h.runner.Start(requestData.Deployment, requestData.Token); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
