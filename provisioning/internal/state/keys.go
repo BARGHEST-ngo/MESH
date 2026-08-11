@@ -8,8 +8,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
@@ -40,10 +38,6 @@ type KeyStore struct {
 var ErrNotFound = errors.New("key not found")
 
 func NewKeyStore(path string) (*KeyStore, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return nil, fmt.Errorf("failed to create state directory: %w", err)
-	}
-
 	ks := &KeyStore{
 		path:  path,
 		state: keysState{Keys: make([]APIKey, 0)},

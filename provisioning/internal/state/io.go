@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 func loadJSON[T any](path string, v *T) error {
@@ -26,6 +27,10 @@ func saveJSON[T any](path string, v T) error {
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return fmt.Errorf("marshal error: %w", err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return fmt.Errorf("failed to create state directory: %w", err)
 	}
 
 	tmp := path + ".tmp"
