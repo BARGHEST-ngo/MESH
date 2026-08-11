@@ -4,6 +4,7 @@ package state
 // Primarily tracks allocated ports for all started containers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -108,7 +109,10 @@ func (r *Registry) load() error {
 	if err != nil {
 		return fmt.Errorf("error reading depolyments file: %w", err)
 	}
-	return json.Unmarshal(data, &r.state)
+
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	return decoder.Decode(&r.state)
 }
 
 func (r *Registry) save() error {
