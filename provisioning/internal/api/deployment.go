@@ -33,13 +33,13 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	d, err := h.registry.AllocatePort(slug, token, key.OwnerID, key.MaxConcurrent)
+	d, err := h.registry.AllocatePort(slug, key.OwnerID, key.MaxConcurrent)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to allocate port: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	if err := h.service.Start(d); err != nil {
+	if err := h.service.Start(d, token); err != nil {
 		http.Error(w, fmt.Sprintf("failed to start container: %v", err), http.StatusInternalServerError)
 		h.registry.Release(slug)
 		return

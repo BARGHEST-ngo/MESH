@@ -26,7 +26,7 @@ func defaultTestRegistry(t *testing.T) *state.Registry {
 func TestAllocatePort(t *testing.T) {
 	reg := defaultTestRegistry(t)
 
-	created, err := reg.AllocatePort(testSlug, "test-token", "test-owner", 0)
+	created, err := reg.AllocatePort(testSlug, "test-owner", 0)
 	if err != nil {
 		t.Errorf("expected valid allocation")
 	}
@@ -53,7 +53,7 @@ func TestAllocatePort(t *testing.T) {
 
 func TestRelease(t *testing.T) {
 	reg := defaultTestRegistry(t)
-	d, err := reg.AllocatePort(testSlug, "test-token", "test-owner", 0)
+	d, err := reg.AllocatePort(testSlug, "test-owner", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,11 +79,11 @@ func TestMaxConcurrent(t *testing.T) {
 	t.Run("single-owner", func(t *testing.T) {
 		const maxDeploys = 1
 		reg := defaultTestRegistry(t)
-		if _, err := reg.AllocatePort("testSlug-A", "test-token", "test-owner", maxDeploys); err != nil {
+		if _, err := reg.AllocatePort("testSlug-A", "test-owner", maxDeploys); err != nil {
 			t.Fatal(err)
 		}
 
-		if _, err := reg.AllocatePort("testSlug-B", "test-token", "test-owner", maxDeploys); err == nil {
+		if _, err := reg.AllocatePort("testSlug-B", "test-owner", maxDeploys); err == nil {
 			t.Errorf("deployed more than %d max deployments", maxDeploys)
 		}
 	})
@@ -91,19 +91,19 @@ func TestMaxConcurrent(t *testing.T) {
 	t.Run("multiple-owners", func(t *testing.T) {
 		const maxDeploys = 1
 		reg := defaultTestRegistry(t)
-		if _, err := reg.AllocatePort("testSlug-A", "test-token", "test-owner-0", maxDeploys); err != nil {
+		if _, err := reg.AllocatePort("testSlug-A", "test-owner-0", maxDeploys); err != nil {
 			t.Fatal(err)
 		}
 
-		if _, err := reg.AllocatePort("testSlug-B", "test-token", "test-owner-1", maxDeploys); err != nil {
+		if _, err := reg.AllocatePort("testSlug-B", "test-owner-1", maxDeploys); err != nil {
 			t.Fatal(err)
 		}
 
-		if _, err := reg.AllocatePort("testSlug-C", "test-token", "test-owner-0", maxDeploys); err == nil {
+		if _, err := reg.AllocatePort("testSlug-C", "test-owner-0", maxDeploys); err == nil {
 			t.Errorf("test-owner-0 deployed more than %d max deployments", maxDeploys)
 		}
 
-		if _, err := reg.AllocatePort("testSlug-D", "test-token", "test-owner-1", maxDeploys); err == nil {
+		if _, err := reg.AllocatePort("testSlug-D", "test-owner-1", maxDeploys); err == nil {
 			t.Errorf("test-owner-1 deployed more than %d max deployments", maxDeploys)
 		}
 	})
@@ -115,7 +115,7 @@ func TestRegistryPersistence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	created, err := reg.AllocatePort(testSlug, "test-token", "test-owner", 0)
+	created, err := reg.AllocatePort(testSlug, "test-owner", 0)
 	if err != nil {
 		t.Fatal(err)
 	}

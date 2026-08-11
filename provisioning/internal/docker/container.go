@@ -36,7 +36,7 @@ func PullImage(imageName string) error {
 	return output.Close()
 }
 
-func (m Manager) Start(d state.Deployment) error {
+func (m Manager) Start(d state.Deployment, token string) error {
 	configPath, err := writeConfig(d)
 	if err != nil {
 		return fmt.Errorf("failed to write frps config file: %w", err)
@@ -52,6 +52,7 @@ func (m Manager) Start(d state.Deployment) error {
 	resp, err := client.ContainerCreate(ctx,
 		&container.Config{
 			Image: m.FrpsImage,
+			Env:   []string{fmt.Sprintf("FRP_TOKEN=%s", token)},
 			Labels: map[string]string{
 				"traefik.enable": "true",
 				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnels.%s`)", d.Slug, meshDomain),
@@ -94,7 +95,7 @@ func writeConfig(d state.Deployment) (string, error) {
 	}
 
 	path := filepath.Join(dir, "frps.toml")
-	content := fmt.Sprintf("bindPort = 7000\nauth.token = %q\nvhostHTTPPort = 8080\n", d.Token)
+	content := "bindPort = 7000\nauth.token = \"{{ .Envs.FRP_TOKEN }}\"\nvhostHTTPPort = 8080\n"
 	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 		return "", err
 	}
