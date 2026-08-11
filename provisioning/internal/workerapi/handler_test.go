@@ -135,6 +135,26 @@ func TestHandleStart(t *testing.T) {
 			t.Errorf("expected %d, got %d", http.StatusInternalServerError, w.Code)
 		}
 	})
+
+	t.Run("invalid slug traversal", func(t *testing.T) {
+		runner := &mockRunner{startErr: fmt.Errorf("docker exploded")}
+		router := NewWorkerRouter(runner, testWorkerToken)
+
+		b, err := json.Marshal(HandleStartRequest{Deployment: state.Deployment{Slug: "%2e%2e"}, Token: "tok"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		req := newAuthedRequest(http.MethodPost, "/containers", b)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("expected %d, got %d", http.StatusBadRequest, w.Code)
+		}
+		if runner.startCalled {
+			t.Error("runner should not be called for an invalid slug")
+		}
+	})
 }
 
 func TestHandleStop(t *testing.T) {
