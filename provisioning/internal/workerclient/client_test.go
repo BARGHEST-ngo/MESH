@@ -41,7 +41,7 @@ func TestClientStart(t *testing.T) {
 		defer srv.Close()
 
 		client := New(srv.URL, testToken)
-		d := state.Deployment{Slug: "abc123def4", Token: "tok", FrpsPort: 7001, CreatedAt: time.Now().UTC(), OwnerID: "owner-a"}
+		d := state.Deployment{Slug: "abc123def4", FrpsPort: 7001, CreatedAt: time.Now().UTC(), OwnerID: "owner-a"}
 		if err := client.Start(d); err != nil {
 			t.Fatalf("expected success, got %v", err)
 		}

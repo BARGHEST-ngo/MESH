@@ -15,7 +15,7 @@ type handler struct {
 }
 
 type ContainerService interface {
-	Start(d state.Deployment, token string) error
+	Start(d state.Deployment) error
 	Stop(slug string) error
 }
 

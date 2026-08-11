@@ -26,12 +26,12 @@ const (
 
 type mockContainerService struct{}
 
-func (mockContainerService) Start(state.Deployment, string) error { return nil }
-func (mockContainerService) Stop(string) error                    { return nil }
+func (mockContainerService) Start(state.Deployment) error { return nil }
+func (mockContainerService) Stop(string) error            { return nil }
 
 type failOnceMock struct{ calls int }
 
-func (m *failOnceMock) Start(state.Deployment, string) error {
+func (m *failOnceMock) Start(state.Deployment) error {
 	m.calls++
 	if m.calls == 1 {
 		return fmt.Errorf("simulated start failure")
