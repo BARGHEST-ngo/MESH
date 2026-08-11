@@ -1,13 +1,11 @@
 package state
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -200,29 +198,9 @@ func (ks *KeyStore) List() []APIKey {
 }
 
 func (ks *KeyStore) load() error {
-	data, err := os.ReadFile(ks.path)
-	if os.IsNotExist(err) {
-		return nil
-	}
-
-	if err != nil {
-		return fmt.Errorf("error reading keys file: %w", err)
-	}
-
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	return decoder.Decode(&ks.state)
+	return loadJSON(ks.path, &ks.state)
 }
 
 func (ks *KeyStore) save() error {
-	data, err := json.MarshalIndent(ks.state, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshal error: %w", err)
-	}
-
-	tmp := ks.path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0600); err != nil {
-		return fmt.Errorf("write file error: %w", err)
-	}
-	return os.Rename(tmp, ks.path)
+	return saveJSON(ks.path, ks.state)
 }

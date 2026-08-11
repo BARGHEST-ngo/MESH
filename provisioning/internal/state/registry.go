@@ -4,8 +4,6 @@ package state
 // Primarily tracks allocated ports for all started containers
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -102,28 +100,9 @@ func (r *Registry) Get(slug string) (Deployment, bool) {
 }
 
 func (r *Registry) load() error {
-	data, err := os.ReadFile(r.path)
-	if os.IsNotExist(err) {
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("error reading depolyments file: %w", err)
-	}
-
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	return decoder.Decode(&r.state)
+	return loadJSON(r.path, &r.state)
 }
 
 func (r *Registry) save() error {
-	data, err := json.MarshalIndent(r.state, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshal error: %w", err)
-	}
-
-	tmp := r.path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0600); err != nil {
-		return fmt.Errorf("write file error: %w", err)
-	}
-	return os.Rename(tmp, r.path)
+	return saveJSON(r.path, r.state)
 }
