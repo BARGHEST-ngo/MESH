@@ -52,6 +52,8 @@ type handler struct {
 	keys *state.KeyStore
 }
 
+const maxBodyBytes = 1 << 20 // 1 MiB
+
 func NewAdminRouter(keys *state.KeyStore, adminToken string) http.Handler {
 	h := &handler{
 		keys: keys,
@@ -63,7 +65,7 @@ func NewAdminRouter(keys *state.KeyStore, adminToken string) http.Handler {
 	mux.HandleFunc("DELETE /keys/{key_id}", h.handleDeleteKey)
 	mux.HandleFunc("PATCH /keys/{key_id}", h.handlePatchKey)
 
-	return authRequest(adminToken, mux)
+	return authRequest(adminToken, limitBody(mux))
 }
 
 func authRequest(adminToken string, next http.Handler) http.Handler {
@@ -81,6 +83,13 @@ func authRequest(adminToken string, next http.Handler) http.Handler {
 			return
 		}
 
+		next.ServeHTTP(w, r)
+	})
+}
+
+func limitBody(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
 		next.ServeHTTP(w, r)
 	})
 }
