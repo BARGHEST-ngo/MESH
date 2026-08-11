@@ -12,13 +12,11 @@ import (
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
-	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/workerclient"
 	"golang.org/x/time/rate"
 )
 
-// This is an intentionally light-weight and basic HTTP server
-// Don't want to over-engineer at this stage, just prove it works
 func main() {
 	portMin := os.Getenv("FRPS_PORT_MIN")
 	if portMin == "" {
@@ -44,13 +42,14 @@ func main() {
 		log.Fatal("HOST_DATA_PATH must be set")
 	}
 
-	frpsImage := os.Getenv("FRPS_IMAGE")
-	if frpsImage == "" {
-		log.Fatal("FRPS_IMAGE must be set")
+	workerAddr := os.Getenv("WORKER_ADDR")
+	if workerAddr == "" {
+		log.Fatal("WORKER_ADDR must be set")
 	}
 
-	if err := docker.PullImage(frpsImage); err != nil {
-		log.Fatalf("failed to pull frps image: %v", err)
+	workerToken := os.Getenv("WORKER_TOKEN")
+	if workerToken == "" {
+		log.Fatal("WORKER_TOKEN must be set")
 	}
 
 	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMinInt, portMaxInt)
@@ -66,9 +65,10 @@ func main() {
 	deploymentRateLimit := rate.Every(10 * time.Second)
 	deploymentRateBurst := 3
 	rateLimiter := api.NewLimiter(deploymentRateLimit, deploymentRateBurst)
+	containerSvc := workerclient.New(workerAddr, workerToken)
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(keyStore, registry, docker.Manager{FrpsImage: frpsImage}, rateLimiter),
+		Handler:      api.NewRouter(keyStore, registry, containerSvc, rateLimiter),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}

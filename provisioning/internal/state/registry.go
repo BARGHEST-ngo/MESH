@@ -14,7 +14,6 @@ import (
 
 type Deployment struct {
 	Slug      string    `json:"slug"`
-	Token     string    `json:"token"`
 	FrpsPort  int       `json:"frps_port"`
 	CreatedAt time.Time `json:"created_at"`
 	OwnerID   string    `json:"owner_id"`
@@ -48,7 +47,7 @@ func New(path string, portMin, portMax int) (*Registry, error) {
 	return r, nil
 }
 
-func (r *Registry) AllocatePort(slug, token, ownerID string, maxConcurrent int) (Deployment, error) {
+func (r *Registry) AllocatePort(slug, ownerID string, maxConcurrent int) (Deployment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -69,7 +68,6 @@ func (r *Registry) AllocatePort(slug, token, ownerID string, maxConcurrent int) 
 		if !used[port] {
 			d := Deployment{
 				Slug:      slug,
-				Token:     token,
 				FrpsPort:  port,
 				CreatedAt: time.Now().UTC(),
 				OwnerID:   ownerID,
