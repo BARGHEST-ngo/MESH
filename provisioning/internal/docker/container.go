@@ -17,7 +17,8 @@ import (
 const meshDomain = "meshforensics.app"
 
 type Manager struct {
-	FrpsImage string
+	FrpsImage    string
+	FrpsBindAddr string
 }
 
 func PullImage(imageName string) error {
@@ -68,7 +69,10 @@ func (m Manager) Start(d state.Deployment, token string) error {
 			RestartPolicy: container.RestartPolicy{Name: container.RestartPolicyUnlessStopped},
 			Binds:         []string{fmt.Sprintf("%s:/etc/frp/frps.toml:ro", configPath)},
 			PortBindings: nat.PortMap{
-				nat.Port("7000/tcp"): []nat.PortBinding{{HostPort: fmt.Sprintf("%d", d.FrpsPort)}},
+				nat.Port("7000/tcp"): []nat.PortBinding{{
+					HostIP:   m.FrpsBindAddr,
+					HostPort: fmt.Sprintf("%d", d.FrpsPort),
+				}},
 			},
 		},
 		nil, nil, fmt.Sprintf("frps-%s", d.Slug))
