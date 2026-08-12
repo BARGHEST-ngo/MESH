@@ -24,11 +24,17 @@ func main() {
 		log.Fatal("WORKER_TOKEN must be set")
 	}
 
+	// Empty string defaults to "0.0.0.0"
+	frpsBindAddr := os.Getenv("FRPS_BIND_ADDR")
+
 	if err := docker.PullImage(frpsImage); err != nil {
 		log.Fatalf("failed to pull frps image: %v", err)
 	}
 
-	runner := docker.Manager{FrpsImage: frpsImage}
+	runner := docker.Manager{
+		FrpsBindAddr: frpsBindAddr,
+		FrpsImage:    frpsImage,
+	}
 
 	srv := &http.Server{
 		Addr:         ":8081",
