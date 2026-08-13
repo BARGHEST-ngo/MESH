@@ -73,9 +73,11 @@ https://docs.meshforensics.org/
 ### 1. Clone the repository
 
 ```
-git clone https://github.com/BARGHEST-ngo/mesh.git
+git clone https://github.com/BARGHEST-ngo/mesh.git --recurse-submodules
 cd MESH
 ```
+
+> NOTE: There is a single git submodule in this repo at `/tailscale`. Make sure you run the initial `git clone` with `--recurse-submodules` as above, or `git submodule update --init --recursive` after a clone.
 
 ### 2. Start control plane
 
