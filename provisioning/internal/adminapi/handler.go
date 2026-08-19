@@ -13,10 +13,11 @@ import (
 )
 
 type createKeyRequest struct {
-	OwnerID       string `json:"owner_id"`
-	Label         string `json:"label"`
-	MaxConcurrent int    `json:"max_concurrent"`
-	TTLHours      int    `json:"ttl_hours"` // 0 - No Expiry
+	OwnerID            string `json:"owner_id"`
+	Label              string `json:"label"`
+	MaxConcurrent      int    `json:"max_concurrent"`
+	TTLHours           int    `json:"ttl_hours"`            // 0 - No Expiry
+	DeploymentTTLHours int    `json:"deployment_ttl_hours"` // 0 - Use default
 }
 
 type createKeyResponse struct {
@@ -130,12 +131,19 @@ func (h *handler) handlePostKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ttl *time.Duration
+	var keyTTL *time.Duration
 	if req.TTLHours > 0 {
 		dur := time.Hour * time.Duration(req.TTLHours)
-		ttl = &dur
+		keyTTL = &dur
 	}
-	key, plaintext, err := h.keys.Create(req.OwnerID, req.Label, req.MaxConcurrent, ttl)
+
+	var deploymentTTL *time.Duration
+	if req.DeploymentTTLHours > 0 {
+		dur := time.Hour * time.Duration(req.DeploymentTTLHours)
+		deploymentTTL = &dur
+	}
+
+	key, plaintext, err := h.keys.Create(req.OwnerID, req.Label, req.MaxConcurrent, keyTTL, deploymentTTL)
 	if err != nil {
 		http.Error(w, "failed to create key", http.StatusInternalServerError)
 		return

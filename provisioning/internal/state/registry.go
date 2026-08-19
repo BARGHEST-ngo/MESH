@@ -14,6 +14,7 @@ type Deployment struct {
 	FrpsPort  int       `json:"frps_port"`
 	CreatedAt time.Time `json:"created_at"`
 	OwnerID   string    `json:"owner_id"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 type registryState struct {
@@ -21,19 +22,21 @@ type registryState struct {
 }
 
 type Registry struct {
-	mu      sync.Mutex
-	state   registryState
-	path    string
-	portMin int
-	portMax int
+	mu         sync.Mutex
+	state      registryState
+	path       string
+	portMin    int
+	portMax    int
+	defaultTTL time.Duration
 }
 
-func New(path string, portMin, portMax int) (*Registry, error) {
+func New(path string, portMin, portMax int, defaultTTL time.Duration) (*Registry, error) {
 	r := &Registry{
-		path:    path,
-		portMin: portMin,
-		portMax: portMax,
-		state:   registryState{Deployments: make(map[string]Deployment)},
+		path:       path,
+		portMin:    portMin,
+		portMax:    portMax,
+		defaultTTL: defaultTTL,
+		state:      registryState{Deployments: make(map[string]Deployment)},
 	}
 	if err := r.load(); err != nil {
 		return nil, err
@@ -41,7 +44,7 @@ func New(path string, portMin, portMax int) (*Registry, error) {
 	return r, nil
 }
 
-func (r *Registry) AllocatePort(slug, ownerID string, maxConcurrent int) (Deployment, error) {
+func (r *Registry) AllocatePort(slug, ownerID string, maxConcurrent int, ttl *time.Duration) (Deployment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -58,13 +61,22 @@ func (r *Registry) AllocatePort(slug, ownerID string, maxConcurrent int) (Deploy
 		return Deployment{}, fmt.Errorf("max deployments reached")
 	}
 
+	if ttl == nil {
+		cpy := r.defaultTTL
+		ttl = &cpy
+	}
+	createdAt := time.Now().UTC()
+	t := createdAt.Add(*ttl)
+	expiresAt := t
+
 	for port := r.portMin; port <= r.portMax; port++ {
 		if !used[port] {
 			d := Deployment{
 				Slug:      slug,
 				FrpsPort:  port,
-				CreatedAt: time.Now().UTC(),
+				CreatedAt: createdAt,
 				OwnerID:   ownerID,
+				ExpiresAt: expiresAt,
 			}
 			r.state.Deployments[slug] = d
 			return d, r.save()
@@ -92,6 +104,20 @@ func (r *Registry) Get(slug string) (Deployment, bool) {
 
 	d, ok := r.state.Deployments[slug]
 	return d, ok
+}
+
+func (r *Registry) Expired(now time.Time) []Deployment {
+	expired := make([]Deployment, 0)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for _, d := range r.state.Deployments {
+		if d.ExpiresAt.Before(now) {
+			expired = append(expired, d)
+		}
+	}
+
+	return expired
 }
 
 func (r *Registry) load() error {

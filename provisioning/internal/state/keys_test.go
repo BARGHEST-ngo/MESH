@@ -167,7 +167,7 @@ func TestCreate(t *testing.T) {
 		ownerID := "new-owner-id"
 		label := "internal-testing"
 		maxConcurrent := 1
-		k, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil)
+		k, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil, nil)
 		if err != nil {
 			t.Errorf("failed to create valid key: %v", err)
 		}
@@ -210,7 +210,7 @@ func TestCreate(t *testing.T) {
 		maxConcurrent := 1
 		d := time.Duration(time.Hour)
 		ttl := &d
-		k, _, err := keystore.Create(ownerID, label, maxConcurrent, ttl)
+		k, _, err := keystore.Create(ownerID, label, maxConcurrent, ttl, nil)
 		if err != nil {
 			t.Errorf("failed to create valid key: %v", err)
 		}
@@ -227,14 +227,14 @@ func TestCreate(t *testing.T) {
 
 	t.Run("zero-max-concurrent-rejected", func(t *testing.T) {
 		keystore := newDefaultTestKeyStore(t)
-		if _, _, err := keystore.Create("owner", "label", 0, nil); err == nil {
+		if _, _, err := keystore.Create("owner", "label", 0, nil, nil); err == nil {
 			t.Error("expected error for zero max concurrent")
 		}
 	})
 
 	t.Run("negative-max-concurrent-rejected", func(t *testing.T) {
 		keystore := newDefaultTestKeyStore(t)
-		if _, _, err := keystore.Create("owner", "label", -1, nil); err == nil {
+		if _, _, err := keystore.Create("owner", "label", -1, nil, nil); err == nil {
 			t.Error("expected error for negative max concurrent")
 		}
 	})
@@ -248,7 +248,7 @@ func TestCreate(t *testing.T) {
 		ownerID := "new-owner-id"
 		label := "internal-testing"
 		maxConcurrent := 1
-		createdKey, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil)
+		createdKey, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -272,7 +272,7 @@ func TestCreate(t *testing.T) {
 func TestRevoke(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "bar", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "bar", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -302,7 +302,7 @@ func TestRevoke(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		k, b64Key, err := keystore.Create("foo", "bar", 1, nil)
+		k, b64Key, err := keystore.Create("foo", "bar", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -323,7 +323,7 @@ func TestRevoke(t *testing.T) {
 
 	t.Run("already-revoked", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, _, err := keyStore.Create("foo", "bar", 1, nil)
+		k, _, err := keyStore.Create("foo", "bar", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -341,7 +341,7 @@ func TestRevoke(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	t.Run("update-label", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -364,7 +364,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("update-max-concurrent", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -387,7 +387,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("zero-max-concurrent-rejected", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -409,7 +409,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("set-expiry", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -440,7 +440,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("clear-expiry", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
 		ttl := time.Hour
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, &ttl)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, &ttl, nil)
 		if err != nil {
 			t.Fatal(err)
 		}

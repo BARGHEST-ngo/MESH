@@ -33,7 +33,7 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	d, err := h.registry.AllocatePort(slug, key.OwnerID, key.MaxConcurrent)
+	d, err := h.registry.AllocatePort(slug, key.OwnerID, key.MaxConcurrent, key.DeploymentTTL)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to allocate port: %v", err), http.StatusInternalServerError)
 		return

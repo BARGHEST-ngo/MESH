@@ -12,47 +12,23 @@ import (
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/reaper"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/workerclient"
 	"golang.org/x/time/rate"
 )
 
 func main() {
-	portMin := os.Getenv("FRPS_PORT_MIN")
-	if portMin == "" {
-		log.Fatal("FRPS_PORT_MIN must be set")
-	}
+	portMin := getEnvInt("FRPS_PORT_MIN")
+	portMax := getEnvInt("FRPS_PORT_MAX")
+	defaultTTLHours := getEnvInt("DEFAULT_TTL_HOURS")
+	defaultTTL := time.Duration(defaultTTLHours) * time.Hour
 
-	portMinInt, err := strconv.Atoi(portMin)
-	if err != nil {
-		log.Fatal("failed to parse FRPS_PORT_MIN")
-	}
+	dataPath := getEnv("HOST_DATA_PATH")
+	workerAddr := getEnv("WORKER_ADDR")
+	workerToken := getEnv("WORKER_TOKEN")
 
-	portMax := os.Getenv("FRPS_PORT_MAX")
-	if portMax == "" {
-		log.Fatal("FRPS_PORT_MAX must be set")
-	}
-	portMaxInt, err := strconv.Atoi(portMax)
-	if err != nil {
-		log.Fatal("failed to parse FRPS_PORT_MAX")
-	}
-
-	dataPath := os.Getenv("HOST_DATA_PATH")
-	if dataPath == "" {
-		log.Fatal("HOST_DATA_PATH must be set")
-	}
-
-	workerAddr := os.Getenv("WORKER_ADDR")
-	if workerAddr == "" {
-		log.Fatal("WORKER_ADDR must be set")
-	}
-
-	workerToken := os.Getenv("WORKER_TOKEN")
-	if workerToken == "" {
-		log.Fatal("WORKER_TOKEN must be set")
-	}
-
-	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMinInt, portMaxInt)
+	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMin, portMax, defaultTTL)
 	if err != nil {
 		log.Fatal("failed to initialise port registry")
 	}
@@ -73,6 +49,10 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 	}
 
+	reaperCtx, reaperCancel := context.WithCancel(context.Background())
+	defer reaperCancel()
+	go reaper.Run(reaperCtx, registry, containerSvc, time.Minute*time.Duration(30))
+
 	go func() {
 		log.Printf("provisioner listening on :8080")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -89,4 +69,21 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Printf("shutdown: %v", err)
 	}
+}
+
+func getEnv(variable string) string {
+	str := os.Getenv(variable)
+	if str == "" {
+		log.Fatalf("'%s' must be set", variable)
+	}
+	return str
+}
+
+func getEnvInt(variable string) int {
+	str := getEnv(variable)
+	varInt, err := strconv.Atoi(str)
+	if err != nil {
+		log.Fatalf("failed to parse '%s'", variable)
+	}
+	return varInt
 }
