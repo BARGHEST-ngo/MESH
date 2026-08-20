@@ -121,7 +121,21 @@ func (r *Registry) Expired(now time.Time) []Deployment {
 }
 
 func (r *Registry) load() error {
-	return loadJSON(r.path, &r.state)
+	if err := loadJSON(r.path, &r.state); err != nil {
+		return err
+	}
+
+	// TODO: This migration can be removed in a future update
+	// It only applies to any deployments created prior
+	// to adding domain expiry.
+	for id, d := range r.state.Deployments {
+		if d.ExpiresAt.IsZero() {
+			d.ExpiresAt = d.CreatedAt.Add(r.defaultTTL)
+			r.state.Deployments[id] = d
+		}
+	}
+
+	return r.save()
 }
 
 func (r *Registry) save() error {
