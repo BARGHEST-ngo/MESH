@@ -15,14 +15,15 @@ import (
 )
 
 type APIKey struct {
-	ID            string     `json:"id"`
-	OwnerID       string     `json:"owner_id"`
-	Label         string     `json:"label"` // human-redable key purpose ("internal-testing")
-	HashHex       string     `json:"hash"`  // SHA256 of key
-	CreatedAt     time.Time  `json:"created_at"`
-	ExpiresAt     *time.Time `json:"expires_at"` // nil - does not expire
-	MaxConcurrent int        `json:"max_concurrent"`
-	Revoked       bool       `json:"revoked"`
+	ID            string         `json:"id"`
+	OwnerID       string         `json:"owner_id"`
+	Label         string         `json:"label"` // human-redable key purpose ("internal-testing")
+	HashHex       string         `json:"hash"`  // SHA256 of key
+	CreatedAt     time.Time      `json:"created_at"`
+	ExpiresAt     *time.Time     `json:"expires_at"` // nil - does not expire
+	MaxConcurrent int            `json:"max_concurrent"`
+	Revoked       bool           `json:"revoked"`
+	DeploymentTTL *time.Duration `json:"deployment_ttl"` // nil - use default
 }
 
 type keysState struct {
@@ -73,7 +74,7 @@ func (ks *KeyStore) Lookup(hash [32]byte) (APIKey, bool) {
 	return APIKey{}, false
 }
 
-func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.Duration) (APIKey, string, error) {
+func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, keyTTL, deploymentTTL *time.Duration) (APIKey, string, error) {
 	key := make([]byte, 32)
 	_, err := rand.Read(key)
 	if err != nil {
@@ -89,8 +90,8 @@ func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.D
 	hashHex := hex.EncodeToString(hash[:])
 	createdAt := time.Now().UTC()
 	var expiresAt *time.Time
-	if ttl != nil {
-		t := createdAt.Add(*ttl)
+	if keyTTL != nil {
+		t := createdAt.Add(*keyTTL)
 		expiresAt = &t
 	}
 
@@ -103,6 +104,7 @@ func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.D
 		HashHex:       hashHex,
 		CreatedAt:     createdAt,
 		ExpiresAt:     expiresAt,
+		DeploymentTTL: deploymentTTL,
 	}
 
 	ks.mu.Lock()
