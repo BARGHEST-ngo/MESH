@@ -138,3 +138,29 @@ func TestRegistryPersistence(t *testing.T) {
 		t.Errorf("expected owner %q, got %q", "test-owner", found.OwnerID)
 	}
 }
+
+func TestExpired(t *testing.T) {
+	cases := []struct {
+		name            string
+		testTime        time.Time
+		expectedExpired int
+	}{
+		{name: "not-expired", testTime: time.Now().Add(deployTTL / 2), expectedExpired: 0},
+		{name: "expired", testTime: time.Now().Add(deployTTL * 2), expectedExpired: 1},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			reg := defaultTestRegistry(t)
+			_, err := reg.AllocatePort("test-slug", "test-owner", 1, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			expired := reg.Expired(tc.testTime)
+			if len(expired) != tc.expectedExpired {
+				t.Errorf("unexpected number of expired deployments: got %d, want %d", len(expired), tc.expectedExpired)
+			}
+		})
+	}
+}
