@@ -21,11 +21,12 @@ type createKeyRequest struct {
 }
 
 type createKeyResponse struct {
-	ID        string     `json:"id"`
-	Key       string     `json:"key"`
-	OwnerID   string     `json:"owner_id"`
-	Label     string     `json:"label"`
-	ExpiresAt *time.Time `json:"expires_at"`
+	ID                 string     `json:"id"`
+	Key                string     `json:"key"`
+	OwnerID            string     `json:"owner_id"`
+	Label              string     `json:"label"`
+	ExpiresAt          *time.Time `json:"expires_at"`
+	DeploymentTTLHours *int       `json:"deployment_ttl_hours"`
 }
 
 type updateKeyRequest struct {
@@ -40,13 +41,14 @@ type getKeysResponse struct {
 }
 
 type keyResponse struct {
-	ID            string     `json:"id"`
-	OwnerID       string     `json:"owner_id"`
-	Label         string     `json:"label"`
-	CreatedAt     time.Time  `json:"created_at"`
-	ExpiresAt     *time.Time `json:"expires_at"`
-	MaxConcurrent int        `json:"max_concurrent"`
-	Revoked       bool       `json:"revoked"`
+	ID                 string     `json:"id"`
+	OwnerID            string     `json:"owner_id"`
+	Label              string     `json:"label"`
+	CreatedAt          time.Time  `json:"created_at"`
+	ExpiresAt          *time.Time `json:"expires_at"`
+	MaxConcurrent      int        `json:"max_concurrent"`
+	Revoked            bool       `json:"revoked"`
+	DeploymentTTLHours *int       `json:"deployment_ttl_hours"`
 }
 
 type handler struct {
@@ -95,18 +97,27 @@ func limitBody(next http.Handler) http.Handler {
 	})
 }
 
+func deploymentTTLHours(d *time.Duration) *int {
+	if d == nil {
+		return nil
+	}
+	hours := int(d.Hours())
+	return &hours
+}
+
 func (h *handler) handleGetKeys(w http.ResponseWriter, r *http.Request) {
 	keys := h.keys.List()
 	respKeys := make(map[string]keyResponse, len(keys))
 	for _, k := range keys {
 		respKeys[k.ID] = keyResponse{
-			ID:            k.ID,
-			OwnerID:       k.OwnerID,
-			Label:         k.Label,
-			CreatedAt:     k.CreatedAt,
-			ExpiresAt:     k.ExpiresAt,
-			MaxConcurrent: k.MaxConcurrent,
-			Revoked:       k.Revoked,
+			ID:                 k.ID,
+			OwnerID:            k.OwnerID,
+			Label:              k.Label,
+			CreatedAt:          k.CreatedAt,
+			ExpiresAt:          k.ExpiresAt,
+			MaxConcurrent:      k.MaxConcurrent,
+			Revoked:            k.Revoked,
+			DeploymentTTLHours: deploymentTTLHours(k.DeploymentTTL),
 		}
 	}
 	response := getKeysResponse{
@@ -150,11 +161,12 @@ func (h *handler) handlePostKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := createKeyResponse{
-		ID:        key.ID,
-		Key:       plaintext,
-		OwnerID:   key.OwnerID,
-		Label:     key.Label,
-		ExpiresAt: key.ExpiresAt,
+		ID:                 key.ID,
+		Key:                plaintext,
+		OwnerID:            key.OwnerID,
+		Label:              key.Label,
+		ExpiresAt:          key.ExpiresAt,
+		DeploymentTTLHours: deploymentTTLHours(key.DeploymentTTL),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

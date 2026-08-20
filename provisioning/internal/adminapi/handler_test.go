@@ -147,6 +147,69 @@ func TestCreateKey(t *testing.T) {
 		}
 	})
 
+	t.Run("valid-with-deployment-ttl", func(t *testing.T) {
+		const ownerId = "test-owner"
+		const label = "test-label"
+		const deploymentTTLHours = 6
+
+		requestData := createKeyRequest{
+			OwnerID:            ownerId,
+			Label:              label,
+			MaxConcurrent:      1,
+			DeploymentTTLHours: deploymentTTLHours,
+		}
+		b, err := json.Marshal(&requestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		w := httptest.NewRecorder()
+		newTestAdminRouter(t).ServeHTTP(w, req)
+		if w.Code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, w.Code)
+		}
+
+		var response createKeyResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+			t.Fatal(err)
+		}
+
+		if response.DeploymentTTLHours == nil {
+			t.Fatal("expected DeploymentTTL to be set")
+		}
+		if *response.DeploymentTTLHours != deploymentTTLHours {
+			t.Errorf("expected DeploymentTTL %v, got %v", deploymentTTLHours, *response.DeploymentTTLHours)
+		}
+	})
+
+	t.Run("valid-without-deployment-ttl", func(t *testing.T) {
+		requestData := createKeyRequest{
+			OwnerID:       "test-owner",
+			Label:         "test-label",
+			MaxConcurrent: 1,
+		}
+		b, err := json.Marshal(&requestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		w := httptest.NewRecorder()
+		newTestAdminRouter(t).ServeHTTP(w, req)
+		if w.Code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, w.Code)
+		}
+		var response createKeyResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+			t.Fatal(err)
+		}
+
+		if response.DeploymentTTLHours != nil {
+			t.Errorf("expected DeploymentTTL to be nil (use default), got %v", *response.DeploymentTTLHours)
+		}
+	})
+
 	t.Run("empty-data", func(t *testing.T) {
 		b, err := json.Marshal(&createKeyRequest{})
 		if err != nil {
