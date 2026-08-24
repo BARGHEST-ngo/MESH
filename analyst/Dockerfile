@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         iproute2 \
         iputils-ping \
         libcap2-bin \
+        suricata \
         tcpdump \
         util-linux \
     && rm -rf /var/lib/apt/lists/* \
