@@ -90,6 +90,10 @@ func (r *Registry) Release(slug string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	if _, ok := r.state.Deployments[slug]; !ok {
+		// TODO: Should this silently error?
+		return fmt.Errorf("deployment %s not found", slug)
+	}
 	delete(r.state.Deployments, slug)
 	return r.save()
 }
