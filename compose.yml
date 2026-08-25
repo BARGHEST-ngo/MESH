@@ -57,6 +57,11 @@ services:
       - "${MESH_PORT:-41641}:${MESH_PORT:-41641}/udp"
     volumes:
       - analyst-data:/home/mesh/.tailscale
+      # bind-mount acq them to the host so they can be
+      # hashed, backed up and filed, and survive a container recreate. They
+      # contain pulled APKs and a device backup, so the default deliberately
+      # sits outside the repo working tree.
+      - ${ACQUISITION_DIR:-${HOME}/mesh-acquisitions}:/home/mesh/acquisitions
     environment:
       - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
       - AUTH_KEY=${AUTH_KEY:-}
