@@ -7,7 +7,8 @@ set -eo pipefail
 if [ "$(id -u)" = "0" ]; then
     chown -R mesh:mesh /home/mesh/.tailscale
     if ! su -s /bin/sh mesh -c 'test -w /home/mesh/acquisitions'; then
-        chown mesh:mesh /home/mesh/acquisitions
+        chown mesh:mesh /home/mesh/acquisitions ||
+            echo "warning: cannot chown /home/mesh/acquisitions; acquisitions may not be writable" >&2
     fi
     export HOME=/home/mesh USER=mesh
     exec setpriv \
