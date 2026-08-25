@@ -73,11 +73,12 @@ docker compose exec headscale headscale policy check
 # Connect to device
 adb connect 100.64.x.x:5555
 
-# Run AndroidQF
-androidqf --adb 100.64.x.x:5555 --output ./artifacts/
+# Collect an acquisition (AndroidQF/WARD)
+meshcli adbcollect
 
-# Run MVT
-mvt-android check-adb --output ./mvt-output/
+# Analyse the acquisition with MVT
+mvt-android download-iocs
+mvt-android check-androidqf ./<acquisition-dir>/
 ```
 
 ### Common issues

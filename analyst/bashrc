@@ -13,6 +13,11 @@ if [[ $- == *i* ]]; then
   printf "                 adbcollect   Collects ADB data, using AndroidQF and WARD\n"
   printf "                 adbdisable   The ADB disable utility disables the developer mode on the Android node\n\n"
   printf "               For help on subcommands, add --help after: \"meshcli status --help\".\n\n"
+
+  printf "    \033[1;32mmvt-android\033[0m  Mobile Verification Toolkit — analyse a collected acquisition\n"
+  printf "                 mvt-android check-androidqf <acquisition-dir>\n"
+  printf "                 mvt-android download-iocs   (refresh public STIX2 indicators)\n"
+  printf "                 Indicators are not bundled; download them before the first scan.\n\n"
   printf "  \033[1;33mLogs:\033[0m\n"
   printf "    ~/.tailscale/mesh.log     MESH daemon log\n"
   printf "    ~/.tailscale/meshcli.log  MESH CLI log\n\n"
