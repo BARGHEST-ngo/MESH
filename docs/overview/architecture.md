@@ -61,7 +61,7 @@ The **Analyst client** runs on your forensic collection node (Linux or macOS) an
 ### What It Does
 
 - **Connects to target devices** over the encrypted mesh
-- **Runs forensic tools** like ADB, AndroidQF, MVT, and libimobiledevice
+- **Runs forensic tools** like ADB, AndroidQF and MVT (libimobiledevice planned for Q4 2026)
 - **Can flip to an exist node allowing network monitoring/capture** from remote devices
 - **Manages mesh network configuration** via CLI
 - **Provides secure access** to endpoint diagnostic interfaces
