@@ -11,11 +11,6 @@ silent: true
 
 tasks:
 
-  promptConfirmDotEnv:
-    prompt: Does the above configuration look correct?
-    deps:
-      - printDotEnv
-
 #################################
 # Development tasks
 #################################
@@ -98,10 +93,6 @@ tasks:
 # Internal tasks
 #################################
 
-  printDotEnv:
-    internal: true
-    cmd: echo ""; cat .env; echo ""
-  
   submoduleInit:
     internal: true
     cmd: git submodule update --init --recursive
