@@ -53,6 +53,10 @@ func (ks *KeyStore) Lookup(hash [32]byte) (APIKey, bool) {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
 
+	if err := ks.reload(); err != nil {
+		// log error, lookup keys in memory
+	}
+
 	for _, k := range ks.state.Keys {
 		decoded, err := hex.DecodeString(k.HashHex)
 		if err != nil {
@@ -188,6 +192,9 @@ func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expi
 func (ks *KeyStore) List() []APIKey {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
+	if err := ks.reload(); err != nil {
+		// log error but list keys in memory
+	}
 	out := make([]APIKey, len(ks.state.Keys))
 	copy(out, ks.state.Keys)
 	return out
@@ -199,4 +206,13 @@ func (ks *KeyStore) load() error {
 
 func (ks *KeyStore) save() error {
 	return saveJSON(ks.path, ks.state)
+}
+
+func (ks *KeyStore) reload() error {
+	loaded := keysState{}
+	if err := loadJSON(ks.path, &loaded); err != nil {
+		return err
+	}
+	ks.state = loaded
+	return nil
 }
