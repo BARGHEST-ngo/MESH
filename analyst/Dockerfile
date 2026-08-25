@@ -54,7 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /home/mesh/.local/share/mvt/indicators \
-    && chown -R mesh:mesh /home/mesh/.local.
+    && chown -R mesh:mesh /home/mesh/.local
 
 ENV PATH="/opt/mvt/bin:$PATH"
 

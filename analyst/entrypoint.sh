@@ -6,6 +6,9 @@ set -eo pipefail
 # keeping NET_ADMIN/NET_RAW ambient so iptables etc. still work.
 if [ "$(id -u)" = "0" ]; then
     chown -R mesh:mesh /home/mesh/.tailscale
+    if ! su -s /bin/sh mesh -c 'test -w /home/mesh/acquisitions'; then
+        chown mesh:mesh /home/mesh/acquisitions
+    fi
     export HOME=/home/mesh USER=mesh
     exec setpriv \
         --reuid=mesh --regid=mesh --init-groups \
@@ -25,7 +28,7 @@ if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
     exit 1
 fi
 
-HOSTNAME_LEN=$(( (RANDOM % 10) + 6 ))
+HOSTNAME_LEN=$(((RANDOM % 10) + 6))
 RANDOM_HOSTNAME=$(LC_ALL=C head -c 512 /dev/urandom | tr -dc 'a-z0-9')
 RANDOM_HOSTNAME="${RANDOM_HOSTNAME:0:$HOSTNAME_LEN}"
 
