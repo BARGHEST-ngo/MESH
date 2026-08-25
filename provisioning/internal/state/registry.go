@@ -90,10 +90,6 @@ func (r *Registry) Release(slug string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, ok := r.state.Deployments[slug]; !ok {
-		// TODO: Should this silently error?
-		return fmt.Errorf("deployment %s not found", slug)
-	}
 	delete(r.state.Deployments, slug)
 	return r.save()
 }
@@ -121,21 +117,7 @@ func (r *Registry) Expired(now time.Time) []Deployment {
 }
 
 func (r *Registry) load() error {
-	if err := loadJSON(r.path, &r.state); err != nil {
-		return err
-	}
-
-	// TODO: This migration can be removed in a future update
-	// It only applies to any deployments created prior
-	// to adding domain expiry.
-	for id, d := range r.state.Deployments {
-		if d.ExpiresAt.IsZero() {
-			d.ExpiresAt = d.CreatedAt.Add(r.defaultTTL)
-			r.state.Deployments[id] = d
-		}
-	}
-
-	return r.save()
+	return loadJSON(r.path, &r.state)
 }
 
 func (r *Registry) save() error {
