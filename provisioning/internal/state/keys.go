@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -54,7 +55,7 @@ func (ks *KeyStore) Lookup(hash [32]byte) (APIKey, bool) {
 	defer ks.mu.Unlock()
 
 	if err := ks.reload(); err != nil {
-		// log error, lookup keys in memory
+		log.Printf("key reload error: %v", err)
 	}
 
 	for _, k := range ks.state.Keys {
@@ -193,7 +194,7 @@ func (ks *KeyStore) List() []APIKey {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
 	if err := ks.reload(); err != nil {
-		// log error but list keys in memory
+		log.Printf("key reload error: %v", err)
 	}
 	out := make([]APIKey, len(ks.state.Keys))
 	copy(out, ks.state.Keys)
