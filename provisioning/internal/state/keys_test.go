@@ -467,3 +467,82 @@ func TestUpdate(t *testing.T) {
 		}
 	})
 }
+
+func TestReload(t *testing.T) {
+	t.Run("valid-key-added", func(t *testing.T) {
+		data, err := json.Marshal(struct {
+			Keys []state.APIKey `json:"keys"`
+		}{Keys: []state.APIKey{defaultTestKey()}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(t.TempDir(), "keys.json")
+		if err := os.WriteFile(path, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+		ks, err := state.NewKeyStore(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		b, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var keys struct {
+			Keys []state.APIKey `json:"keys"`
+		}
+		if err := json.Unmarshal(b, &keys); err != nil {
+			t.Fatal(err)
+		}
+		newKeyHash := sha256.Sum256([]byte("new-key"))
+		newKey := state.APIKey{
+			ID:      uuid.NewString(),
+			HashHex: hex.EncodeToString(newKeyHash[:]),
+		}
+		keys.Keys = append(keys.Keys, newKey)
+		d, err := json.Marshal(keys)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, d, 0600); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, ok := ks.Lookup(newKeyHash); !ok {
+			t.Error("failed to lookup key added by admin")
+		}
+	})
+
+	t.Run("unexpected-json-saved", func(t *testing.T) {
+		data, err := json.Marshal(struct {
+			Keys []state.APIKey `json:"keys"`
+		}{Keys: []state.APIKey{defaultTestKey()}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(t.TempDir(), "keys.json")
+		if err := os.WriteFile(path, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+		ks, err := state.NewKeyStore(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var brokenStruct struct {
+			Keys []state.APIKey `json:"broken"`
+		}
+		d, err := json.Marshal(brokenStruct)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, d, 0600); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, ok := ks.Lookup(defaultKeyHash()); !ok {
+			t.Error("failed to lookup existing valid key in memory")
+		}
+	})
+}
