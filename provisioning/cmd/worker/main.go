@@ -21,7 +21,7 @@ func main() {
 	frpsBindAddr := os.Getenv("FRPS_BIND_ADDR")
 
 	if err := docker.PullImage(frpsImage); err != nil {
-		env.Fatal("failed to pull frps image: %v", err)
+		env.Fatal("failed to pull frps image", "err", err)
 	}
 
 	runner := docker.Manager{
