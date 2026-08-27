@@ -35,13 +35,13 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 
 	d, err := h.registry.AllocatePort(slug, key.OwnerID, key.MaxConcurrent, key.DeploymentTTL)
 	if err != nil {
-		slog.Error("allocate port %s: %v", slug, err)
+		slog.Error("allocate port", "slug", slug, "err", err)
 		http.Error(w, "failed to allocate deployment", http.StatusInternalServerError)
 		return
 	}
 
 	if err := h.service.Start(d, token); err != nil {
-		slog.Error("start deployment %s: %v", slug, err)
+		slog.Error("start deployment", "slug", slug, "err", err)
 		http.Error(w, "failed to start deployment", http.StatusInternalServerError)
 		h.registry.Release(slug)
 		return
@@ -95,7 +95,7 @@ func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := h.service.Stop(slug); err != nil {
-		slog.Error("stop deployment %s: %v", slug, err)
+		slog.Error("stop deployment", "slug", slug, "err", err)
 		http.Error(w, "failed to stop deployment", http.StatusInternalServerError)
 		return
 	}

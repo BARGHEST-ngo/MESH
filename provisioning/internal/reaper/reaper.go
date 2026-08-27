@@ -20,15 +20,15 @@ func Run(ctx context.Context, registry *state.Registry, service api.ContainerSer
 			expired := registry.Expired(t)
 			for _, d := range expired {
 				if err := service.Stop(d.Slug); err != nil {
-					slog.Error("failed to stop container: %v", "err", err)
+					slog.Error("failed to stop container", "err", err)
 					continue
 				}
 
 				if err := registry.Release(d.Slug); err != nil {
-					slog.Error("failed to release port: %v", "err", err)
+					slog.Error("failed to release port", "err", err)
 					continue
 				}
-				slog.Info("%s stopped and released port %d", d.Slug, d.FrpsPort)
+				slog.Info("stopped and released port", "slug", d.Slug, "port", d.FrpsPort)
 			}
 		}
 	}

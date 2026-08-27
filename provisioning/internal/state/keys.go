@@ -55,7 +55,7 @@ func (ks *KeyStore) Lookup(hash [32]byte) (APIKey, bool) {
 	defer ks.mu.Unlock()
 
 	if err := ks.reload(); err != nil {
-		slog.Error("key reload error: %v", "err", err)
+		slog.Error("key reload", "err", err)
 	}
 
 	for _, k := range ks.state.Keys {
@@ -194,7 +194,7 @@ func (ks *KeyStore) List() []APIKey {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
 	if err := ks.reload(); err != nil {
-		slog.Error("key reload error: %v", "err", err)
+		slog.Error("key reload", "err", err)
 	}
 	out := make([]APIKey, len(ks.state.Keys))
 	copy(out, ks.state.Keys)

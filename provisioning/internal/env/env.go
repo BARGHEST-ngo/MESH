@@ -1,7 +1,6 @@
 package env
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
@@ -25,6 +24,6 @@ func GetEnvInt(variable string) int {
 }
 
 func Fatal(msg string, args ...any) {
-	slog.Error(fmt.Sprintf(msg, args...))
+	slog.Error(msg, args...)
 	os.Exit(1)
 }
