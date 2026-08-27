@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,25 +10,18 @@ import (
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/env"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/workerapi"
 )
 
 func main() {
-	frpsImage := os.Getenv("FRPS_IMAGE")
-	if frpsImage == "" {
-		log.Fatal("FRPS_IMAGE must be set")
-	}
-
-	workerToken := os.Getenv("WORKER_TOKEN")
-	if workerToken == "" {
-		log.Fatal("WORKER_TOKEN must be set")
-	}
-
+	frpsImage := env.GetEnv("FRPS_IMAGE")
+	workerToken := env.GetEnv("WORKER_TOKEN")
 	// Empty string defaults to "0.0.0.0"
 	frpsBindAddr := os.Getenv("FRPS_BIND_ADDR")
 
 	if err := docker.PullImage(frpsImage); err != nil {
-		log.Fatalf("failed to pull frps image: %v", err)
+		env.Fatal("failed to pull frps image", "err", err)
 	}
 
 	runner := docker.Manager{
@@ -44,9 +37,9 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("worker listening on :8081")
+		slog.Info("worker listening on :8081")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %v", err)
+			env.Fatal("listen", "err", err)
 		}
 	}()
 
@@ -57,6 +50,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("shutdown: %v", err)
+		slog.Error("shutdown:", "err", err)
 	}
 }

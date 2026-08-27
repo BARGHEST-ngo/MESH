@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/env"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/reaper"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/workerclient"
@@ -19,23 +19,23 @@ import (
 )
 
 func main() {
-	portMin := getEnvInt("FRPS_PORT_MIN")
-	portMax := getEnvInt("FRPS_PORT_MAX")
-	defaultTTLHours := getEnvInt("DEFAULT_TTL_HOURS")
+	portMin := env.GetEnvInt("FRPS_PORT_MIN")
+	portMax := env.GetEnvInt("FRPS_PORT_MAX")
+	defaultTTLHours := env.GetEnvInt("DEFAULT_TTL_HOURS")
 	defaultTTL := time.Duration(defaultTTLHours) * time.Hour
 
-	dataPath := getEnv("HOST_DATA_PATH")
-	workerAddr := getEnv("WORKER_ADDR")
-	workerToken := getEnv("WORKER_TOKEN")
+	dataPath := env.GetEnv("HOST_DATA_PATH")
+	workerAddr := env.GetEnv("WORKER_ADDR")
+	workerToken := env.GetEnv("WORKER_TOKEN")
 
 	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMin, portMax, defaultTTL)
 	if err != nil {
-		log.Fatal("failed to initialise port registry")
+		env.Fatal("failed to initialise port registry")
 	}
 
 	keyStore, err := state.NewKeyStore(filepath.Join(dataPath, "keys.json"))
 	if err != nil {
-		log.Fatal("failed to initialise key store")
+		env.Fatal("failed to initialise key store")
 	}
 
 	deploymentRateLimit := rate.Every(10 * time.Second)
@@ -54,9 +54,9 @@ func main() {
 	go reaper.Run(reaperCtx, registry, containerSvc, time.Minute*time.Duration(30))
 
 	go func() {
-		log.Printf("provisioner listening on :8080")
+		slog.Info("provisioner listening on :8080")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %v", err)
+			env.Fatal("listen", "err", err)
 		}
 	}()
 
@@ -67,23 +67,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("shutdown: %v", err)
+		slog.Error("shutdown:", "err", err)
 	}
-}
-
-func getEnv(variable string) string {
-	str := os.Getenv(variable)
-	if str == "" {
-		log.Fatalf("'%s' must be set", variable)
-	}
-	return str
-}
-
-func getEnvInt(variable string) int {
-	str := getEnv(variable)
-	varInt, err := strconv.Atoi(str)
-	if err != nil {
-		log.Fatalf("failed to parse '%s'", variable)
-	}
-	return varInt
 }
