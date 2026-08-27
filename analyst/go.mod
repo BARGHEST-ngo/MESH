@@ -3,7 +3,7 @@ module github.com/BARGHEST-ngo/MESH/analyst
 go 1.26.3
 
 require (
-	github.com/BARGHEST-ngo/androidqf_mesh v0.4.1
+	github.com/BARGHEST-ngo/androidqf_mesh v0.4.3
 	github.com/botherder/go-savetime v1.5.0
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-isatty v0.0.20
