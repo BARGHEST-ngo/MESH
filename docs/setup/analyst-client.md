@@ -31,7 +31,7 @@ The MESH analyst container runs in the background and maintains your connection 
 task analyst
 ```
 
-This will start the analyst container and open an interactive shell in the container. The analyst client will be running in the background and you can use the `meshcli` command to manage your connection to the mesh network, among other things.
+This will start the analyst container and open an interactive shell in the container. The analyst client will be running in the background and you can use the `mesh` command to manage your connection to the mesh network, among other things.
 
 ## Step 3: Verify Connection
 
@@ -39,11 +39,19 @@ Check that your analyst client is connected to the mesh:
 
 ```bash
 # Check connection status
-meshcli status
+mesh status
 
 # Check your MESH IP
-meshcli ip
+mesh ip
 ```
+
+## Step 4: Know where acquisitions are stored
+
+Acquisitions are written to `/home/mesh/acquisitions` in the container, which is
+bind-mounted from the host at `${ACQUISITION_DIR:-$HOME/mesh-acquisitions}`. This is
+the only container path that survives a recreate, and it is where evidence lands on
+the host. See **[Acquisitions and evidence handling](../user-guide/acquisitions.md)**
+for collecting, retrieving, and analysing acquisitions.
 
 ## Troubleshooting
 

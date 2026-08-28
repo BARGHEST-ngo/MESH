@@ -39,28 +39,28 @@ This section covers:
 
 ```bash
 #Connect and pair to an Android device over ADB-over-Wifi
-meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234
+mesh adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234
 
 #Connect and pair BUT initate AndroidQF instantly on connection
-meshcli adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234 --qf
+mesh adbpair --host 100.63.x.x --hostport 1234 --pairport 1234 --code 1234 --qf
 
-#Initate ADB acquisition using AndroidQF and WARD libraries
-meshcli adbcollect
+#Initate ADB acquisition (AndroidQF/WARD) into the bind-mounted acquisitions dir
+mesh adbcollect --output /home/mesh/acquisitions/case-2026-08-27
 
 # Check mesh status
-meshcli status
+mesh status
 
 # Test connection and establish UDP hole punching
-meshcli ping 100.67.x.x
+mesh ping 100.67.x.x
 
 # Connect to Android device
 adb connect 100.64.x.x:5555
 
-# Run AndroidQF scan
-androidqf --adb 100.64.x.x:5555 --output ./artifacts/
+# Analyse a collected acquisition with MVT
+mvt-android check-androidqf /home/mesh/acquisitions/case-2026-08-27
 
-# Capture network traffic
-sudo tcpdump -i mesh0 -w capture.pcap
+# Capture network traffic into the same acquisitions directory
+tcpdump -i mesh0 -w /home/mesh/acquisitions/case-2026-08-27/capture.pcap
 ```
 
 ## Getting Help
