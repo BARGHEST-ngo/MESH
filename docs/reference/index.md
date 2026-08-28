@@ -19,7 +19,7 @@ This section provides reference documentation for:
 
     ---
 
-    Complete reference for all MESH CLI commands, including meshcli, headscale, and related tools.
+    Complete reference for all MESH CLI commands, including `mesh`, headscale, and related tools.
 
     [:octicons-arrow-right-24: View CLI reference](cli-reference.md)
 
@@ -37,18 +37,18 @@ This section provides reference documentation for:
 
 ### Common commands
 
-#### Mesh Client (meshcli)
+#### Mesh Client (mesh)
 
 ```bash
 # Check status
-meshcli status
+mesh status
 
 # Enable/disable routes
-meshcli up --advertise-routes=10.0.0.0/24
-meshcli down
+mesh up --advertise-routes=10.0.0.0/24
+mesh down
 
 # Check version
-./meshcli version
+mesh version
 ```
 
 #### Control plane (headscale)
@@ -73,12 +73,12 @@ docker compose exec headscale headscale policy check
 # Connect to device
 adb connect 100.64.x.x:5555
 
-# Collect an acquisition (AndroidQF/WARD)
-meshcli adbcollect
+# Collect an acquisition (AndroidQF/WARD) into the bind-mounted directory
+mesh adbcollect --output /home/mesh/acquisitions/<case>
 
 # Analyse the acquisition with MVT
 mvt-android download-iocs
-mvt-android check-androidqf ./<acquisition-dir>/
+mvt-android check-androidqf /home/mesh/acquisitions/<case>
 ```
 
 ### Common issues
@@ -118,7 +118,7 @@ mvt-android check-androidqf ./<acquisition-dir>/
 
 Complete documentation for all command-line tools:
 
-- **meshcli** - MESH client commands
+- **mesh** - MESH client commands
 - **headscale** - Control plane management
 - **Docker commands** - Container management
 - **Forensic tools** - ADB, AndroidQF, MVT integration
