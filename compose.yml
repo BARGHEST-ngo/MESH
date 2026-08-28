@@ -57,6 +57,10 @@ services:
       - "${MESH_PORT:-41641}:${MESH_PORT:-41641}/udp"
     volumes:
       - analyst-data:/home/mesh/.tailscale
+      # Default outside the repo tree: acquisitions hold pulled APKs and a
+      # device backup and must not land in the working copy. Override with
+      # ACQUISITION_DIR in .env to point at a dedicated evidence store.
+      - ${ACQUISITION_DIR:-${HOME}/mesh-acquisitions}:/home/mesh/acquisitions
     environment:
       - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
       - AUTH_KEY=${AUTH_KEY:-}

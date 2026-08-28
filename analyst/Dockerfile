@@ -37,8 +37,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                 --create-home --home-dir /home/mesh \
                 --shell /bin/bash mesh \
     && mkdir -p /home/mesh/.tailscale \
+    && mkdir -p /home/mesh/acquisitions \
     && chown -R mesh:mesh /home/mesh \
     && setcap cap_net_admin,cap_net_raw+eip /usr/bin/tcpdump
+
+# MVT (Mobile Verification Toolkit) for offline analysis of adbcollect output:
+# Installed into a venv so the Debian-managed python3 stays untouched,
+# python3-venv is only needed to create the venv, so it is purged afterwards
+# python3 itself must stay, as the venv symlinks back to it
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 \
+        python3-venv \
+    && python3 -m venv /opt/mvt \
+    && /opt/mvt/bin/pip install --no-cache-dir mvt==2026.7.29 \
+    && apt-get purge -y python3-venv \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /home/mesh/.local/share/mvt/indicators \
+    && chown -R mesh:mesh /home/mesh/.local
+
+ENV PATH="/opt/mvt/bin:$PATH"
 
 COPY --from=build       /usr/src/app/analyst/tailscaled  /usr/bin/tailscaled
 COPY --from=build       /usr/src/app/analyst/tailscale   /usr/bin/tailscale
@@ -47,7 +65,8 @@ COPY --chmod=755        analyst/entrypoint.sh            /usr/bin/entrypoint.sh
 COPY --chown=mesh:mesh  analyst/bashrc                   /home/mesh/.bashrc
 COPY                    analyst/amneziawg.conf.example   /etc/mesh/amneziawg.conf.example
 
-# No USER directive. The entrypoint drops to mesh after fixing volume perms.
-WORKDIR /home/mesh
+#entrypoint.sh fixes its ownership before dropping
+#privileges, since bind mounts arrive root-owned.
+WORKDIR /home/mesh/acquisitions
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]

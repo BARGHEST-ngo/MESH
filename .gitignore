@@ -71,3 +71,4 @@ site/
 
 # Log files
 *.log
+/acquisitions/
