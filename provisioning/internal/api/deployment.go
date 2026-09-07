@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
@@ -48,9 +49,10 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := &DeploymentResponse{
-		Slug:     slug,
-		Token:    token,
-		FrpsPort: d.FrpsPort,
+		Slug:             slug,
+		Token:            token,
+		FrpsPort:         d.FrpsPort,
+		ExpiresInSeconds: int(time.Until(d.ExpiresAt).Seconds()),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
