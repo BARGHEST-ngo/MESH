@@ -5,7 +5,7 @@
 version: '3'
 
 vars:
-  API_KEY_EXPIRATION: 1m
+  API_KEY_EXPIRATION: 3h
 
 dotenv:
   - .env
