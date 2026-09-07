@@ -17,8 +17,11 @@ import (
 func main() {
 	frpsImage := env.GetEnv("FRPS_IMAGE")
 	workerToken := env.GetEnv("WORKER_TOKEN")
+
 	// Empty string defaults to "0.0.0.0"
 	frpsBindAddr := os.Getenv("FRPS_BIND_ADDR")
+	// Empty string defaults to docker.DefaultMeshDomain (production domain)
+	meshDomain := os.Getenv("MESH_DOMAIN")
 
 	if err := docker.PullImage(frpsImage); err != nil {
 		env.Fatal("failed to pull frps image", "err", err)
@@ -27,6 +30,7 @@ func main() {
 	runner := docker.Manager{
 		FrpsBindAddr: frpsBindAddr,
 		FrpsImage:    frpsImage,
+		MeshDomain:   meshDomain,
 	}
 
 	srv := &http.Server{

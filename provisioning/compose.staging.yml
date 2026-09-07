@@ -1,0 +1,86 @@
+services:
+  provisioner:
+    image: ghcr.io/barghest-ngo/mesh-provisioner:staging
+    build:
+      context: ../
+      dockerfile: provisioning/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - provisioner-worker
+    env_file:
+      - provisioner.env
+    environment:
+      - HOST_DATA_PATH=/var/lib/mesh-provisioner
+      - WORKER_ADDR=http://provisioner-worker:8081
+    volumes:
+      - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
+    networks:
+      - mesh-proxy
+      - mesh-internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.provisioner.rule=Host(`provisioner.tunnels.staging.meshforensics.app`)"
+      - "traefik.http.routers.provisioner.tls=true"
+      - "traefik.http.routers.provisioner.tls.certresolver=letsencrypt"
+      - "traefik.http.services.provisioner.loadbalancer.server.port=8080"
+
+  provisioner-admin:
+    image: ghcr.io/barghest-ngo/mesh-provisioner:staging
+    build:
+      context: ../
+      dockerfile: provisioning/Dockerfile
+    command: ["/admin"]
+    profiles: [admin]
+    env_file:
+      - admin.env
+    environment:
+      - HOST_DATA_PATH=/var/lib/mesh-provisioner
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
+
+  provisioner-worker:
+    image: ghcr.io/barghest-ngo/mesh-provisioner:staging
+    build:
+      context: ../
+      dockerfile: provisioning/Dockerfile
+    command: ["/worker"]
+    restart: unless-stopped
+    env_file:
+      - worker.env
+    environment:
+      - HOST_DATA_PATH=/var/lib/mesh-provisioner
+      # Base domain for per-deployment tunnels: "<slug>.tunnels.<MESH_DOMAIN>".
+      # Prod leaves this unset and falls back to meshforensics.app.
+      - MESH_DOMAIN=staging.meshforensics.app
+    volumes:
+      - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - mesh-internal
+    user:
+      "0:0" # Needs root to access /var/run/docker.sock
+
+  traefik:
+    image: traefik:v3.7.5
+    restart: unless-stopped
+    env_file:
+      - traefik.env
+    ports:
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - acme:/acme
+    networks:
+      - mesh-proxy
+
+networks:
+  mesh-proxy:
+    name: mesh-proxy
+  mesh-internal:
+    name: mesh-internal
+
+volumes:
+  acme:

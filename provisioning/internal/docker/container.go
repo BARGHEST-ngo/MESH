@@ -14,11 +14,20 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-const meshDomain = "meshforensics.app"
+// Production domain
+const DefaultMeshDomain = "meshforensics.app"
 
 type Manager struct {
 	FrpsImage    string
 	FrpsBindAddr string
+	MeshDomain   string
+}
+
+func (m Manager) meshDomain() string {
+	if m.MeshDomain == "" {
+		return DefaultMeshDomain
+	}
+	return m.MeshDomain
 }
 
 func PullImage(imageName string) error {
@@ -49,6 +58,7 @@ func (m Manager) Start(d state.Deployment, token string) error {
 	}
 	defer client.Close()
 
+	meshDomain := m.meshDomain()
 	ctx := context.Background()
 	resp, err := client.ContainerCreate(ctx,
 		&container.Config{
