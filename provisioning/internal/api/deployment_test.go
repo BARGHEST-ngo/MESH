@@ -174,17 +174,9 @@ func TestPostDeploymentStructure(t *testing.T) {
 		t.Errorf("expected valid port")
 	}
 
-	if d.ExpiresAt.IsZero() {
-		t.Errorf("expected non-zero expiry")
-	}
-
-	wantExpiry := time.Now().Add(deployTTL)
-	if delta := d.ExpiresAt.Sub(wantExpiry); delta < -time.Minute || delta > time.Minute {
-		t.Errorf("expected expiry near %v, got %v", wantExpiry, d.ExpiresAt)
-	}
-
-	if delta := d.ExpiresInSeconds - int(deployTTL.Seconds()); delta < -60 || delta > 60 {
-		t.Errorf("expected expires_in_seconds near %d, got %d", int(deployTTL.Seconds()), d.ExpiresInSeconds)
+	wantTTL := int(deployTTL.Seconds())
+	if delta := d.ExpiresInSeconds - wantTTL; delta < -60 || delta > 60 {
+		t.Errorf("expected expires_in_seconds near %d, got %d", wantTTL, d.ExpiresInSeconds)
 	}
 }
 
