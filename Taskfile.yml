@@ -72,7 +72,8 @@ tasks:
   apikey:
     desc: Generate a Headscale API key
     cmd: >
-      docker compose exec headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}} ||
+      { [ -f .env ] && . ./.env; docker compose exec headscale headscale apikeys create
+      --expiration "${HEADSCALE_API_KEY_EXPIRATION:-{{.API_KEY_EXPIRATION}}}"; } ||
       echo "Control plane is not running locally. Either start it with 'task controlPlane' first or
         run 'task apikey' on the control plane server."
 
@@ -127,9 +128,11 @@ tasks:
     internal: true
     cmds:
       - |
-        KEY=$(docker compose exec -T headscale headscale apikeys create --expiration {{.API_KEY_EXPIRATION}})
+        [ -f .env ] && . ./.env
+        KEY=$(docker compose exec -T headscale headscale apikeys create --expiration "${HEADSCALE_API_KEY_EXPIRATION:-{{.API_KEY_EXPIRATION}}}")
         printf "\033[1;37mControl plane API key (enter this in the web UI to log in):\033[0m\n"
         printf "\033[1;32m$KEY\033[0m\n"
+        printf "\033[1;35mThis key expires in ${HEADSCALE_API_KEY_EXPIRATION:-{{.API_KEY_EXPIRATION}}}. When it does, run 'task apikey' on the control plane for a new one - your network and domain are unaffected.\033[0m\n"
 
   confirmDotEnv:
     cmds:
@@ -268,7 +271,16 @@ tasks:
         FRP_SLUG=$(echo "$RESPONSE" | jq -r '.slug')
         FRP_TOKEN=$(echo "$RESPONSE" | jq -r '.token')
         FRP_PORT=$(echo "$RESPONSE" | jq -r '.frps_port')
+        DEPLOYMENT_TTL_SECONDS=$(echo "$RESPONSE" | jq -r '.expires_in_seconds')
         printf "\033[1;32mCreated deployment $FRP_SLUG\n\n"
+        # Set the Headscale API key lifetime to match the deployment's plus a 2h margin
+        # so the key never expires before the domain.
+        if [ "$DEPLOYMENT_TTL_SECONDS" -gt 0 ] 2>/dev/null; then
+          KEY_TTL_HOURS=$((DEPLOYMENT_TTL_SECONDS / 3600 + 2))
+          echo "HEADSCALE_API_KEY_EXPIRATION=${KEY_TTL_HOURS}h" >> .env
+        else
+          printf "\033[1;33mCould not read deployment expiry; using default API key lifetime.\033[0m\n"
+        fi
         sed -e "s|FRP_HOST|$FRP_HOST|g" \
             -e "s|FRP_PORT|$FRP_PORT|g" \
             -e "s|FRP_AUTH_TOKEN|$FRP_TOKEN|g" \
