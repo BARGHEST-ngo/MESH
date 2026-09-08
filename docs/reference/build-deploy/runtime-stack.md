@@ -231,7 +231,6 @@ Two stages. Final image: FROM scratch with two statically-compiled binaries.
 - No shell, both binaries copied in
 - CMD ["/provisioner"] default: Compose overrides with /admin for the admin service
 
-
 ---
 
 ## Dependencies and assumptions
