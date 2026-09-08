@@ -285,6 +285,7 @@ tasks:
             -e "s|FRP_PORT|$FRP_PORT|g" \
             -e "s|FRP_AUTH_TOKEN|$FRP_TOKEN|g" \
             -e "s|FRP_SLUG|$FRP_SLUG|g" \
+            -e "s|TUNNEL_DOMAIN|$TUNNEL_DOMAIN|g" \
             control-plane/frpc.toml.example > control-plane/frpc.toml
         sed -e "s|CONTROL_PLANE_URL|https://$FRP_SLUG.$TUNNEL_DOMAIN|g" \
             control-plane/headscale/config.example.yaml > control-plane/headscale/config.yaml
