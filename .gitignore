@@ -60,6 +60,7 @@ client/web/build/assets
 # Task
 .task
 .env
+.env.local
 .provisioner.env
 .authkey
 
