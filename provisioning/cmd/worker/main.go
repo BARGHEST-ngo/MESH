@@ -17,6 +17,8 @@ import (
 func main() {
 	frpsImage := env.GetEnv("FRPS_IMAGE")
 	workerToken := env.GetEnv("WORKER_TOKEN")
+	meshDomain := env.GetEnv("MESH_DOMAIN")
+
 	// Empty string defaults to "0.0.0.0"
 	frpsBindAddr := os.Getenv("FRPS_BIND_ADDR")
 
@@ -27,6 +29,7 @@ func main() {
 	runner := docker.Manager{
 		FrpsBindAddr: frpsBindAddr,
 		FrpsImage:    frpsImage,
+		MeshDomain:   meshDomain,
 	}
 
 	srv := &http.Server{

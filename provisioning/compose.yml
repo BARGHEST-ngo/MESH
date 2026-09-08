@@ -1,6 +1,6 @@
 services:
   provisioner:
-    image: ghcr.io/barghest-ngo/mesh-provisioner:latest
+    image: ghcr.io/barghest-ngo/mesh-provisioner:${IMAGE_TAG:-latest}
     build:
       context: ../
       dockerfile: provisioning/Dockerfile
@@ -19,13 +19,13 @@ services:
       - mesh-internal
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.provisioner.rule=Host(`provisioner.tunnels.meshforensics.app`)"
+      - "traefik.http.routers.provisioner.rule=Host(`provisioner.tunnels.${MESH_DOMAIN:-meshforensics.app}`)"
       - "traefik.http.routers.provisioner.tls=true"
       - "traefik.http.routers.provisioner.tls.certresolver=letsencrypt"
       - "traefik.http.services.provisioner.loadbalancer.server.port=8080"
 
   provisioner-admin:
-    image: ghcr.io/barghest-ngo/mesh-provisioner:latest
+    image: ghcr.io/barghest-ngo/mesh-provisioner:${IMAGE_TAG:-latest}
     build:
       context: ../
       dockerfile: provisioning/Dockerfile
@@ -41,7 +41,7 @@ services:
       - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
 
   provisioner-worker:
-    image: ghcr.io/barghest-ngo/mesh-provisioner:latest
+    image: ghcr.io/barghest-ngo/mesh-provisioner:${IMAGE_TAG:-latest}
     build:
       context: ../
       dockerfile: provisioning/Dockerfile
@@ -51,6 +51,8 @@ services:
       - worker.env
     environment:
       - HOST_DATA_PATH=/var/lib/mesh-provisioner
+      # Base domain for per-deployment tunnels: "<slug>.tunnels.<MESH_DOMAIN>".
+      - MESH_DOMAIN=${MESH_DOMAIN:-meshforensics.app}
     volumes:
       - /var/lib/mesh-provisioner:/var/lib/mesh-provisioner
       - /var/run/docker.sock:/var/run/docker.sock
