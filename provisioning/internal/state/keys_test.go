@@ -167,7 +167,7 @@ func TestCreate(t *testing.T) {
 		ownerID := "new-owner-id"
 		label := "internal-testing"
 		maxConcurrent := 1
-		k, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil)
+		k, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil, nil)
 		if err != nil {
 			t.Errorf("failed to create valid key: %v", err)
 		}
@@ -210,7 +210,7 @@ func TestCreate(t *testing.T) {
 		maxConcurrent := 1
 		d := time.Duration(time.Hour)
 		ttl := &d
-		k, _, err := keystore.Create(ownerID, label, maxConcurrent, ttl)
+		k, _, err := keystore.Create(ownerID, label, maxConcurrent, ttl, nil)
 		if err != nil {
 			t.Errorf("failed to create valid key: %v", err)
 		}
@@ -227,14 +227,14 @@ func TestCreate(t *testing.T) {
 
 	t.Run("zero-max-concurrent-rejected", func(t *testing.T) {
 		keystore := newDefaultTestKeyStore(t)
-		if _, _, err := keystore.Create("owner", "label", 0, nil); err == nil {
+		if _, _, err := keystore.Create("owner", "label", 0, nil, nil); err == nil {
 			t.Error("expected error for zero max concurrent")
 		}
 	})
 
 	t.Run("negative-max-concurrent-rejected", func(t *testing.T) {
 		keystore := newDefaultTestKeyStore(t)
-		if _, _, err := keystore.Create("owner", "label", -1, nil); err == nil {
+		if _, _, err := keystore.Create("owner", "label", -1, nil, nil); err == nil {
 			t.Error("expected error for negative max concurrent")
 		}
 	})
@@ -248,7 +248,7 @@ func TestCreate(t *testing.T) {
 		ownerID := "new-owner-id"
 		label := "internal-testing"
 		maxConcurrent := 1
-		createdKey, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil)
+		createdKey, b64Key, err := keystore.Create(ownerID, label, maxConcurrent, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -272,7 +272,7 @@ func TestCreate(t *testing.T) {
 func TestRevoke(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "bar", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "bar", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -302,7 +302,7 @@ func TestRevoke(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		k, b64Key, err := keystore.Create("foo", "bar", 1, nil)
+		k, b64Key, err := keystore.Create("foo", "bar", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -323,7 +323,7 @@ func TestRevoke(t *testing.T) {
 
 	t.Run("already-revoked", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, _, err := keyStore.Create("foo", "bar", 1, nil)
+		k, _, err := keyStore.Create("foo", "bar", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -341,7 +341,7 @@ func TestRevoke(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	t.Run("update-label", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -364,7 +364,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("update-max-concurrent", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -387,7 +387,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("zero-max-concurrent-rejected", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -409,7 +409,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("set-expiry", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -440,7 +440,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("clear-expiry", func(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
 		ttl := time.Hour
-		k, b64Key, err := keyStore.Create("foo", "original-label", 1, &ttl)
+		k, b64Key, err := keyStore.Create("foo", "original-label", 1, &ttl, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -464,6 +464,85 @@ func TestUpdate(t *testing.T) {
 		keyStore := newDefaultTestKeyStore(t)
 		if err := keyStore.Update("some-invalid-id", nil, nil, state.ExpiryUpdate{}); err == nil {
 			t.Error("expected error for invalid id")
+		}
+	})
+}
+
+func TestReload(t *testing.T) {
+	t.Run("valid-key-added", func(t *testing.T) {
+		data, err := json.Marshal(struct {
+			Keys []state.APIKey `json:"keys"`
+		}{Keys: []state.APIKey{defaultTestKey()}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(t.TempDir(), "keys.json")
+		if err := os.WriteFile(path, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+		ks, err := state.NewKeyStore(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		b, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var keys struct {
+			Keys []state.APIKey `json:"keys"`
+		}
+		if err := json.Unmarshal(b, &keys); err != nil {
+			t.Fatal(err)
+		}
+		newKeyHash := sha256.Sum256([]byte("new-key"))
+		newKey := state.APIKey{
+			ID:      uuid.NewString(),
+			HashHex: hex.EncodeToString(newKeyHash[:]),
+		}
+		keys.Keys = append(keys.Keys, newKey)
+		d, err := json.Marshal(keys)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, d, 0600); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, ok := ks.Lookup(newKeyHash); !ok {
+			t.Error("failed to lookup key added by admin")
+		}
+	})
+
+	t.Run("unexpected-json-saved", func(t *testing.T) {
+		data, err := json.Marshal(struct {
+			Keys []state.APIKey `json:"keys"`
+		}{Keys: []state.APIKey{defaultTestKey()}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(t.TempDir(), "keys.json")
+		if err := os.WriteFile(path, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+		ks, err := state.NewKeyStore(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var brokenStruct struct {
+			Keys []state.APIKey `json:"broken"`
+		}
+		d, err := json.Marshal(brokenStruct)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, d, 0600); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, ok := ks.Lookup(defaultKeyHash()); !ok {
+			t.Error("failed to lookup existing valid key in memory")
 		}
 	})
 }

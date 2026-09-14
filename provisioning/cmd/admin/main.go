@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,23 +11,17 @@ import (
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/adminapi"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/env"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
 
 func main() {
-	dataPath := os.Getenv("HOST_DATA_PATH")
-	if dataPath == "" {
-		log.Fatal("HOST_DATA_PATH must be set")
-	}
-
-	adminToken := os.Getenv("ADMIN_TOKEN")
-	if adminToken == "" {
-		log.Fatal("ADMIN_TOKEN must be set")
-	}
+	dataPath := env.GetEnv("HOST_DATA_PATH")
+	adminToken := env.GetEnv("ADMIN_TOKEN")
 
 	keyStore, err := state.NewKeyStore(filepath.Join(dataPath, "keys.json"))
 	if err != nil {
-		log.Fatal("failed to initialise key store")
+		env.Fatal("failed to initialise key store")
 	}
 
 	srv := &http.Server{
@@ -38,9 +32,9 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("admin listening on :9090")
+		slog.Info("admin listening on :9090")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %v", err)
+			env.Fatal("listen", "err", err)
 		}
 	}()
 
@@ -51,6 +45,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("shutdown: %v", err)
+		slog.Error("shutdown:", "err", err)
 	}
 }

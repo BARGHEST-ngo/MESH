@@ -60,6 +60,7 @@ client/web/build/assets
 # Task
 .task
 .env
+.env.local
 .provisioner.env
 .authkey
 
@@ -71,6 +72,7 @@ site/
 
 # Log files
 *.log
+/acquisitions/
 
 # Local certs
 /certs

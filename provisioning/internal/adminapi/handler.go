@@ -13,18 +13,20 @@ import (
 )
 
 type createKeyRequest struct {
-	OwnerID       string `json:"owner_id"`
-	Label         string `json:"label"`
-	MaxConcurrent int    `json:"max_concurrent"`
-	TTLHours      int    `json:"ttl_hours"` // 0 - No Expiry
+	OwnerID            string `json:"owner_id"`
+	Label              string `json:"label"`
+	MaxConcurrent      int    `json:"max_concurrent"`
+	TTLHours           int    `json:"ttl_hours"`            // 0 - No Expiry
+	DeploymentTTLHours int    `json:"deployment_ttl_hours"` // 0 - Use default
 }
 
 type createKeyResponse struct {
-	ID        string     `json:"id"`
-	Key       string     `json:"key"`
-	OwnerID   string     `json:"owner_id"`
-	Label     string     `json:"label"`
-	ExpiresAt *time.Time `json:"expires_at"`
+	ID                 string     `json:"id"`
+	Key                string     `json:"key"`
+	OwnerID            string     `json:"owner_id"`
+	Label              string     `json:"label"`
+	ExpiresAt          *time.Time `json:"expires_at"`
+	DeploymentTTLHours *int       `json:"deployment_ttl_hours"`
 }
 
 type updateKeyRequest struct {
@@ -39,18 +41,21 @@ type getKeysResponse struct {
 }
 
 type keyResponse struct {
-	ID            string     `json:"id"`
-	OwnerID       string     `json:"owner_id"`
-	Label         string     `json:"label"`
-	CreatedAt     time.Time  `json:"created_at"`
-	ExpiresAt     *time.Time `json:"expires_at"`
-	MaxConcurrent int        `json:"max_concurrent"`
-	Revoked       bool       `json:"revoked"`
+	ID                 string     `json:"id"`
+	OwnerID            string     `json:"owner_id"`
+	Label              string     `json:"label"`
+	CreatedAt          time.Time  `json:"created_at"`
+	ExpiresAt          *time.Time `json:"expires_at"`
+	MaxConcurrent      int        `json:"max_concurrent"`
+	Revoked            bool       `json:"revoked"`
+	DeploymentTTLHours *int       `json:"deployment_ttl_hours"`
 }
 
 type handler struct {
 	keys *state.KeyStore
 }
+
+const maxBodyBytes = 1 << 20 // 1 MiB
 
 func NewAdminRouter(keys *state.KeyStore, adminToken string) http.Handler {
 	h := &handler{
@@ -63,7 +68,7 @@ func NewAdminRouter(keys *state.KeyStore, adminToken string) http.Handler {
 	mux.HandleFunc("DELETE /keys/{key_id}", h.handleDeleteKey)
 	mux.HandleFunc("PATCH /keys/{key_id}", h.handlePatchKey)
 
-	return authRequest(adminToken, mux)
+	return authRequest(adminToken, limitBody(mux))
 }
 
 func authRequest(adminToken string, next http.Handler) http.Handler {
@@ -85,18 +90,34 @@ func authRequest(adminToken string, next http.Handler) http.Handler {
 	})
 }
 
+func limitBody(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func deploymentTTLHours(d *time.Duration) *int {
+	if d == nil {
+		return nil
+	}
+	hours := int(d.Hours())
+	return &hours
+}
+
 func (h *handler) handleGetKeys(w http.ResponseWriter, r *http.Request) {
 	keys := h.keys.List()
 	respKeys := make(map[string]keyResponse, len(keys))
 	for _, k := range keys {
 		respKeys[k.ID] = keyResponse{
-			ID:            k.ID,
-			OwnerID:       k.OwnerID,
-			Label:         k.Label,
-			CreatedAt:     k.CreatedAt,
-			ExpiresAt:     k.ExpiresAt,
-			MaxConcurrent: k.MaxConcurrent,
-			Revoked:       k.Revoked,
+			ID:                 k.ID,
+			OwnerID:            k.OwnerID,
+			Label:              k.Label,
+			CreatedAt:          k.CreatedAt,
+			ExpiresAt:          k.ExpiresAt,
+			MaxConcurrent:      k.MaxConcurrent,
+			Revoked:            k.Revoked,
+			DeploymentTTLHours: deploymentTTLHours(k.DeploymentTTL),
 		}
 	}
 	response := getKeysResponse{
@@ -121,23 +142,31 @@ func (h *handler) handlePostKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ttl *time.Duration
+	var keyTTL *time.Duration
 	if req.TTLHours > 0 {
 		dur := time.Hour * time.Duration(req.TTLHours)
-		ttl = &dur
+		keyTTL = &dur
 	}
-	key, plaintext, err := h.keys.Create(req.OwnerID, req.Label, req.MaxConcurrent, ttl)
+
+	var deploymentTTL *time.Duration
+	if req.DeploymentTTLHours > 0 {
+		dur := time.Hour * time.Duration(req.DeploymentTTLHours)
+		deploymentTTL = &dur
+	}
+
+	key, plaintext, err := h.keys.Create(req.OwnerID, req.Label, req.MaxConcurrent, keyTTL, deploymentTTL)
 	if err != nil {
 		http.Error(w, "failed to create key", http.StatusInternalServerError)
 		return
 	}
 
 	response := createKeyResponse{
-		ID:        key.ID,
-		Key:       plaintext,
-		OwnerID:   key.OwnerID,
-		Label:     key.Label,
-		ExpiresAt: key.ExpiresAt,
+		ID:                 key.ID,
+		Key:                plaintext,
+		OwnerID:            key.OwnerID,
+		Label:              key.Label,
+		ExpiresAt:          key.ExpiresAt,
+		DeploymentTTLHours: deploymentTTLHours(key.DeploymentTTL),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

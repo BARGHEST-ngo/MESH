@@ -5,9 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
 )
@@ -33,22 +34,25 @@ func (h *handler) handlePostDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	d, err := h.registry.AllocatePort(slug, token, key.OwnerID, key.MaxConcurrent)
+	d, err := h.registry.AllocatePort(slug, key.OwnerID, key.MaxConcurrent, key.DeploymentTTL)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to allocate port: %v", err), http.StatusInternalServerError)
+		slog.Error("allocate port", "slug", slug, "err", err)
+		http.Error(w, "failed to allocate deployment", http.StatusInternalServerError)
 		return
 	}
 
-	if err := h.service.Start(d); err != nil {
-		http.Error(w, fmt.Sprintf("failed to start container: %v", err), http.StatusInternalServerError)
+	if err := h.service.Start(d, token); err != nil {
+		slog.Error("start deployment", "slug", slug, "err", err)
+		http.Error(w, "failed to start deployment", http.StatusInternalServerError)
 		h.registry.Release(slug)
 		return
 	}
 
 	response := &DeploymentResponse{
-		Slug:     slug,
-		Token:    token,
-		FrpsPort: d.FrpsPort,
+		Slug:             slug,
+		Token:            token,
+		FrpsPort:         d.FrpsPort,
+		ExpiresInSeconds: int(time.Until(d.ExpiresAt).Seconds()),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -93,7 +97,8 @@ func (h *handler) handleDeleteDeployment(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := h.service.Stop(slug); err != nil {
-		http.Error(w, fmt.Sprintf("failed to stop container: %v", err), http.StatusInternalServerError)
+		slog.Error("stop deployment", "slug", slug, "err", err)
+		http.Error(w, "failed to stop deployment", http.StatusInternalServerError)
 		return
 	}
 

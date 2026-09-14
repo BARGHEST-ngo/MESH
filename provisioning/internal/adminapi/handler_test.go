@@ -147,6 +147,69 @@ func TestCreateKey(t *testing.T) {
 		}
 	})
 
+	t.Run("valid-with-deployment-ttl", func(t *testing.T) {
+		const ownerId = "test-owner"
+		const label = "test-label"
+		const deploymentTTLHours = 6
+
+		requestData := createKeyRequest{
+			OwnerID:            ownerId,
+			Label:              label,
+			MaxConcurrent:      1,
+			DeploymentTTLHours: deploymentTTLHours,
+		}
+		b, err := json.Marshal(&requestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		w := httptest.NewRecorder()
+		newTestAdminRouter(t).ServeHTTP(w, req)
+		if w.Code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, w.Code)
+		}
+
+		var response createKeyResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+			t.Fatal(err)
+		}
+
+		if response.DeploymentTTLHours == nil {
+			t.Fatal("expected DeploymentTTL to be set")
+		}
+		if *response.DeploymentTTLHours != deploymentTTLHours {
+			t.Errorf("expected DeploymentTTL %v, got %v", deploymentTTLHours, *response.DeploymentTTLHours)
+		}
+	})
+
+	t.Run("valid-without-deployment-ttl", func(t *testing.T) {
+		requestData := createKeyRequest{
+			OwnerID:       "test-owner",
+			Label:         "test-label",
+			MaxConcurrent: 1,
+		}
+		b, err := json.Marshal(&requestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		w := httptest.NewRecorder()
+		newTestAdminRouter(t).ServeHTTP(w, req)
+		if w.Code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, w.Code)
+		}
+		var response createKeyResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+			t.Fatal(err)
+		}
+
+		if response.DeploymentTTLHours != nil {
+			t.Errorf("expected DeploymentTTL to be nil (use default), got %v", *response.DeploymentTTLHours)
+		}
+	})
+
 	t.Run("empty-data", func(t *testing.T) {
 		b, err := json.Marshal(&createKeyRequest{})
 		if err != nil {
@@ -429,6 +492,55 @@ func TestPatchKey(t *testing.T) {
 		newTestAdminRouter(t).ServeHTTP(w, patchReq)
 		if w.Code != http.StatusNotFound {
 			t.Errorf("expected %d, got %d", http.StatusNotFound, w.Code)
+		}
+	})
+}
+
+func TestBodySizeLimit(t *testing.T) {
+	t.Run("oversized body rejected", func(t *testing.T) {
+		requestData := createKeyRequest{
+			OwnerID:       "owner",
+			Label:         string(bytes.Repeat([]byte("a"), maxBodyBytes)),
+			MaxConcurrent: 1,
+		}
+		b, err := json.Marshal(&requestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		w := httptest.NewRecorder()
+		newTestAdminRouter(t).ServeHTTP(w, req)
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("expected %d, got %d", http.StatusBadRequest, w.Code)
+		}
+	})
+
+	t.Run("body at limit accepted", func(t *testing.T) {
+		empty, err := json.Marshal(&createKeyRequest{OwnerID: "owner", MaxConcurrent: 1})
+		if err != nil {
+			t.Fatal(err)
+		}
+		overhead := len(empty)
+
+		requestData := createKeyRequest{
+			OwnerID:       "owner",
+			Label:         string(bytes.Repeat([]byte("a"), maxBodyBytes-overhead)),
+			MaxConcurrent: 1,
+		}
+		b, err := json.Marshal(&requestData)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(b) != maxBodyBytes {
+			t.Fatalf("test body is %d bytes, want exactly maxBodyBytes (%d)", len(b), maxBodyBytes)
+		}
+
+		req := newAuthedRequest(http.MethodPost, "/keys", bytes.NewBuffer(b))
+		w := httptest.NewRecorder()
+		newTestAdminRouter(t).ServeHTTP(w, req)
+		if w.Code != http.StatusCreated {
+			t.Errorf("expected %d, got %d", http.StatusCreated, w.Code)
 		}
 	})
 }

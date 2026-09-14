@@ -13,6 +13,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/BARGHEST-ngo/androidqf_mesh/acquisition"
@@ -20,6 +21,7 @@ import (
 	"github.com/BARGHEST-ngo/androidqf_mesh/log"
 	"github.com/BARGHEST-ngo/androidqf_mesh/modules"
 	"github.com/BARGHEST-ngo/androidqf_mesh/utils"
+	"github.com/google/uuid"
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
 
@@ -117,7 +119,16 @@ func runcollectCmd(ctx context.Context, args []string) error {
 		}
 	}
 
-	acq, err := acquisition.New(adbcollectArgs.output)
+	outputPath := adbcollectArgs.output
+	if outputPath == "" {
+		workingDirectory, err := os.Getwd()
+		if err != nil {
+			log.Fatal("Impossible to determine the current working directory: ", err)
+		}
+		outputPath = filepath.Join(workingDirectory, uuid.New().String())
+	}
+
+	acq, err := acquisition.New(outputPath)
 	if err != nil {
 		log.Debug(err)
 		log.FatalExc("Impossible to initialise the acquisition", err)

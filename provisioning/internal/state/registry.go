@@ -4,20 +4,17 @@ package state
 // Primarily tracks allocated ports for all started containers
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 	"time"
 )
 
 type Deployment struct {
 	Slug      string    `json:"slug"`
-	Token     string    `json:"token"`
 	FrpsPort  int       `json:"frps_port"`
 	CreatedAt time.Time `json:"created_at"`
 	OwnerID   string    `json:"owner_id"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 type registryState struct {
@@ -25,22 +22,21 @@ type registryState struct {
 }
 
 type Registry struct {
-	mu      sync.Mutex
-	state   registryState
-	path    string
-	portMin int
-	portMax int
+	mu         sync.Mutex
+	state      registryState
+	path       string
+	portMin    int
+	portMax    int
+	defaultTTL time.Duration
 }
 
-func New(path string, portMin, portMax int) (*Registry, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return nil, fmt.Errorf("failed to create state directory: %w", err)
-	}
+func New(path string, portMin, portMax int, defaultTTL time.Duration) (*Registry, error) {
 	r := &Registry{
-		path:    path,
-		portMin: portMin,
-		portMax: portMax,
-		state:   registryState{Deployments: make(map[string]Deployment)},
+		path:       path,
+		portMin:    portMin,
+		portMax:    portMax,
+		defaultTTL: defaultTTL,
+		state:      registryState{Deployments: make(map[string]Deployment)},
 	}
 	if err := r.load(); err != nil {
 		return nil, err
@@ -48,7 +44,7 @@ func New(path string, portMin, portMax int) (*Registry, error) {
 	return r, nil
 }
 
-func (r *Registry) AllocatePort(slug, token, ownerID string, maxConcurrent int) (Deployment, error) {
+func (r *Registry) AllocatePort(slug, ownerID string, maxConcurrent int, ttl *time.Duration) (Deployment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -65,14 +61,22 @@ func (r *Registry) AllocatePort(slug, token, ownerID string, maxConcurrent int) 
 		return Deployment{}, fmt.Errorf("max deployments reached")
 	}
 
+	if ttl == nil {
+		cpy := r.defaultTTL
+		ttl = &cpy
+	}
+	createdAt := time.Now().UTC()
+	t := createdAt.Add(*ttl)
+	expiresAt := t
+
 	for port := r.portMin; port <= r.portMax; port++ {
 		if !used[port] {
 			d := Deployment{
 				Slug:      slug,
-				Token:     token,
 				FrpsPort:  port,
-				CreatedAt: time.Now().UTC(),
+				CreatedAt: createdAt,
 				OwnerID:   ownerID,
+				ExpiresAt: expiresAt,
 			}
 			r.state.Deployments[slug] = d
 			return d, r.save()
@@ -102,26 +106,24 @@ func (r *Registry) Get(slug string) (Deployment, bool) {
 	return d, ok
 }
 
+func (r *Registry) Expired(now time.Time) []Deployment {
+	expired := make([]Deployment, 0)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for _, d := range r.state.Deployments {
+		if d.ExpiresAt.Before(now) {
+			expired = append(expired, d)
+		}
+	}
+
+	return expired
+}
+
 func (r *Registry) load() error {
-	data, err := os.ReadFile(r.path)
-	if os.IsNotExist(err) {
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("error reading depolyments file: %w", err)
-	}
-	return json.Unmarshal(data, &r.state)
+	return loadJSON(r.path, &r.state)
 }
 
 func (r *Registry) save() error {
-	data, err := json.MarshalIndent(r.state, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshal error: %w", err)
-	}
-
-	tmp := r.path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0600); err != nil {
-		return fmt.Errorf("write file error: %w", err)
-	}
-	return os.Rename(tmp, r.path)
+	return saveJSON(r.path, r.state)
 }

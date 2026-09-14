@@ -2,81 +2,61 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/api"
-	"github.com/BARGHEST-ngo/MESH/provisioning/internal/docker"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/env"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/reaper"
 	"github.com/BARGHEST-ngo/MESH/provisioning/internal/state"
+	"github.com/BARGHEST-ngo/MESH/provisioning/internal/workerclient"
 	"golang.org/x/time/rate"
 )
 
-// This is an intentionally light-weight and basic HTTP server
-// Don't want to over-engineer at this stage, just prove it works
 func main() {
-	portMin := os.Getenv("FRPS_PORT_MIN")
-	if portMin == "" {
-		log.Fatal("FRPS_PORT_MIN must be set")
-	}
+	portMin := env.GetEnvInt("FRPS_PORT_MIN")
+	portMax := env.GetEnvInt("FRPS_PORT_MAX")
+	defaultTTLHours := env.GetEnvInt("DEFAULT_TTL_HOURS")
+	defaultTTL := time.Duration(defaultTTLHours) * time.Hour
 
-	portMinInt, err := strconv.Atoi(portMin)
+	dataPath := env.GetEnv("HOST_DATA_PATH")
+	workerAddr := env.GetEnv("WORKER_ADDR")
+	workerToken := env.GetEnv("WORKER_TOKEN")
+
+	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMin, portMax, defaultTTL)
 	if err != nil {
-		log.Fatal("failed to parse FRPS_PORT_MIN")
-	}
-
-	portMax := os.Getenv("FRPS_PORT_MAX")
-	if portMax == "" {
-		log.Fatal("FRPS_PORT_MAX must be set")
-	}
-	portMaxInt, err := strconv.Atoi(portMax)
-	if err != nil {
-		log.Fatal("failed to parse FRPS_PORT_MAX")
-	}
-
-	dataPath := os.Getenv("HOST_DATA_PATH")
-	if dataPath == "" {
-		log.Fatal("HOST_DATA_PATH must be set")
-	}
-
-	frpsImage := os.Getenv("FRPS_IMAGE")
-	if frpsImage == "" {
-		log.Fatal("FRPS_IMAGE must be set")
-	}
-
-	if err := docker.PullImage(frpsImage); err != nil {
-		log.Fatalf("failed to pull frps image: %v", err)
-	}
-
-	registry, err := state.New(filepath.Join(dataPath, "state.json"), portMinInt, portMaxInt)
-	if err != nil {
-		log.Fatal("failed to initialise port registry")
+		env.Fatal("failed to initialise port registry")
 	}
 
 	keyStore, err := state.NewKeyStore(filepath.Join(dataPath, "keys.json"))
 	if err != nil {
-		log.Fatal("failed to initialise key store")
+		env.Fatal("failed to initialise key store")
 	}
 
 	deploymentRateLimit := rate.Every(10 * time.Second)
 	deploymentRateBurst := 3
 	rateLimiter := api.NewLimiter(deploymentRateLimit, deploymentRateBurst)
+	containerSvc := workerclient.New(workerAddr, workerToken)
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      api.NewRouter(keyStore, registry, docker.Manager{FrpsImage: frpsImage}, rateLimiter),
+		Handler:      api.NewRouter(keyStore, registry, containerSvc, rateLimiter),
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 
+	reaperCtx, reaperCancel := context.WithCancel(context.Background())
+	defer reaperCancel()
+	go reaper.Run(reaperCtx, registry, containerSvc, time.Minute*time.Duration(30))
+
 	go func() {
-		log.Printf("provisioner listening on :8080")
+		slog.Info("provisioner listening on :8080")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %v", err)
+			env.Fatal("listen", "err", err)
 		}
 	}()
 
@@ -87,6 +67,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("shutdown: %v", err)
+		slog.Error("shutdown:", "err", err)
 	}
 }

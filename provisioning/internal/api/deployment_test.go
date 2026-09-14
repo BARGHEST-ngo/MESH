@@ -22,16 +22,17 @@ const (
 	testAPIKey = "test-key"
 	minPort    = 7001
 	maxPort    = 7010
+	deployTTL  = time.Hour
 )
 
 type mockContainerService struct{}
 
-func (mockContainerService) Start(state.Deployment) error { return nil }
-func (mockContainerService) Stop(string) error            { return nil }
+func (mockContainerService) Start(state.Deployment, string) error { return nil }
+func (mockContainerService) Stop(string) error                    { return nil }
 
 type failOnceMock struct{ calls int }
 
-func (m *failOnceMock) Start(state.Deployment) error {
+func (m *failOnceMock) Start(state.Deployment, string) error {
 	m.calls++
 	if m.calls == 1 {
 		return fmt.Errorf("simulated start failure")
@@ -61,7 +62,7 @@ func defaultRateLimiter() *rateLimiter {
 
 func newTestRouterWithKey(t *testing.T, key state.APIKey) http.Handler {
 	t.Helper()
-	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010, deployTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +71,7 @@ func newTestRouterWithKey(t *testing.T, key state.APIKey) http.Handler {
 
 func newTestRouter(t *testing.T) http.Handler {
 	t.Helper()
-	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010, deployTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +109,7 @@ func newTestKeyStore(t *testing.T) *state.KeyStore {
 
 func newTestRouterWithKeys(t *testing.T, keys ...state.APIKey) http.Handler {
 	t.Helper()
-	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010, deployTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,10 +173,15 @@ func TestPostDeploymentStructure(t *testing.T) {
 	if d.FrpsPort < minPort || d.FrpsPort > maxPort {
 		t.Errorf("expected valid port")
 	}
+
+	wantTTL := int(deployTTL.Seconds())
+	if delta := d.ExpiresInSeconds - wantTTL; delta < -60 || delta > 60 {
+		t.Errorf("expected expires_in_seconds near %d, got %d", wantTTL, d.ExpiresInSeconds)
+	}
 }
 
 func TestPostDeploymentPortExhaustion(t *testing.T) {
-	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7001)
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7001, deployTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,7 +205,7 @@ func TestPostDeploymentPortExhaustion(t *testing.T) {
 }
 
 func TestStartFailureRollsBackPort(t *testing.T) {
-	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7001)
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7001, deployTTL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -227,7 +233,7 @@ func TestConcurrentDeployments(t *testing.T) {
 	var deployments []DeploymentResponse
 	var codes []int
 
-	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010, deployTTL)
 	if err != nil {
 		t.Fatalf("failed to create registry")
 	}
@@ -332,7 +338,7 @@ func TestApiKeyStates(t *testing.T) {
 	t.Run("over-max-concurrent-deploys", func(t *testing.T) {
 		key := defaultTestKey()
 		key.MaxConcurrent = 2
-		reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+		reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010, deployTTL)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -438,7 +444,7 @@ func TestRateLimit(t *testing.T) {
 	keyA := state.APIKey{ID: uuid.NewString(), OwnerID: "user-a", Label: "a", HashHex: hex.EncodeToString(hashA[:]), CreatedAt: time.Now()}
 	keyB := state.APIKey{ID: uuid.NewString(), OwnerID: "user-b", Label: "b", HashHex: hex.EncodeToString(hashB[:]), CreatedAt: time.Now()}
 
-	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010)
+	reg, err := state.New(filepath.Join(t.TempDir(), "state.json"), 7001, 7010, deployTTL)
 	if err != nil {
 		t.Fatal(err)
 	}

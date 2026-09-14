@@ -1,17 +1,14 @@
 package state
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -19,14 +16,15 @@ import (
 )
 
 type APIKey struct {
-	ID            string     `json:"id"`
-	OwnerID       string     `json:"owner_id"`
-	Label         string     `json:"label"` // human-redable key purpose ("internal-testing")
-	HashHex       string     `json:"hash"`  // SHA256 of key
-	CreatedAt     time.Time  `json:"created_at"`
-	ExpiresAt     *time.Time `json:"expires_at"` // nil - does not expire
-	MaxConcurrent int        `json:"max_concurrent"`
-	Revoked       bool       `json:"revoked"`
+	ID            string         `json:"id"`
+	OwnerID       string         `json:"owner_id"`
+	Label         string         `json:"label"` // human-redable key purpose ("internal-testing")
+	HashHex       string         `json:"hash"`  // SHA256 of key
+	CreatedAt     time.Time      `json:"created_at"`
+	ExpiresAt     *time.Time     `json:"expires_at"` // nil - does not expire
+	MaxConcurrent int            `json:"max_concurrent"`
+	Revoked       bool           `json:"revoked"`
+	DeploymentTTL *time.Duration `json:"deployment_ttl"` // nil - use default
 }
 
 type keysState struct {
@@ -42,10 +40,6 @@ type KeyStore struct {
 var ErrNotFound = errors.New("key not found")
 
 func NewKeyStore(path string) (*KeyStore, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return nil, fmt.Errorf("failed to create state directory: %w", err)
-	}
-
 	ks := &KeyStore{
 		path:  path,
 		state: keysState{Keys: make([]APIKey, 0)},
@@ -59,6 +53,10 @@ func NewKeyStore(path string) (*KeyStore, error) {
 func (ks *KeyStore) Lookup(hash [32]byte) (APIKey, bool) {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
+
+	if err := ks.reload(); err != nil {
+		slog.Error("key reload", "err", err)
+	}
 
 	for _, k := range ks.state.Keys {
 		decoded, err := hex.DecodeString(k.HashHex)
@@ -81,7 +79,7 @@ func (ks *KeyStore) Lookup(hash [32]byte) (APIKey, bool) {
 	return APIKey{}, false
 }
 
-func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.Duration) (APIKey, string, error) {
+func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, keyTTL, deploymentTTL *time.Duration) (APIKey, string, error) {
 	key := make([]byte, 32)
 	_, err := rand.Read(key)
 	if err != nil {
@@ -97,8 +95,8 @@ func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.D
 	hashHex := hex.EncodeToString(hash[:])
 	createdAt := time.Now().UTC()
 	var expiresAt *time.Time
-	if ttl != nil {
-		t := createdAt.Add(*ttl)
+	if keyTTL != nil {
+		t := createdAt.Add(*keyTTL)
 		expiresAt = &t
 	}
 
@@ -111,6 +109,7 @@ func (ks *KeyStore) Create(ownerID, label string, maxConcurrent int, ttl *time.D
 		HashHex:       hashHex,
 		CreatedAt:     createdAt,
 		ExpiresAt:     expiresAt,
+		DeploymentTTL: deploymentTTL,
 	}
 
 	ks.mu.Lock()
@@ -194,35 +193,27 @@ func (ks *KeyStore) Update(keyID string, label *string, maxConcurrent *int, expi
 func (ks *KeyStore) List() []APIKey {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
+	if err := ks.reload(); err != nil {
+		slog.Error("key reload", "err", err)
+	}
 	out := make([]APIKey, len(ks.state.Keys))
 	copy(out, ks.state.Keys)
 	return out
 }
 
 func (ks *KeyStore) load() error {
-	data, err := os.ReadFile(ks.path)
-	if os.IsNotExist(err) {
-		return nil
-	}
-
-	if err != nil {
-		return fmt.Errorf("error reading keys file: %w", err)
-	}
-
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	return decoder.Decode(&ks.state)
+	return loadJSON(ks.path, &ks.state)
 }
 
 func (ks *KeyStore) save() error {
-	data, err := json.MarshalIndent(ks.state, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshal error: %w", err)
-	}
+	return saveJSON(ks.path, ks.state)
+}
 
-	tmp := ks.path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0600); err != nil {
-		return fmt.Errorf("write file error: %w", err)
+func (ks *KeyStore) reload() error {
+	loaded := keysState{}
+	if err := loadJSON(ks.path, &loaded); err != nil {
+		return err
 	}
-	return os.Rename(tmp, ks.path)
+	ks.state = loaded
+	return nil
 }

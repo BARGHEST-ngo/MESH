@@ -14,10 +14,10 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-const meshDomain = "meshforensics.app"
-
 type Manager struct {
-	FrpsImage string
+	FrpsImage    string
+	FrpsBindAddr string
+	MeshDomain   string
 }
 
 func PullImage(imageName string) error {
@@ -36,7 +36,7 @@ func PullImage(imageName string) error {
 	return output.Close()
 }
 
-func (m Manager) Start(d state.Deployment) error {
+func (m Manager) Start(d state.Deployment, token string) error {
 	configPath, err := writeConfig(d)
 	if err != nil {
 		return fmt.Errorf("failed to write frps config file: %w", err)
@@ -52,13 +52,14 @@ func (m Manager) Start(d state.Deployment) error {
 	resp, err := client.ContainerCreate(ctx,
 		&container.Config{
 			Image: m.FrpsImage,
+			Env:   []string{fmt.Sprintf("FRP_TOKEN=%s", token)},
 			Labels: map[string]string{
 				"traefik.enable": "true",
-				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnels.%s`)", d.Slug, meshDomain),
+				fmt.Sprintf("traefik.http.routers.%s.rule", d.Slug):                      fmt.Sprintf("Host(`%s.tunnels.%s`)", d.Slug, m.MeshDomain),
 				fmt.Sprintf("traefik.http.routers.%s.tls", d.Slug):                       "true",
 				fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", d.Slug):          "letsencrypt",
-				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].main", d.Slug):       "tunnels." + meshDomain,
-				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].sans", d.Slug):       "*.tunnels." + meshDomain,
+				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].main", d.Slug):       "tunnels." + m.MeshDomain,
+				fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].sans", d.Slug):       "*.tunnels." + m.MeshDomain,
 				fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", d.Slug): "8080",
 				"traefik.docker.network": "mesh-proxy",
 			},
@@ -67,7 +68,10 @@ func (m Manager) Start(d state.Deployment) error {
 			RestartPolicy: container.RestartPolicy{Name: container.RestartPolicyUnlessStopped},
 			Binds:         []string{fmt.Sprintf("%s:/etc/frp/frps.toml:ro", configPath)},
 			PortBindings: nat.PortMap{
-				nat.Port("7000/tcp"): []nat.PortBinding{{HostPort: fmt.Sprintf("%d", d.FrpsPort)}},
+				nat.Port("7000/tcp"): []nat.PortBinding{{
+					HostIP:   m.FrpsBindAddr,
+					HostPort: fmt.Sprintf("%d", d.FrpsPort),
+				}},
 			},
 		},
 		nil, nil, fmt.Sprintf("frps-%s", d.Slug))
@@ -94,7 +98,7 @@ func writeConfig(d state.Deployment) (string, error) {
 	}
 
 	path := filepath.Join(dir, "frps.toml")
-	content := fmt.Sprintf("bindPort = 7000\nauth.token = %q\nvhostHTTPPort = 8080\n", d.Token)
+	content := "bindPort = 7000\nauth.token = \"{{ .Envs.FRP_TOKEN }}\"\nvhostHTTPPort = 8080\n"
 	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 		return "", err
 	}
