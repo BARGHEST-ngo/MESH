@@ -245,7 +245,7 @@ build-unstripped-aar: $(GOBIN)/gomobile
 	GONOSUMCHECK=* \
 	GONOSUMDB=* \
 	GOFLAGS="$(GOFLAGS) -buildvcs=false" \
-	gomobile bind -trimpath -target android/arm64 -androidapi 26 \
+	gomobile bind -trimpath -target android -androidapi 26 \
 		-tags $(GOTAGS) \
 		-ldflags "-s -w -buildid= -linkmode=external -extldflags=-Wl,-z,max-page-size=16384 $$(./version-ldflags.sh)" \
 		-o $(ABS_UNSTRIPPED_AAR) ./libtailscale || { echo "gomobile bind failed"; exit 1; }
