@@ -32,10 +32,10 @@ apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 android {
     ndkVersion = "23.2.8568313"
-    compileSdkVersion 34
+    compileSdkVersion 36
     defaultConfig {
         minSdkVersion 26
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 363
         versionName getVersionProperty("VERSION_LONG")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
