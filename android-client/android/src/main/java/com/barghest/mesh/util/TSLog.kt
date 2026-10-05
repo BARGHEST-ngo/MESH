@@ -11,7 +11,6 @@ package com.barghest.mesh.util
 
 import android.content.Context
 import android.util.Log
-import libtailscale.Libtailscale
 
 object TSLog {
   private lateinit var appContext: Context
@@ -65,9 +64,13 @@ object TSLog {
   }
 
   class LibtailscaleWrapper {
-    public fun sendLog(tag: String?, message: String) {
-      val logTag = tag ?: ""
-      Libtailscale.sendLog((logTag + ": " + message).toByteArray(Charsets.UTF_8))
-    }
+    // FAKE(meshnet): libtailscale is removed, so logs are no longer forwarded to the Go backend.
+    // They still go to Logcat via the calls above.
+    // Kept because TimeUtilTest mocks this class.
+    //    public fun sendLog(tag: String?, message: String) {
+    //      val logTag = tag ?: ""
+    //      Libtailscale.sendLog((logTag + ": " + message).toByteArray(Charsets.UTF_8))
+    //    }
+    public fun sendLog(tag: String?, message: String) {}
   }
 }

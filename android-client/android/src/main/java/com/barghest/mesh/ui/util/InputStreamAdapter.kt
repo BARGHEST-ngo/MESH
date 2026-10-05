@@ -12,8 +12,12 @@ package com.barghest.mesh.ui.util
 
 import java.io.InputStream
 
-class InputStreamAdapter(private val inputStream: InputStream) : libtailscale.InputStream {
-  override fun read(): ByteArray? {
+// FAKE(meshnet): libtailscale is removed, so this no longer implements
+// libtailscale.InputStream and its methods are no longer overrides.
+// class InputStreamAdapter(private val inputStream: InputStream) : libtailscale.InputStream {
+class InputStreamAdapter(private val inputStream: InputStream) {
+  // override fun read(): ByteArray? {
+  fun read(): ByteArray? {
     val b = ByteArray(4096)
     val i = inputStream.read(b)
     if (i == -1) {
@@ -22,7 +26,8 @@ class InputStreamAdapter(private val inputStream: InputStream) : libtailscale.In
     return b.sliceArray(0 ..< i)
   }
 
-  override fun close() {
+  // override fun close() {
+  fun close() {
     inputStream.close()
   }
 }

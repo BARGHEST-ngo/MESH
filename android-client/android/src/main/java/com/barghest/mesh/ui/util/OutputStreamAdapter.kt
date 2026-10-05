@@ -14,9 +14,13 @@ import com.barghest.mesh.util.TSLog
 import java.io.OutputStream
 
 // This class adapts a Java OutputStream to the libtailscale.OutputStream interface.
-class OutputStreamAdapter(private val outputStream: OutputStream) : libtailscale.OutputStream {
+// FAKE(meshnet): libtailscale is removed, so this no longer implements
+// libtailscale.OutputStream and its methods are no longer overrides.
+// class OutputStreamAdapter(private val outputStream: OutputStream) : libtailscale.OutputStream {
+class OutputStreamAdapter(private val outputStream: OutputStream) {
   // writes data to the outputStream in its entirety. Returns -1 on error.
-  override fun write(data: ByteArray): Long {
+  // override fun write(data: ByteArray): Long {
+  fun write(data: ByteArray): Long {
     return try {
       outputStream.write(data)
       outputStream.flush()
@@ -27,7 +31,8 @@ class OutputStreamAdapter(private val outputStream: OutputStream) : libtailscale
     }
   }
 
-  override fun close() {
+  // override fun close() {
+  fun close() {
     outputStream.close()
   }
 }

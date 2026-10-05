@@ -168,7 +168,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose-m3:1.15.0")
 
     // Tailscale dependencies.
-    implementation files('libs/libtailscale.aar')
+    implementation files('libs/meshnet.aar')
 
     // Integration Tests
     androidTestImplementation composeBom
