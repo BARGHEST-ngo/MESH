@@ -621,7 +621,12 @@ class MainActivity : ComponentActivity() {
                             if (uri.startsWith("mesh://")) {
                                 handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
                             } else {
-                                pinInput { pin -> MeshnetSession.connect(uri, pin) }
+                                pinInput { pin ->
+                                    // IPNService runs the session. It needs VPN
+                                    // consent before it can start in the foreground.
+                                    MeshnetSession.prepare(uri, pin)
+                                    viewModel.showVPNPermissionLauncherIfUnauthorized()
+                                }
                             }
                         },
                         onSkip = { showQRScanFromHome = false },
