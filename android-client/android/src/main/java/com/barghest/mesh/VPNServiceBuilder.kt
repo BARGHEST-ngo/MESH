@@ -14,22 +14,30 @@ import android.net.IpPrefix as AndroidIpPrefix
 import android.net.VpnService
 import android.os.Build
 import java.net.InetAddress
-import libtailscale.ParcelFileDescriptor
+// FAKE(meshnet): libtailscale is removed.
+// import libtailscale.ParcelFileDescriptor
 
-class VPNServiceBuilder(private val builder: VpnService.Builder) : libtailscale.VPNServiceBuilder {
-  override fun addAddress(p0: String, p1: Int) {
+// FAKE(meshnet): libtailscale is removed, so this no longer implements libtailscale.VPNServiceBuilder
+// The wrapper around Android's VpnService.Builder is unchanged.
+// class VPNServiceBuilder(private val builder: VpnService.Builder) : libtailscale.VPNServiceBuilder {
+class VPNServiceBuilder(private val builder: VpnService.Builder) {
+  // override fun addAddress(p0: String, p1: Int) {
+  fun addAddress(p0: String, p1: Int) {
     builder.addAddress(p0, p1)
   }
 
-  override fun addDNSServer(p0: String) {
+  // override fun addDNSServer(p0: String) {
+  fun addDNSServer(p0: String) {
     builder.addDnsServer(p0)
   }
 
-  override fun addRoute(p0: String, p1: Int) {
+  // override fun addRoute(p0: String, p1: Int) {
+  fun addRoute(p0: String, p1: Int) {
     builder.addRoute(p0, p1)
   }
 
-  override fun excludeRoute(p0: String, p1: Int) {
+  // override fun excludeRoute(p0: String, p1: Int) {
+  fun excludeRoute(p0: String, p1: Int) {
     // Only run this for API level 33 and up
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       val inetAddress = InetAddress.getByName(p0)
@@ -38,21 +46,27 @@ class VPNServiceBuilder(private val builder: VpnService.Builder) : libtailscale.
     }
   }
 
-  override fun addSearchDomain(p0: String) {
+  // override fun addSearchDomain(p0: String) {
+  fun addSearchDomain(p0: String) {
     builder.addSearchDomain(p0)
   }
 
-  override fun establish(): ParcelFileDescriptor? {
+  // override fun establish(): ParcelFileDescriptor? {
+  fun establish(): ParcelFileDescriptor? {
     return builder.establish()?.let { ParcelFileDescriptor(it) }
   }
 
-  override fun setMTU(p0: Int) {
+  // override fun setMTU(p0: Int) {
+  fun setMTU(p0: Int) {
     builder.setMtu(p0)
   }
 }
 
-class ParcelFileDescriptor(private val fd: android.os.ParcelFileDescriptor) : ParcelFileDescriptor {
-  override fun detach(): Int {
+// FAKE(meshnet): libtailscale is removed, so this no longer implements libtailscale.ParcelFileDescriptor
+// class ParcelFileDescriptor(private val fd: android.os.ParcelFileDescriptor) : ParcelFileDescriptor {
+class ParcelFileDescriptor(private val fd: android.os.ParcelFileDescriptor) {
+  // override fun detach(): Int {
+  fun detach(): Int {
     return fd.detachFd()
   }
 }

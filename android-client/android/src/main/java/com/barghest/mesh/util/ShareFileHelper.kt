@@ -28,24 +28,32 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import libtailscale.Libtailscale
+// FAKE(meshnet): libtailscale is removed.
+// import libtailscale.Libtailscale
 import org.json.JSONObject
 
 data class SafFile(val fd: Int, val uri: String)
 
-object ShareFileHelper : libtailscale.ShareFileHelper {
+// FAKE(meshnet): libtailscale is removed, so this no longer implements
+// libtailscale.ShareFileHelper and is never registered with the backend.
+// object ShareFileHelper : libtailscale.ShareFileHelper {
+object ShareFileHelper {
   private var appContext: Context? = null
-  private var app: libtailscale.Application? = null
+  // FAKE(meshnet): libtailscale is removed, the backend handle was stored but never used.
+  // private var app: libtailscale.Application? = null
   private var savedUri: String? = null
   private var scope: CoroutineScope? = null
 
   @JvmStatic
-  fun init(context: Context, app: libtailscale.Application, uri: String, appScope: CoroutineScope) {
+  // FAKE(meshnet): libtailscale is removed, so init no longer takes the backend handle.
+  // fun init(context: Context, app: libtailscale.Application, uri: String, appScope: CoroutineScope) {
+  fun init(context: Context, uri: String, appScope: CoroutineScope) {
     appContext = context.applicationContext
-    this.app = app
+    // this.app = app
     savedUri = uri
     scope = appScope
-    Libtailscale.setShareFileHelper(this)
+    // FAKE(meshnet): libtailscale is removed, so there is no backend to register with.
+    // Libtailscale.setShareFileHelper(this)
     TSLog.d("ShareFileHelper", "init ShareFileHelper with savedUri: $savedUri")
   }
 
@@ -128,7 +136,8 @@ object ShareFileHelper : libtailscale.ShareFileHelper {
   private val currentUri = ConcurrentHashMap<String, String>()
 
   @Throws(IOException::class)
-  override fun openFileWriter(fileName: String, offset: Long): libtailscale.OutputStream {
+  // override fun openFileWriter(fileName: String, offset: Long): libtailscale.OutputStream {
+  fun openFileWriter(fileName: String, offset: Long): OutputStreamAdapter {
     runBlocking { waitUntilTaildropDirReady() }
     val (uri, stream) = openWriterFD(fileName, offset)
     if (stream == null) {
@@ -139,7 +148,8 @@ object ShareFileHelper : libtailscale.ShareFileHelper {
   }
 
   @Throws(IOException::class)
-  override fun getFileURI(fileName: String): String {
+  // override fun getFileURI(fileName: String): String {
+  fun getFileURI(fileName: String): String {
     runBlocking { waitUntilTaildropDirReady() }
     currentUri[fileName]?.let {
       return it
@@ -156,7 +166,8 @@ object ShareFileHelper : libtailscale.ShareFileHelper {
   }
 
   @Throws(IOException::class)
-  override fun renameFile(oldPath: String, targetName: String): String {
+  // override fun renameFile(oldPath: String, targetName: String): String {
+  fun renameFile(oldPath: String, targetName: String): String {
     val ctx = appContext ?: throw IOException("not initialized")
     val dirUri = savedUri ?: throw IOException("directory not set")
     val srcUri = Uri.parse(oldPath)
@@ -216,7 +227,8 @@ object ShareFileHelper : libtailscale.ShareFileHelper {
   }
 
   @Throws(IOException::class)
-  override fun deleteFile(uri: String) {
+  // override fun deleteFile(uri: String) {
+  fun deleteFile(uri: String) {
     runBlocking { waitUntilTaildropDirReady() }
     val ctx = appContext ?: throw IOException("DeleteFile: not initialized")
     val uri = Uri.parse(uri)
@@ -229,7 +241,8 @@ object ShareFileHelper : libtailscale.ShareFileHelper {
   }
 
   @Throws(IOException::class)
-  override fun getFileInfo(fileName: String): String {
+  // override fun getFileInfo(fileName: String): String {
+  fun getFileInfo(fileName: String): String {
     val context = appContext ?: throw IOException("app context not initialized")
     val dirUri = savedUri ?: throw IOException("SAF URI not initialized")
     val dir =
@@ -266,7 +279,8 @@ object ShareFileHelper : libtailscale.ShareFileHelper {
   }
 
   @Throws(IOException::class)
-  override fun listFilesJSON(suffix: String): String {
+  // override fun listFilesJSON(suffix: String): String {
+  fun listFilesJSON(suffix: String): String {
     val list = listPartialFiles(suffix)
     if (list.isEmpty()) {
       throw IOException("no files found matching suffix \"$suffix\"")
@@ -275,7 +289,8 @@ object ShareFileHelper : libtailscale.ShareFileHelper {
   }
 
   @Throws(IOException::class)
-  override fun openFileReader(name: String): libtailscale.InputStream {
+  // override fun openFileReader(name: String): libtailscale.InputStream {
+  fun openFileReader(name: String): InputStreamAdapter {
     val context = appContext ?: throw IOException("app context not initialized")
     val rootUri = savedUri ?: throw IOException("SAF URI not initialized")
     val dir =

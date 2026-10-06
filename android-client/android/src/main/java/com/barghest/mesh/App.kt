@@ -66,9 +66,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import libtailscale.Libtailscale
+// FAKE(meshnet): libtailscale is removed.
+// import libtailscale.Libtailscale
 import java.lang.UnsupportedOperationException
-class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
+// FAKE(meshnet): libtailscale is removed, so this no longer implements libtailscale.AppContext
+// The AppContext methods were called by the Go backend, they are kept as plain functions, and most are now unused.
+// class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
+class App : UninitializedApp(), ViewModelStoreOwner {
   val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
   companion object {
@@ -91,29 +95,35 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
   val dns = DnsConfig()
   private lateinit var connectivityManager: ConnectivityManager
   private lateinit var mdmChangeReceiver: MDMSettingsChangedReceiver
-  private lateinit var app: libtailscale.Application
+  // FAKE(meshnet): libtailscale is removed, so there is no backend handle.
+  // private lateinit var app: libtailscale.Application
   override val viewModelStore: ViewModelStore
     get() = appViewModelStore
 
   private val appViewModelStore: ViewModelStore by lazy { ViewModelStore() }
   var healthNotifier: HealthNotifier? = null
 
-  override fun getPlatformDNSConfig(): String = dns.dnsConfigAsString
+  // override fun getPlatformDNSConfig(): String = dns.dnsConfigAsString
+  fun getPlatformDNSConfig(): String = dns.dnsConfigAsString
 
-  override fun getInstallSource(): String = AppSourceChecker.getInstallSource(this)
+  // override fun getInstallSource(): String = AppSourceChecker.getInstallSource(this)
+  fun getInstallSource(): String = AppSourceChecker.getInstallSource(this)
 
-  override fun shouldUseGoogleDNSFallback(): Boolean = BuildConfig.USE_GOOGLE_DNS_FALLBACK
+  // override fun shouldUseGoogleDNSFallback(): Boolean = BuildConfig.USE_GOOGLE_DNS_FALLBACK
+  fun shouldUseGoogleDNSFallback(): Boolean = BuildConfig.USE_GOOGLE_DNS_FALLBACK
 
-  override fun log(s: String, s1: String) {
+  // override fun log(s: String, s1: String) {
+  fun log(s: String, s1: String) {
     Log.d(s, s1)
   }
 
-  fun getLibtailscaleApp(): libtailscale.Application {
-    if (!isInitialized) {
-      initOnce() // Calls the synchronized initialization logic
-    }
-    return app
-  }
+  // FAKE(meshnet): libtailscale is removed, so there is no backend handle to return.
+  // fun getLibtailscaleApp(): libtailscale.Application {
+  //   if (!isInitialized) {
+  //     initOnce() // Calls the synchronized initialization logic
+  //   }
+  //   return app
+  // }
 
   override fun onCreate() {
     super.onCreate()
@@ -225,10 +235,13 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
    * Tailscale because directFileRoot must be set before LocalBackend starts being used.
    */
   fun startLibtailscale(directFileRoot: String) {
-    app = Libtailscale.start(this.filesDir.absolutePath, directFileRoot, false, this) // debug setting remove false -o
-    ShareFileHelper.init(this, app, directFileRoot, applicationScope)
-    Request.setApp(app)
-    Notifier.setApp(app)
+    // FAKE(meshnet): libtailscale is removed, so no Go backend is started and there is no handle to pass around.
+    // ShareFileHelper and Notifier are still initialised.
+    // app = Libtailscale.start(this.filesDir.absolutePath, directFileRoot, false, this) // debug setting remove false -o
+    // ShareFileHelper.init(this, app, directFileRoot, applicationScope)
+    ShareFileHelper.init(this, directFileRoot, applicationScope)
+    // Request.setApp(app)
+    // Notifier.setApp(app)
     Notifier.start(applicationScope)
   }
 
@@ -252,17 +265,20 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
   // encryptToPref a byte array of data using the Jetpack Security
   // library and writes it to a global encrypted preference store.
   @Throws(IOException::class, GeneralSecurityException::class)
-  override fun encryptToPref(prefKey: String?, plaintext: String?) {
+  // override fun encryptToPref(prefKey: String?, plaintext: String?) {
+  fun encryptToPref(prefKey: String?, plaintext: String?) {
     getEncryptedPrefs().edit().putString(prefKey, plaintext).commit()
   }
   // decryptFromPref decrypts a encrypted preference using the Jetpack Security
   // library and returns the plaintext.
   @Throws(IOException::class, GeneralSecurityException::class)
-  override fun decryptFromPref(prefKey: String?): String? {
+  // override fun decryptFromPref(prefKey: String?): String? {
+  fun decryptFromPref(prefKey: String?): String? {
     return getEncryptedPrefs().getString(prefKey, null)
   }
 
-  override fun getStateStoreKeysJSON(): String {
+  // override fun getStateStoreKeysJSON(): String {
+  fun getStateStoreKeysJSON(): String {
     val prefix = "statestore-"
     val keys =
         getEncryptedPrefs()
@@ -299,7 +315,8 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
     TSLog.d("App", "Set Tile Ready: $ableToStartVPN")
   }
 
-  override fun getModelName(): String {
+  // override fun getModelName(): String {
+  fun getModelName(): String {
     val manu = Build.MANUFACTURER
     var model = Build.MODEL
     // Strip manufacturer from model.
@@ -310,13 +327,16 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
     return "$manu $model"
   }
 
-  override fun getOSVersion(): String = Build.VERSION.RELEASE
+  // override fun getOSVersion(): String = Build.VERSION.RELEASE
+  fun getOSVersion(): String = Build.VERSION.RELEASE
 
-  override fun isChromeOS(): Boolean {
+  // override fun isChromeOS(): Boolean {
+  fun isChromeOS(): Boolean {
     return packageManager.hasSystemFeature("android.hardware.type.pc")
   }
 
-  override fun getInterfacesAsString(): String {
+  // override fun getInterfacesAsString(): String {
+  fun getInterfacesAsString(): String {
     val interfaces: ArrayList<NetworkInterface> =
         java.util.Collections.list(NetworkInterface.getNetworkInterfaces())
     val sb = StringBuilder()
@@ -350,13 +370,15 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
 
   @Throws(
       IOException::class, GeneralSecurityException::class, MDMSettings.NoSuchKeyException::class)
-  override fun getSyspolicyBooleanValue(key: String): Boolean {
+  // override fun getSyspolicyBooleanValue(key: String): Boolean {
+  fun getSyspolicyBooleanValue(key: String): Boolean {
     return getSyspolicyStringValue(key) == "true"
   }
 
   @Throws(
       IOException::class, GeneralSecurityException::class, MDMSettings.NoSuchKeyException::class)
-  override fun getSyspolicyStringValue(key: String): String {
+  // override fun getSyspolicyStringValue(key: String): String {
+  fun getSyspolicyStringValue(key: String): String {
     val setting = MDMSettings.allSettingsByKey[key]?.flow?.value
     if (setting?.isSet != true) {
       throw MDMSettings.NoSuchKeyException()
@@ -366,7 +388,8 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
 
   @Throws(
       IOException::class, GeneralSecurityException::class, MDMSettings.NoSuchKeyException::class)
-  override fun getSyspolicyStringArrayJSONValue(key: String): String {
+  // override fun getSyspolicyStringArrayJSONValue(key: String): String {
+  fun getSyspolicyStringArrayJSONValue(key: String): String {
     val setting = MDMSettings.allSettingsByKey[key]?.flow?.value
     if (setting?.isSet != true) {
       throw MDMSettings.NoSuchKeyException()
@@ -381,10 +404,12 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
   }
 
   fun notifyPolicyChanged() {
-    app.notifyPolicyChanged()
+    // FAKE(meshnet): libtailscale is removed, so there is no backend to tell.
+    // app.notifyPolicyChanged()
   }
 
-    override fun hardwareAttestationKeySupported(): Boolean {
+    // override fun hardwareAttestationKeySupported(): Boolean {
+    fun hardwareAttestationKeySupported(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             packageManager.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
         } else {
@@ -402,27 +427,32 @@ class App : UninitializedApp(), libtailscale.AppContext, ViewModelStoreOwner {
         }
     }
 
-    override fun hardwareAttestationKeyCreate(): String {
+    // override fun hardwareAttestationKeyCreate(): String {
+    fun hardwareAttestationKeyCreate(): String {
         return getKeyStore().createKey()
     }
 
     @Throws(NoSuchKeyException::class)
-    override fun hardwareAttestationKeyRelease(id: String) {
+    // override fun hardwareAttestationKeyRelease(id: String) {
+    fun hardwareAttestationKeyRelease(id: String) {
         return getKeyStore().releaseKey(id)
     }
 
     @Throws(NoSuchKeyException::class)
-    override fun hardwareAttestationKeySign(id: String, data: ByteArray): ByteArray {
+    // override fun hardwareAttestationKeySign(id: String, data: ByteArray): ByteArray {
+    fun hardwareAttestationKeySign(id: String, data: ByteArray): ByteArray {
         return getKeyStore().sign(id, data)
     }
 
     @Throws(NoSuchKeyException::class)
-    override fun hardwareAttestationKeyPublic(id: String): ByteArray {
+    // override fun hardwareAttestationKeyPublic(id: String): ByteArray {
+    fun hardwareAttestationKeyPublic(id: String): ByteArray {
         return getKeyStore().public(id)
     }
 
     @Throws(NoSuchKeyException::class)
-    override fun hardwareAttestationKeyLoad(id: String) {
+    // override fun hardwareAttestationKeyLoad(id: String) {
+    fun hardwareAttestationKeyLoad(id: String) {
         return getKeyStore().load(id)
     }
 }

@@ -24,19 +24,26 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import libtailscale.Libtailscale
+// FAKE(meshnet): libtailscale is removed.
+// import libtailscale.Libtailscale
 
-open class IPNService : VpnService(), libtailscale.IPNService {
+// FAKE(meshnet): libtailscale is removed, so this no longer implements libtailscale.IPNService.
+// The Go backend used to call id, updateVpnStatus, close, disconnectVPN and newBuilder.
+// Nothing calls newBuilder now, so no VPN tunnel is ever established.
+// open class IPNService : VpnService(), libtailscale.IPNService {
+open class IPNService : VpnService() {
   private val TAG = "IPNService"
   private val randomID: String = UUID.randomUUID().toString()
   private lateinit var app: App
   val scope = CoroutineScope(Dispatchers.IO)
 
-  override fun id(): String {
+  // override fun id(): String {
+  fun id(): String {
     return randomID
   }
 
-  override fun updateVpnStatus(status: Boolean) {
+  // override fun updateVpnStatus(status: Boolean) {
+  fun updateVpnStatus(status: Boolean) {
     app.getAppScopedViewModel().setVpnActive(status)
   }
 
@@ -63,7 +70,8 @@ open class IPNService : VpnService(), libtailscale.IPNService {
         ACTION_START_VPN -> {
           scope.launch { showForegroundNotification() }
           app.setWantRunning(true)
-          Libtailscale.requestVPN(this)
+          // FAKE(meshnet): libtailscale is removed, so nothing brings the VPN up.
+          // Libtailscale.requestVPN(this)
           START_STICKY
         }
         "android.net.VpnService" -> {
@@ -78,7 +86,8 @@ open class IPNService : VpnService(), libtailscale.IPNService {
             app.notifyStatus(true, hideDisconnectAction.value, exitNodeName)
           }
           app.setWantRunning(true)
-          Libtailscale.requestVPN(this)
+          // FAKE(meshnet): libtailscale is removed, so nothing brings the VPN up.
+          // Libtailscale.requestVPN(this)
           START_STICKY
         }
         else -> {
@@ -87,7 +96,8 @@ open class IPNService : VpnService(), libtailscale.IPNService {
           if (UninitializedApp.get().isAbleToStartVPN()) {
             scope.launch { showForegroundNotification() }
             App.get()
-            Libtailscale.requestVPN(this)
+            // FAKE(meshnet): libtailscale is removed, so nothing brings the VPN up.
+            // Libtailscale.requestVPN(this)
             START_STICKY
           } else {
             START_NOT_STICKY
@@ -95,13 +105,18 @@ open class IPNService : VpnService(), libtailscale.IPNService {
         }
       }
 
-  override fun close() {
+  // override fun close() {
+  fun close() {
     Notifier.setState(Ipn.State.Stopping)
     disconnectVPN()
-    Libtailscale.serviceDisconnect(this)
+    // FAKE(meshnet): libtailscale is removed. The backend used to report Stopped after this call,
+    // report it here so the UI doesn't stay on Stopping.
+    // Libtailscale.serviceDisconnect(this)
+    Notifier.setState(Ipn.State.Stopped)
   }
 
-  override fun disconnectVPN() {
+  // override fun disconnectVPN() {
+  fun disconnectVPN() {
     stopSelf()
   }
 
@@ -156,7 +171,8 @@ open class IPNService : VpnService(), libtailscale.IPNService {
     }
   }
 
-  override fun newBuilder(): VPNServiceBuilder {
+  // override fun newBuilder(): VPNServiceBuilder {
+  fun newBuilder(): VPNServiceBuilder {
     val b: Builder =
         Builder()
             .setConfigureIntent(configIntent())
