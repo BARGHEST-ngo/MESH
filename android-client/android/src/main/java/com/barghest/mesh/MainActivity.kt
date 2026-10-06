@@ -615,7 +615,19 @@ class MainActivity : ComponentActivity() {
                     QRScanStep(
                         onScanned = { uri ->
                             showQRScanFromHome = false
-                            handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+                            // MESHnet: a mesh:// link is the old encrypted provisioning
+                            // payload. Anything else is a MESHnet server address, paired
+                            // with the PIN shown on the analyst's screen.
+                            if (uri.startsWith("mesh://")) {
+                                handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+                            } else {
+                                pinInput { pin ->
+                                    // IPNService runs the session. It needs VPN
+                                    // consent before it can start in the foreground.
+                                    MeshnetSession.prepare(uri, pin)
+                                    viewModel.showVPNPermissionLauncherIfUnauthorized()
+                                }
+                            }
                         },
                         onSkip = { showQRScanFromHome = false },
                     )

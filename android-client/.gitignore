@@ -17,6 +17,9 @@ android_legacy/local.properties
 android/.idea
 android/local.properties
 .idea
+# Written by Android Studio (daemon JDK + foojay download URLs).
+# Removed from the repo in cb76b3b9e because F-Droid rejects the foojay resolver.
+android/gradle/gradle-daemon-jvm.properties
 
 # Output files from the Makefile:
 *.apk

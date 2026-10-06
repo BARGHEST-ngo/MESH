@@ -24,19 +24,26 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import libtailscale.Libtailscale
+// FAKE(meshnet): libtailscale is removed.
+// import libtailscale.Libtailscale
 
-open class IPNService : VpnService(), libtailscale.IPNService {
+// FAKE(meshnet): libtailscale is removed, so this no longer implements libtailscale.IPNService.
+// The Go backend used to call id, updateVpnStatus, close, disconnectVPN and newBuilder.
+// Nothing calls newBuilder now, so no VPN tunnel is ever established.
+// open class IPNService : VpnService(), libtailscale.IPNService {
+open class IPNService : VpnService() {
   private val TAG = "IPNService"
   private val randomID: String = UUID.randomUUID().toString()
   private lateinit var app: App
   val scope = CoroutineScope(Dispatchers.IO)
 
-  override fun id(): String {
+  // override fun id(): String {
+  fun id(): String {
     return randomID
   }
 
-  override fun updateVpnStatus(status: Boolean) {
+  // override fun updateVpnStatus(status: Boolean) {
+  fun updateVpnStatus(status: Boolean) {
     app.getAppScopedViewModel().setVpnActive(status)
   }
 
@@ -44,6 +51,28 @@ open class IPNService : VpnService(), libtailscale.IPNService {
     super.onCreate()
     // grab app to make sure it initializes
     app = App.get()
+    MeshnetSession.onState = ::onMeshnetState
+  }
+
+  // MESHnet: called for each state of the MESHnet session, from a Go goroutine. The
+  // service lives exactly as long as the session, so stop when the session ends.
+  private fun onMeshnetState(state: String) {
+    when (state) {
+      "Connecting" -> {}
+      "Connected" -> updateVpnStatus(true)
+      else -> {
+        updateVpnStatus(false)
+        stopSelf()
+      }
+    }
+  }
+
+  // MESHnet: connects with the pairing details the UI handed to MeshnetSession.
+  // Returns false if there are none.
+  private fun startMeshnet(): Boolean {
+    val started = MeshnetSession.start()
+    if (!started) TSLog.d(TAG, "no pending MESHnet pairing, nothing to connect")
+    return started
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int =
@@ -63,8 +92,15 @@ open class IPNService : VpnService(), libtailscale.IPNService {
         ACTION_START_VPN -> {
           scope.launch { showForegroundNotification() }
           app.setWantRunning(true)
-          Libtailscale.requestVPN(this)
-          START_STICKY
+          // MESHnet: the MESHnet session takes the place of the Go backend's VPN.
+          // Libtailscale.requestVPN(this)
+          if (!startMeshnet() && !MeshnetSession.isActive) {
+            // Nothing to run: don't leave a "Connected" notification behind.
+            close()
+          }
+          // Not sticky: a restart could not reconnect, because a PIN works once.
+          // START_STICKY
+          START_NOT_STICKY
         }
         "android.net.VpnService" -> {
           // This means we were started by Android due to Always On VPN.
@@ -78,7 +114,10 @@ open class IPNService : VpnService(), libtailscale.IPNService {
             app.notifyStatus(true, hideDisconnectAction.value, exitNodeName)
           }
           app.setWantRunning(true)
-          Libtailscale.requestVPN(this)
+          // FAKE(meshnet): Always On VPN starts us with no pairing details, and a
+          // MESHnet PIN works once, so there is nothing to reconnect with.
+          // Libtailscale.requestVPN(this)
+          startMeshnet()
           START_STICKY
         }
         else -> {
@@ -87,7 +126,10 @@ open class IPNService : VpnService(), libtailscale.IPNService {
           if (UninitializedApp.get().isAbleToStartVPN()) {
             scope.launch { showForegroundNotification() }
             App.get()
-            Libtailscale.requestVPN(this)
+            // FAKE(meshnet): restarted after being killed, with no pairing details,
+            // so there is nothing to reconnect with.
+            // Libtailscale.requestVPN(this)
+            startMeshnet()
             START_STICKY
           } else {
             START_NOT_STICKY
@@ -95,17 +137,25 @@ open class IPNService : VpnService(), libtailscale.IPNService {
         }
       }
 
-  override fun close() {
+  // override fun close() {
+  fun close() {
     Notifier.setState(Ipn.State.Stopping)
     disconnectVPN()
-    Libtailscale.serviceDisconnect(this)
+    // FAKE(meshnet): libtailscale is removed. The backend used to report Stopped after this call,
+    // report it here so the UI doesn't stay on Stopping.
+    // Libtailscale.serviceDisconnect(this)
+    // MESHnet: closing the service ends the MESHnet session.
+    MeshnetSession.disconnect()
+    Notifier.setState(Ipn.State.Stopped)
   }
 
-  override fun disconnectVPN() {
+  // override fun disconnectVPN() {
+  fun disconnectVPN() {
     stopSelf()
   }
 
   override fun onDestroy() {
+    MeshnetSession.onState = null
     close()
     updateVpnStatus(false)
     super.onDestroy()
@@ -156,7 +206,8 @@ open class IPNService : VpnService(), libtailscale.IPNService {
     }
   }
 
-  override fun newBuilder(): VPNServiceBuilder {
+  // override fun newBuilder(): VPNServiceBuilder {
+  fun newBuilder(): VPNServiceBuilder {
     val b: Builder =
         Builder()
             .setConfigureIntent(configIntent())

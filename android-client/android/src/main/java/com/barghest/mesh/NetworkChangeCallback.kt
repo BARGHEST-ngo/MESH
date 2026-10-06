@@ -18,7 +18,6 @@ import android.util.Log
 import com.barghest.mesh.util.TSLog
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import libtailscale.Libtailscale
 
 object NetworkChangeCallback {
 
@@ -169,7 +168,9 @@ object NetworkChangeCallback {
       TSLog.d(
           TAG,
           "${why}: updated DNS config for network ${defaultNetwork} (${info.linkProps.interfaceName})")
-      Libtailscale.onDNSConfigChanged(info.linkProps.interfaceName)
+      // FAKE(meshnet): libtailscale is removed, so the Go backend is no longer
+      // told about DNS changes. The DNS config above is still tracked.
+      // Libtailscale.onDNSConfigChanged(info.linkProps.interfaceName)
     }
   }
 }
