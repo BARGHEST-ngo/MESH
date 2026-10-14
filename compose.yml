@@ -3,7 +3,7 @@ services:
     image: snowdreamtech/frpc:latest
     restart: unless-stopped
     volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/frpc.toml:/etc/frp/frpc.toml:ro
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/frpc.toml:/etc/frp/frpc.toml:ro,z
     depends_on:
       - headscale
 
@@ -11,7 +11,7 @@ services:
     image: docker.io/headscale/headscale:0.29.0@sha256:5d464c7ba8f5b2c1472f926fae4cd67f136d66ec108c0b4ad1891856ac6da915
     restart: unless-stopped
     volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale:/etc/headscale
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale:/etc/headscale:z
       - headscale-data:/var/lib/headscale
     ports:
       - "3478:3478/udp"
@@ -29,7 +29,7 @@ services:
     build: ./control-plane/mesh-ui
     restart: unless-stopped
     volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/nginx.conf:/etc/nginx/nginx.conf.template
+      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/nginx.conf:/etc/nginx/nginx.conf.template:z
     environment:
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
       - NGINX_MODE=${NGINX_MODE:-prod}
@@ -37,7 +37,8 @@ services:
     depends_on:
       - headscale
     ports:
-      - "127.0.0.1:80:8080"
+      # Rootless Podman/Docker can't bind <1024; set UI_PORT (e.g. 8080) in .env.local
+      - "127.0.0.1:${UI_PORT:-80}:8080"
     entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE $$CONTROL_PLANE_URL' < /etc/nginx/nginx.conf.template > /tmp/nginx.conf && nginx -c /tmp/nginx.conf -g 'daemon off;'"
 
   analyst:
@@ -60,7 +61,7 @@ services:
       # Default outside the repo tree: acquisitions hold pulled APKs and a
       # device backup and must not land in the working copy. Override with
       # ACQUISITION_DIR in .env to point at a dedicated evidence store.
-      - ${ACQUISITION_DIR:-${HOME}/mesh-acquisitions}:/home/mesh/acquisitions
+      - ${ACQUISITION_DIR:-${HOME}/mesh-acquisitions}:/home/mesh/acquisitions:z
     environment:
       - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
       - AUTH_KEY=${AUTH_KEY:-}
