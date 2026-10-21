@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import org.barghest.meshnet.meshnetmobile.Client
 import org.barghest.meshnet.meshnetmobile.Listener
 import org.barghest.meshnet.meshnetmobile.Meshnetmobile
+import org.barghest.meshnet.meshnetmobile.Stream
 
 // MeshnetSession holds the app's single MESHnet client. IPNService owns its lifetime:
 // the UI calls prepare() with a scanned address and PIN, then starts the service,
@@ -78,6 +79,10 @@ object MeshnetSession {
             override fun onMessage(topic: String, data: ByteArray?) {
               Log.d(TAG, "message: $topic (${data?.size ?: 0} bytes)")
             }
+
+            override fun onStreamRequest(target: String?, stream: Stream?) {
+              stream?.close()
+            }
           }
       val c = Meshnetmobile.newClient(serverAddr, pin, Build.MODEL, listener)
       client = c
@@ -92,6 +97,31 @@ object MeshnetSession {
         Log.e(TAG, "connect failed: ${e.message}")
       }
     }
+  }
+
+  // Sends device traffic from the VPN's fd through the server
+  // MESHnet owns the fd from here on and closes it including on refusal
+  // Returns false if no connected session
+  fun startForwarding(vpn: android.os.ParcelFileDescriptor) : Boolean {
+    val c = client
+    if (c == null) {
+      vpn.close()
+      return false
+    }
+
+    return try {
+      c.startForwarding(vpn.detachFd().toLong())
+      Log.d(TAG, "forwarding started")
+      true
+    } catch (e: Exception) {
+      Log.e(TAG, "start forwarding failed: ${e.message}")
+      false
+    }
+  }
+
+  // stops forwarding and closes the fd
+  fun stopForwarding() {
+    client?.stopForwarding()
   }
 
   fun disconnect() {
