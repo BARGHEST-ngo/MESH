@@ -60,6 +60,8 @@ class VPNServiceBuilder(private val builder: VpnService.Builder) {
   fun setMTU(p0: Int) {
     builder.setMtu(p0)
   }
+
+  fun establishVpn(): android.os.ParcelFileDescriptor? = builder.establish()
 }
 
 // FAKE(meshnet): libtailscale is removed, so this no longer implements libtailscale.ParcelFileDescriptor
