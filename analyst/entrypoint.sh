@@ -23,7 +23,6 @@ MESH_STATE_DIR="${MESH_STATE_DIR:-$HOME/.tailscale}"
 # predictable host port (published in compose.yml). Required for p2p without
 # host networking, since UPnP/PMP can't be done from inside a bridged netns.
 MESH_PORT="${MESH_PORT:-41641}"
-
 if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
     echo "Set the LOGIN_URL and AUTH_KEY environment variables in .env to run the MESH analyst client." >&2
     exit 1
@@ -38,13 +37,26 @@ RANDOM_HOSTNAME="${RANDOM_HOSTNAME:0:$HOSTNAME_LEN}"
     --port="${MESH_PORT}" \
     2>&1 | tee "${MESH_STATE_DIR}/mesh.log" &
 
-/usr/bin/tailscale up \
-    --reset \
-    --login-server="${LOGIN_URL}" \
-    --auth-key="${AUTH_KEY}" \
-    --hostname="${RANDOM_HOSTNAME}" \
-    --accept-dns=false \
-    --timeout=10s \
-    2>&1 | tee "${MESH_STATE_DIR}/meshcli.log"
+# wait for the daemon socket, then enroll only when this node has no login
+# yet; an enrolled node reconnects from persisted state, so operator-set
+# preferences (e.g. `mesh set --advertise-exit-node`) survive restarts
+BACKEND_STATE=""
+for _ in $(seq 1 20); do
+    BACKEND_STATE=$(/usr/bin/tailscale status --json 2>/dev/null |
+        sed -n 's/.*"BackendState": *"\([^"]*\)".*/\1/p' | head -1) || true
+    [ -n "${BACKEND_STATE}" ] && break
+    sleep 0.5
+done
+
+if [ "${BACKEND_STATE}" = "NeedsLogin" ] || [ -z "${BACKEND_STATE}" ]; then
+    /usr/bin/tailscale up \
+        --reset \
+        --login-server="${LOGIN_URL}" \
+        --auth-key="${AUTH_KEY}" \
+        --hostname="${RANDOM_HOSTNAME}" \
+        --accept-dns=false \
+        --timeout=10s \
+        2>&1 | tee "${MESH_STATE_DIR}/meshcli.log"
+fi
 
 exec tail -f "${MESH_STATE_DIR}/mesh.log" "${MESH_STATE_DIR}/meshcli.log"
