@@ -615,14 +615,13 @@ class MainActivity : ComponentActivity() {
                     QRScanStep(
                         onScanned = { uri ->
                             showQRScanFromHome = false
-                            handleMeshIntent(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+                            processMeshUri(Uri.parse(uri))
                         },
                         onSkip = { showQRScanFromHome = false },
                     )
                 }
             }
         }
-        handleMeshIntent(intent)
     }
 
     private fun showOtherVPNConflictDialog() {
@@ -735,10 +734,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun handleMeshIntent(intent: Intent) {
-        if (intent.action != Intent.ACTION_VIEW || intent.data?.scheme != "mesh") return
+    private fun processMeshUri(uri: Uri) {
         val blob =
-            intent.data?.getQueryParameter("d") ?: run {
+            uri.getQueryParameter("d") ?: run {
                 Log.e("MainActivity", "mesh intent: missing payload")
                 return
             }
@@ -770,7 +768,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleMeshIntent(intent)
         if (intent.getBooleanExtra(START_AT_ROOT, false)) {
             if (this::navController.isInitialized) {
                 val previousEntry = navController.previousBackStackEntry
