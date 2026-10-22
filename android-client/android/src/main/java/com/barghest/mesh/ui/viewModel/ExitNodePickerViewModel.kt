@@ -153,6 +153,12 @@ class ExitNodePickerViewModel(private val nav: ExitNodePickerNav) : IpnViewModel
     LoadingIndicator.start()
     val prefsOut = Ipn.MaskedPrefs()
     prefsOut.ExitNodeID = node.id
+    if (node.id != null) {
+      // MagicDNS resolution breaks while routing through an exit node
+      // (the tailnet has no global upstream resolver), so turn it off
+      // together with the selection. Deselecting leaves CorpDNS as-is.
+      prefsOut.CorpDNS = false
+    }
 
     Client(viewModelScope).editPrefs(prefsOut) {
       nav.onNavigateBackHome()
