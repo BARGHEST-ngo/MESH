@@ -2,7 +2,7 @@ module github.com/BARGHEST-ngo/MESH
 
 go 1.26
 
-toolchain go1.26.3
+toolchain go1.26.10
 
 require (
 	github.com/BARGHEST-ngo/amnezia-wireguard-go v0.2.0-alpha.2
