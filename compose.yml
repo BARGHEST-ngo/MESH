@@ -48,6 +48,10 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    # Exit-node support: forwarding is per-netns, host sysctls don't apply here
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
     devices:
       - /dev/net/tun:/dev/net/tun
     # Bridged networking preserves netns isolation between the analyst (which
