@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"net"
-	"net/netip"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -23,7 +22,6 @@ import (
 	rt "github.com/botherder/go-savetime/runtime"
 	"github.com/google/uuid"
 	"github.com/peterbourgon/ff/v3/ffcli"
-	"tailscale.com/tailcfg"
 )
 
 type AndroidPeer struct {
@@ -140,26 +138,6 @@ func runAdbPair(ctx context.Context, args []string) error {
 }
 
 func checkDataPath(ctx context.Context, ip string) error {
-	addr, err := netip.ParseAddr(ip)
-	if err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
-	defer cancel()
-
-	// Confirm wireguard path
-	// (should never fail if device is listed in `mesh status`)
-	if _, err := localClient.Ping(ctx, addr, tailcfg.PingDisco); err != nil {
-		return fmt.Errorf("device %s is not reachable on the MESH network: %w", ip, err)
-	}
-
-	// Confirm data can be exchanged
-	if _, err := localClient.Ping(ctx, addr, tailcfg.PingTSMP); err != nil {
-		return fmt.Errorf("device %s is reachable on the MESH network, but the data path is broken\n"+
-			"error: %w\n\n"+
-			"Toggle WiFi on the Android device and retry", ip, err)
-	}
 
 	return nil
 }
@@ -294,29 +272,7 @@ func selectAndroidPeer(ctx context.Context) (*AndroidPeer, error) {
 }
 
 func getAndroidPeers(ctx context.Context) ([]AndroidPeer, error) {
-	status, err := localClient.Status(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get MESH status: %w", err)
-	}
-
 	out := make([]AndroidPeer, 0)
-	for _, p := range status.Peers() {
-		peer := status.Peer[p]
-		if peer.OS != "android" {
-			continue
-		}
-
-		if len(peer.TailscaleIPs) == 0 {
-			continue
-		}
-
-		out = append(out, AndroidPeer{
-			IP:       peer.TailscaleIPs[0].String(),
-			HostName: sanitizeForTerminal(peer.HostName),
-			DNSName:  peer.DNSName,
-		})
-
-	}
 	return out, nil
 }
 
