@@ -1,4 +1,0 @@
-[submodule "tailscale"]
-	path = tailscale
-	url = git@github.com:BARGHEST-ngo/tailscale-patched.git
-	branch = main
