@@ -52,31 +52,6 @@ tasks:
       - defer: '{{if .EXIT_CODE}}rm -f .env && printf "\033[1;33mConfiguration cleared. Run task controlPlane to start again.\033[0m\n"{{end}}'
       - task confirmConfig 2>/dev/null
 
-  controlPlaneType:
-    internal: true
-    if: '[ -z $CONTROL_PLANE_TYPE ]'
-    cmds:
-      - |
-        printf "\033[1;36m╔══════════════════════════════════════════════════════════════════╗\033[0m\n"
-        printf "\033[1;36m║\033[0m\033[1;37m Will you be setting up an ephemeral or persistent control plane? \033[0m\033[1;36m║\033[0m\n"
-        printf "\033[1;36m╚══════════════════════════════════════════════════════════════════╝\033[0m\n"
-      - task: promptControlPlaneType
-
-  promptControlPlaneType:
-    internal: true
-    requires:
-      vars:
-        - name: CONTROL_PLANE_TYPE
-          enum:
-            - Ephemeral (runs on your workstation and accessed via tunneling service like ngrok)
-            - Persistent (runs on a dedicated internet-facing server)
-    vars:
-      CONTROL_PLANE_TYPE_VALUE: "{{.CONTROL_PLANE_TYPE}}"
-      FINAL_CONTROL_PLANE_TYPE: '{{if .CONTROL_PLANE_TYPE_VALUE | contains "Ephemeral"}}Ephemeral{{else}}Persistent{{end}}'
-    cmd: echo CONTROL_PLANE_TYPE={{.FINAL_CONTROL_PLANE_TYPE}} >> .env && printf "\033[1;32m{{.FINAL_CONTROL_PLANE_TYPE}} control plane selected.\033[0m\n\n"
-    deps:
-      - createDotEnv
-
   proxyType:
     internal: true
     if: 'grep -q "CONTROL_PLANE_TYPE=Ephemeral" .env 2>/dev/null'
@@ -150,30 +125,6 @@ tasks:
     cmds:
       - printf "\033[1;32mLogin URL set to {{.FINAL_LOGIN_URL}}.\033[0m\n\n"
       - echo "LOGIN_URL={{.FINAL_LOGIN_URL}}" >> .env
-    deps:
-      - createDotEnv
-
-  promptAnalystAuthKey:
-    internal: true
-    requires:
-      vars:
-        - NEW_AUTH_KEY
-    cmds:
-      - printf "\033[1;32mAnalyst auth key set to {{.NEW_AUTH_KEY}}.\033[0m\n\n"
-      - cmd: >
-          grep -s AUTH_KEY .env &&
-          sed -i "s/^AUTH_KEY=.*$/AUTH_KEY={{.NEW_AUTH_KEY}}/" .env ||
-          echo "AUTH_KEY={{.NEW_AUTH_KEY}}" >> .env
-        platforms: [linux]
-      - cmd: >
-          grep -s AUTH_KEY .env &&
-          sed -i '' "s/^AUTH_KEY=.*$/AUTH_KEY={{.NEW_AUTH_KEY}}/" .env ||
-          echo "AUTH_KEY={{.NEW_AUTH_KEY}}" >> .env
-        platforms: [darwin]
-      - cmd: >
-          powershell -Command
-          "if (Select-String -Path '.env' -Pattern '^AUTH_KEY=' -Quiet) { (Get-Content '.env') -replace '^AUTH_KEY=.*$', 'AUTH_KEY={{.NEW_AUTH_KEY}}' | Set-Content '.env' } else { Add-Content '.env' 'AUTH_KEY={{.NEW_AUTH_KEY}}' }"
-        platforms: [windows]
     deps:
       - createDotEnv
 
