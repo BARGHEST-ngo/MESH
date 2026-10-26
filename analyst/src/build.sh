@@ -24,34 +24,7 @@ echo ""
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-BUILD_DIR="$ROOT_DIR/tailscale"
-
 echo "ROOT_DIR=$ROOT_DIR"
-echo "BUILD_DIR=$BUILD_DIR"
-
-if [ ! -d "$BUILD_DIR" ]; then
-	echo "${RED}Error: tailscale submodule missing${NC}" >&2
-	echo "Run: git submodule update --init --recursive" >&2
-	exit 1
-fi
-
-tags="${TAGS:+$TAGS,}ts_omit_logtail,ts_omit_conn25"
-
-cd "$BUILD_DIR"
-
-echo "${GREEN}Building tailscaled daemon...${NC}"
-go build \
-	-tags "$tags" \
-	-trimpath \
-	-o "$ROOT_DIR/analyst/tailscaled" \
-	./cmd/tailscaled
-
-echo "${GREEN}Building tailscale CLI...${NC}"
-go build \
-	-tags "$tags" \
-	-trimpath \
-	-o "$ROOT_DIR/analyst/tailscale" \
-	./cmd/tailscale
 
 echo "${GREEN}Building mesh CLI...${NC}"
 cd "$ROOT_DIR/analyst"
