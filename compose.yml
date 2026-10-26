@@ -1,45 +1,4 @@
 services:
-  frpc:
-    image: snowdreamtech/frpc:latest
-    restart: unless-stopped
-    volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/frpc.toml:/etc/frp/frpc.toml:ro
-    depends_on:
-      - headscale
-
-  headscale:
-    image: docker.io/headscale/headscale:0.29.0@sha256:5d464c7ba8f5b2c1472f926fae4cd67f136d66ec108c0b4ad1891856ac6da915
-    restart: unless-stopped
-    volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/headscale:/etc/headscale
-      - headscale-data:/var/lib/headscale
-    ports:
-      - "3478:3478/udp"
-    tmpfs:
-      - /var/run/headscale
-    command: serve
-    healthcheck:
-      test: ["CMD", "headscale", "health"]
-      start_period: 5s
-      interval: 5s
-      timeout: 3s
-      retries: 3
-
-  ui:
-    build: ./control-plane/mesh-ui
-    restart: unless-stopped
-    volumes:
-      - ${LOCAL_WORKSPACE_FOLDER:-.}/control-plane/nginx.conf:/etc/nginx/nginx.conf.template
-    environment:
-      - CORS_ORIGIN=${CORS_ORIGIN:-*}
-      - NGINX_MODE=${NGINX_MODE:-prod}
-      - CONTROL_PLANE_URL=${CONTROL_PLANE_URL}
-    depends_on:
-      - headscale
-    ports:
-      - "127.0.0.1:80:8080"
-    entrypoint: /bin/sh -c "envsubst '$$CORS_ORIGIN $$NGINX_MODE $$CONTROL_PLANE_URL' < /etc/nginx/nginx.conf.template > /tmp/nginx.conf && nginx -c /tmp/nginx.conf -g 'daemon off;'"
-
   analyst:
     build:
       context: .
@@ -56,16 +15,10 @@ services:
     ports:
       - "${MESH_PORT:-41641}:${MESH_PORT:-41641}/udp"
     volumes:
-      - analyst-data:/home/mesh/.tailscale
       # Default outside the repo tree: acquisitions hold pulled APKs and a
       # device backup and must not land in the working copy. Override with
       # ACQUISITION_DIR in .env to point at a dedicated evidence store.
       - ${ACQUISITION_DIR:-${HOME}/mesh-acquisitions}:/home/mesh/acquisitions
-    environment:
-      - LOGIN_URL=${LOGIN_URL:-https://${CONTROL_PLANE_DOMAIN}}
-      - AUTH_KEY=${AUTH_KEY:-}
-      - MESH_PORT=${MESH_PORT:-41641}
 
 volumes:
-  headscale-data:
   analyst-data:
