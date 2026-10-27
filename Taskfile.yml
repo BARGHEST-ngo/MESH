@@ -34,16 +34,9 @@ tasks:
   analyst:
     desc: Enter an interactive shell in the MESH analyst client container
     cmds:
-      - docker compose up -d analyst
+      - docker compose up -d --build analyst
       - docker compose exec --user mesh analyst /bin/bash
-    deps:
-      - configureAnalyst
-
-  configureAnalyst:
-    cmds:
-      - task: loginUrl
-      - task: confirmDotEnv
-
+      
 #################################
 # Internal tasks
 #################################
