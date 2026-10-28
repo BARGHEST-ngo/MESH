@@ -4,7 +4,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -31,47 +30,33 @@ func main() {
 
 	fmt.Printf("MESH address: %s\n\nRun 'pin' to pair a device\n", addr)
 
-	lines := make(chan string)
-	go func() {
-		sc := bufio.NewScanner(os.Stdin)
-		for sc.Scan() {
-			lines <- sc.Text()
-		}
-		close(lines)
-	}()
-
+	in := cmd.NewInput(os.Stdin)
 	for {
-		fmt.Print("meshcli> ")
-		select {
-		case <-ctx.Done():
-			fmt.Println()
+		line, err := in.ReadLine(ctx, "meshcli> ")
+		if err != nil {
+			return // Ctrl-C or end of input
+		}
+		args := strings.Fields(line)
+		switch {
+		case len(args) == 0:
+			continue
+		case args[0] == "quit" || args[0] == "exit":
 			return
-		case line, ok := <-lines:
-			if !ok {
-				return // stdin closed (Ctrl-D)
-			}
-			args := strings.Fields(line)
-			switch {
-			case len(args) == 0:
-				continue
-			case args[0] == "quit" || args[0] == "exit":
-				return
-			}
-			if err := commands(s).ParseAndRun(ctx, args); err != nil && err != flag.ErrHelp {
-				fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			}
+		}
+		if err := commands(s, in).ParseAndRun(ctx, args); err != nil && err != flag.ErrHelp {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		}
 	}
 }
 
-func commands(s *session.Session) *ffcli.Command {
+func commands(s *session.Session, in *cmd.Input) *ffcli.Command {
 	root := &ffcli.Command{
 		Name:       "meshcli",
 		ShortUsage: "<command> [flags]",
 		FlagSet:    flag.NewFlagSet("meshcli", flag.ContinueOnError),
 		Subcommands: []*ffcli.Command{
 			cmd.PinCmd(s),
-			cmd.AdbPairCmd(),
+			cmd.AdbPairCmd(s, in),
 			cmd.AdbcollectCmd(),
 			cmd.AdbdisableCmd(),
 			cmd.AdbcleanCmd(),
