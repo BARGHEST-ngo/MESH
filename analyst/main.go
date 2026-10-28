@@ -14,6 +14,7 @@ import (
 	"github.com/BARGHEST-ngo/MESH/analyst/cmd"
 	"github.com/BARGHEST-ngo/MESH/analyst/session"
 	"github.com/peterbourgon/ff/v3/ffcli"
+	"github.com/skip2/go-qrcode"
 )
 
 func main() {
@@ -28,6 +29,12 @@ func main() {
 	}
 	defer s.Stop()
 
+	qr, err := qrcode.New(addr, qrcode.Low)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "qr code: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println(qr.ToSmallString(false))
 	fmt.Printf("MESH address: %s\n\nRun 'pin' to pair a device\n", addr)
 
 	in := cmd.NewInput(os.Stdin)
