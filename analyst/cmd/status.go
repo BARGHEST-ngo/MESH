@@ -5,10 +5,10 @@ package cmd
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"strings"
 
+	"github.com/BARGHEST-ngo/MESH/analyst/session"
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
 
@@ -28,34 +28,37 @@ func sanitizeForTerminal(s string) string {
 	return fmt.Sprintf("%q", s)
 }
 
-func StatusCmd() *ffcli.Command {
-	fs := flag.NewFlagSet("status", flag.ContinueOnError)
-	fs.BoolVar(&statusArgs.json, "json", false, "output in JSON format")
-	fs.BoolVar(&statusArgs.web, "web", false, "run webserver with HTML showing status")
-	fs.BoolVar(&statusArgs.active, "active", false, "filter output to only peers with active sessions")
-	fs.BoolVar(&statusArgs.self, "self", true, "show status of local machine")
-	fs.BoolVar(&statusArgs.peers, "peers", true, "show status of peers")
-	fs.StringVar(&statusArgs.listen, "listen", "127.0.0.1:8384", "listen address for web mode")
-	fs.BoolVar(&statusArgs.browser, "browser", true, "open a browser in web mode")
-
+func StatusCmd(s *session.Session) *ffcli.Command {
 	return &ffcli.Command{
 		Name:       "status",
-		ShortUsage: "meshcli status [--active] [--web] [--json]",
+		ShortUsage: "status [--active] [--web] [--json]",
 		ShortHelp:  "Show state of MESH network and its connections",
-		LongHelp: strings.TrimSpace(`
-Shows the current status of the MESH daemon and its connections.
-
-By default, shows a human-readable summary of the current state.
-Use --json for machine-readable output.
-Use --web to start a local web server showing the status.
-Use --active to show only peers with active sessions.
-`),
-		FlagSet: fs,
-		Exec:    runStatus,
+		Exec: func(ctx context.Context, args []string) error {
+			return runStatus(ctx, args, s)
+		},
 	}
 }
 
-func runStatus(ctx context.Context, args []string) error {
-	// Tailscale removed, will review flags when adding MESHnet support
+func runStatus(ctx context.Context, args []string, s *session.Session) error {
+	pin := s.PairingPIN()
+	if pin == "" {
+		fmt.Println("Pairing: none, run 'pin' to pair a device.")
+	} else {
+		fmt.Printf("Pairing: pending (PIN: %s)\n", pin)
+	}
+
+	devices := s.Clients()
+	fmt.Printf("Devices: %d connected\n", len(devices))
+	for _, d := range devices {
+		fmt.Printf("\t%q\t%s\n", d.Name, shortID(d.ID))
+	}
 	return nil
+}
+
+func shortID(id string) string {
+	id = strings.TrimPrefix(id, "nodekey:")
+	if len(id) > 8 {
+		id = id[:8]
+	}
+	return id
 }

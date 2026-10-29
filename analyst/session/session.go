@@ -54,6 +54,10 @@ func (s *Session) NewPairing() (string, error) {
 	return s.srv.NewPairing()
 }
 
+func (s *Session) PairingPIN() string {
+	return s.srv.PairingPIN()
+}
+
 func (s *Session) Clients() []meshnet.ClientInfo {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -4,44 +4,46 @@
 package cmd
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
+
+	"golang.org/x/term"
 )
 
 type Input struct {
-	lines <-chan string
+	t  *term.Terminal
+	fd int
 }
 
 func NewInput(r io.Reader) *Input {
-	lines := make(chan string)
-	go func() {
-		sc := bufio.NewScanner(r)
-		for sc.Scan() {
-			lines <- sc.Text()
-		}
-		close(lines)
-	}()
-	return &Input{lines: lines}
+	rw := struct {
+		io.Reader
+		io.Writer
+	}{os.Stdin, os.Stdout}
+
+	return &Input{
+		t:  term.NewTerminal(rw, ""),
+		fd: int(os.Stdin.Fd()),
+	}
+}
+
+func (in *Input) Output() io.Writer {
+	return in.t
 }
 
 // ReadLine prints msg and returns the next line
 // It returns ctx's error on Ctrl-C and io.EOF when input ends
 func (in *Input) ReadLine(ctx context.Context, msg string) (string, error) {
-	fmt.Print(msg)
-	select {
-	case <-ctx.Done():
-		fmt.Println()
-		return "", ctx.Err()
-	case line, ok := <-in.lines:
-		if !ok {
-			return "", io.EOF
-		}
-		return strings.TrimSpace(line), nil
+	in.t.SetPrompt(msg)
+	if old, err := term.MakeRaw(in.fd); err == nil {
+		defer term.Restore(in.fd, old)
 	}
+	line, err := in.t.ReadLine()
+	return strings.TrimSpace(line), err
 }
 
 // ReadValid asks until validate accepts the answer
