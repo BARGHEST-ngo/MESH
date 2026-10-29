@@ -1,8 +1,6 @@
-go 1.26.3
+go 1.27.1
 
 use (
 	.
 	./analyst
 )
-
-replace tailscale.com => github.com/BARGHEST-ngo/mesh-tailscale v1.95.0-pre.0.20260602113745-edfc235e37f0

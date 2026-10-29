@@ -1,4 +1,4 @@
-FROM golang:1.26.3-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS build
+FROM golang:1.27.1-alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414 AS build
 
 RUN apk add --no-cache git patch
 
@@ -12,12 +12,10 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Cache analyst module deps separately
-COPY tailscale/go.mod tailscale/go.sum ./tailscale/
 COPY analyst/go.mod analyst/go.sum ./analyst/
 RUN cd analyst && go mod download
 
 COPY analyst ./analyst
-COPY tailscale ./tailscale
 RUN ./analyst/src/build.sh
 
 FROM debian:trixie-slim@sha256:4e401d95de7083948053197a9c3913343cd06b706bf15eb6a0c3ccd26f436a0e
@@ -36,7 +34,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && useradd  --system --uid 1000 --gid 1000 \
                 --create-home --home-dir /home/mesh \
                 --shell /bin/bash mesh \
-    && mkdir -p /home/mesh/.tailscale \
     && mkdir -p /home/mesh/acquisitions \
     && chown -R mesh:mesh /home/mesh \
     && setcap cap_net_admin,cap_net_raw+eip /usr/bin/tcpdump
@@ -58,12 +55,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV PATH="/opt/mvt/bin:$PATH"
 
-COPY --from=build       /usr/src/app/analyst/tailscaled  /usr/bin/tailscaled
-COPY --from=build       /usr/src/app/analyst/tailscale   /usr/bin/tailscale
-COPY --from=build       /usr/src/app/analyst/mesh        /usr/bin/mesh
+COPY --from=build       /usr/src/app/analyst/mesh        /usr/bin/meshcli
 COPY --chmod=755        analyst/entrypoint.sh            /usr/bin/entrypoint.sh
-COPY --chown=mesh:mesh  analyst/bashrc                   /home/mesh/.bashrc
-COPY                    analyst/amneziawg.conf.example   /etc/mesh/amneziawg.conf.example
 
 #entrypoint.sh fixes its ownership before dropping
 #privileges, since bind mounts arrive root-owned.

@@ -80,8 +80,24 @@ object MeshnetSession {
               Log.d(TAG, "message: $topic (${data?.size ?: 0} bytes)")
             }
 
-            override fun onStreamRequest(target: String?, stream: Stream?) {
-              stream?.close()
+            override fun onStreamRequest(target: String, stream: Stream) {
+              if (gen != generation.get()) {
+                stream.close()
+                return
+              }
+              try {
+                val port = allowedAdbPort(target)
+                if (port == null) {
+                  Log.w(TAG, "refusing stream for $target")
+                  return
+                }
+                Log.d(TAG, "stream for $target, proxying to adb")
+                Meshnetmobile.proxy(stream, "127.0.0.1:$port")// returns when either side closes
+              } catch (e: Exception) {
+                Log.e(TAG, "stream for $target: ${e.message}")
+              } finally {
+                stream.close()
+              }
             }
           }
       val c = Meshnetmobile.newClient(serverAddr, pin, Build.MODEL, listener)
@@ -124,6 +140,18 @@ object MeshnetSession {
     client?.stopForwarding()
   }
 
+  private fun allowedAdbPort(target: String): Int? {
+    if (!target.startsWith("adb:")) {
+      return null
+    }
+
+    val port = target.removePrefix("adb:").toIntOrNull()
+    if (port == null || port !in 1..65535) {
+      return null
+    }
+
+    return port
+  }
   fun disconnect() {
     scope.launch { disconnectCurrent() }
   }

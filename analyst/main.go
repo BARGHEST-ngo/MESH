@@ -8,57 +8,76 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
 
 	"github.com/BARGHEST-ngo/MESH/analyst/cmd"
+	"github.com/BARGHEST-ngo/MESH/analyst/session"
 	"github.com/peterbourgon/ff/v3/ffcli"
+	"github.com/skip2/go-qrcode"
 )
 
-var nativeCommands = map[string]bool{
-	"adbpair":    true,
-	"adbcollect": true,
-	"adbdisable": true,
-	"adbclean":   true,
-	"status":     true,
-	"help":       true,
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	s := session.New(os.Stdout)
+	addr, err := s.Start()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "start: %v\n", err)
+		os.Exit(1)
+	}
+	defer s.Stop()
+
+	qr, err := qrcode.New(addr, qrcode.Low)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "qr code: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println(qr.ToSmallString(false))
+	fmt.Printf("MESH address: %s\n\nRun 'pin' to pair a device\n", addr)
+
+	in := cmd.NewInput(os.Stdin)
+	for {
+		line, err := in.ReadLine(ctx, "meshcli> ")
+		if err != nil {
+			return // Ctrl-C or end of input
+		}
+		args := strings.Fields(line)
+		switch {
+		case len(args) == 0:
+			continue
+		case args[0] == "quit" || args[0] == "exit":
+			return
+		}
+		if err := commands(s, in).ParseAndRun(ctx, args); err != nil && err != flag.ErrHelp {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		}
+	}
 }
 
-func main() {
-	var command string
-	if len(os.Args) > 1 {
-		command = os.Args[1]
-	}
-	if command != "" && !strings.HasPrefix(command, "-") && !nativeCommands[command] {
-		if err := cmd.ExecTailscale(os.Args[1:]); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
-		}
-		return
-	}
-
+func commands(s *session.Session, in *cmd.Input) *ffcli.Command {
 	root := &ffcli.Command{
 		Name:       "meshcli",
-		ShortUsage: "meshcli <command> [flags]",
-		ShortHelp:  "MESH analyst CLI",
-		LongHelp:   "Native MESH commands are listed below. Standard tailscale commands are also supported.",
+		ShortUsage: "<command> [flags]",
+		FlagSet:    flag.NewFlagSet("meshcli", flag.ContinueOnError),
 		Subcommands: []*ffcli.Command{
-			cmd.AdbPairCmd(),
+			cmd.PinCmd(s),
+			cmd.AdbPairCmd(s, in),
 			cmd.AdbcollectCmd(),
 			cmd.AdbdisableCmd(),
 			cmd.AdbcleanCmd(),
 			cmd.StatusCmd(),
 		},
-		FlagSet: flag.NewFlagSet("meshcli", flag.ContinueOnError),
 		Exec: func(ctx context.Context, args []string) error {
 			fmt.Fprintf(os.Stderr, "Run 'meshcli help' for usage.\n")
 			return flag.ErrHelp
 		},
 	}
 
-	if err := root.ParseAndRun(context.Background(), os.Args[1:]); err != nil {
-		if err != flag.ErrHelp {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
-		}
+	root.Exec = func(ctx context.Context, args []string) error {
+		fmt.Println(ffcli.DefaultUsageFunc(root))
+		return nil
 	}
+	return root
 }
