@@ -67,6 +67,10 @@ func (s *Session) Clients() []meshnet.ClientInfo {
 	return out
 }
 
+func (s *Session) Disconnect(clientID string) error {
+	return s.srv.DisconnectClient(clientID)
+}
+
 // BridgeADB lets local adb reach a port on the device.
 // It listens on a local port and turns each connection into an "adb:<devicePort>" stream to the device
 // The bridge closes when the device disconnects or the session stops.
