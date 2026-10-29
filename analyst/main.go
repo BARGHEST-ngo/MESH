@@ -67,7 +67,7 @@ func commands(s *session.Session, in *cmd.Input) *ffcli.Command {
 			cmd.AdbcollectCmd(),
 			cmd.AdbdisableCmd(),
 			cmd.AdbcleanCmd(),
-			cmd.StatusCmd(),
+			cmd.StatusCmd(s),
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			fmt.Fprintf(os.Stderr, "Run 'meshcli help' for usage.\n")
