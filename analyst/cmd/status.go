@@ -6,6 +6,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/BARGHEST-ngo/MESH/analyst/session"
 	"github.com/peterbourgon/ff/v3/ffcli"
@@ -49,7 +50,15 @@ func runStatus(ctx context.Context, args []string, s *session.Session) error {
 	devices := s.Clients()
 	fmt.Printf("Devices: %d connected\n", len(devices))
 	for _, d := range devices {
-		fmt.Printf("\t%q\t%s\n", d.Name, d.ID)
+		fmt.Printf("\t%q\t%s\n", d.Name, shortID(d.ID))
 	}
 	return nil
+}
+
+func shortID(id string) string {
+	id = strings.TrimPrefix(id, "nodekey:")
+	if len(id) > 8 {
+		id = id[:8]
+	}
+	return id
 }
