@@ -21,7 +21,8 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	s := session.New(os.Stdout)
+	in := cmd.NewInput(os.Stdin)
+	s := session.New(in.Output())
 	addr, err := s.Start()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "start: %v\n", err)
@@ -37,7 +38,6 @@ func main() {
 	fmt.Println(qr.ToSmallString(false))
 	fmt.Printf("MESH address: %s\n\nRun 'pin' to pair a device\n", addr)
 
-	in := cmd.NewInput(os.Stdin)
 	for {
 		line, err := in.ReadLine(ctx, "meshcli> ")
 		if err != nil {
