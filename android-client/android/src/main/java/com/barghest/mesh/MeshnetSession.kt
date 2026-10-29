@@ -115,6 +115,31 @@ object MeshnetSession {
     }
   }
 
+  // Sends device traffic from the VPN's fd through the server
+  // MESHnet owns the fd from here on and closes it including on refusal
+  // Returns false if no connected session
+  fun startForwarding(vpn: android.os.ParcelFileDescriptor) : Boolean {
+    val c = client
+    if (c == null) {
+      vpn.close()
+      return false
+    }
+
+    return try {
+      c.startForwarding(vpn.detachFd().toLong())
+      Log.d(TAG, "forwarding started")
+      true
+    } catch (e: Exception) {
+      Log.e(TAG, "start forwarding failed: ${e.message}")
+      false
+    }
+  }
+
+  // stops forwarding and closes the fd
+  fun stopForwarding() {
+    client?.stopForwarding()
+  }
+
   private fun allowedAdbPort(target: String): Int? {
     if (!target.startsWith("adb:")) {
       return null
