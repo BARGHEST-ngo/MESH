@@ -30,13 +30,13 @@ func validatePairingCode(code string) error {
 
 func disconnect(serial string) error {
 	if serial == "" {
-		fmt.Printf("Disconnecting all devices...\n")
+		fmt.Printf("Removing all devices from local ADB...\n")
 		out, err := exec.Command(adb.Client.ExePath, "disconnect").Output()
 		if err != nil {
 			return fmt.Errorf("failed to disconnect all devices: %v\nOutput: %s", err, string(out))
 		}
 	} else {
-		fmt.Printf("Disconnecting device %s...\n", serial)
+		fmt.Printf("Removing device %s from local ADB...\n", serial)
 		out, err := exec.Command(adb.Client.ExePath, "disconnect", serial).Output()
 		if err != nil {
 			return fmt.Errorf("failed to disconnect device %s: %v\nOutput: %s", serial, err, string(out))
