@@ -78,7 +78,7 @@ Traditional VPN and hub-and-spoke designs add persistent infrastructure risk, ce
 
 ## Supported by
 
-<img width="738" height="234" alt="image" src="https://github.com/user-attachments/assets/f5101e85-811f-4687-b8b2-53a563a98a49" />
+<img width="138" height="34" alt="image" src="https://github.com/user-attachments/assets/f5101e85-811f-4687-b8b2-53a563a98a49" />
 
 MESH is supported by the [Open Technology Fund](https://www.opentech.fund/) to support the consensual remote forensics of spyware and surveillance targeting Human Right Defenders.
 
