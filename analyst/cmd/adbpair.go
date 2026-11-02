@@ -108,6 +108,8 @@ func runAdbPair(ctx context.Context, args []string, s *session.Session, in *Inpu
 		return err
 	}
 
+	s.SetADBAddr(dev.ID, debugAddr)
+
 	fmt.Println("Device connected. You may proceed with the acquisition: run 'adbcollect'")
 	if runQF {
 		return qf(debugAddr)
@@ -142,15 +144,6 @@ func initADB() error {
 		return fmt.Errorf("failed to initialise ADB: %w", err)
 	}
 	adb.Client = adbClient
-
-	devices, err := adb.Client.Devices()
-	if err != nil {
-		return fmt.Errorf("failed to get devices: %w", err)
-	}
-	if len(devices) > 0 {
-		fmt.Printf("found existing ADB devices: %v\n", devices)
-		return disconnect("")
-	}
 	return nil
 }
 

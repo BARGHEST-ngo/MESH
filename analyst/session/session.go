@@ -26,6 +26,7 @@ type Session struct {
 type device struct {
 	info    meshnet.ClientInfo
 	bridges []net.Listener
+	adbAddr string
 }
 
 const streamOpenTimeout = 10 * time.Second
@@ -100,6 +101,27 @@ func (s *Session) BridgeADB(clientID string, devicePort int) (localAddr string, 
 
 	go s.serveBridge(ln, clientID, fmt.Sprintf("adb:%d", devicePort))
 	return ln.Addr().String(), nil
+}
+
+func (s *Session) SetADBAddr(clientID, addr string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	d := s.devices[clientID]
+	if d == nil {
+		return
+	}
+	d.adbAddr = addr
+}
+
+func (s *Session) ADBAddr(clientID string) string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	d := s.devices[clientID]
+	if d == nil {
+		return ""
+	}
+
+	return d.adbAddr
 }
 
 func (s *Session) serveBridge(ln net.Listener, clientId, target string) {
