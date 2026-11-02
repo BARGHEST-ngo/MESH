@@ -6,8 +6,8 @@
   <p>
     <a href="https://docs.meshforensics.org/"><img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square" alt="Documentation" /></a>
     <a href="#"><img src="https://img.shields.io/badge/status-public%20beta-orange?style=flat-square" alt="Public Beta Status" /></a>
-    <a href="https://deepwiki.com/BARGHEST-ngo/MESH"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/BARGHEST-ngo/MESH?style=flat-square" alt="License" /></a>
+    <a href="https://deepwiki.com/BARGHEST-ngo/MESH"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
     <a href="https://github.com/BARGHEST-ngo/MESH/releases"><img src="https://img.shields.io/github/v/release/BARGHEST-ngo/MESH?include_prereleases&style=flat-square" alt="Latest Release" /></a>
   </p>
   <p>
