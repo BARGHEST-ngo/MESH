@@ -193,13 +193,51 @@ Set on every response, always:
 - `X-Frame-Options: DENY`.
 - `X-XSS-Protection: 1; mode=block`.
 
+## `Provisioner stack`
+
+Path: `provisioning/compose.yml`  
+
+Separate compose stack for the provisioning service, run from the `provisioning/` directory.  
+
+### Service: `provisioner`
+
+- Environment: HOST_DATA_PATH, provisoner.env
+- Volumes: `/var/lib/mesh-provisioner` (deployment state), `/var/run/docker.sock`
+
+### Service: `provisioner-admin`
+
+- Same image, different binary (/admin)
+- profiles: [admin] not started by default
+- Shares the same data volume as provisioner
+
+### Service: `traefik`
+
+- TLS termination vi Let's Encrypt
+- Reads docker labels to auto-configure routes
+- Port 443 only published externally
+
+---
+
+## `provisioning/Dockerfile`
+
+Two stages. Final image: FROM scratch with two statically-compiled binaries.
+
+### Stage 1: Go build
+
+- Downloads dependencies, compiles `/provisioner` and `/admin` with CGO_ENABLED=0
+
+### Stage 2: `scratch`
+
+- No shell, both binaries copied in
+- CMD ["/provisioner"] default: Compose overrides with /admin for the admin service
+
 ---
 
 ## Dependencies and assumptions
 
 - **Docker Engine with Compose V2 support**. The stack expects the modern `docker compose` plugin rather than legacy `docker-compose`.
 - **Host kernel** must expose `/dev/net/tun`. On Linux this is standard. On a stripped-down kernel you'll need `modprobe tun`.
-- **Host networking** must allow inbound on the `ui` service's bound port (defaults to `127.0.0.1:80`). A reverse proxy or tunneling service terminates TLS.
+- **Host networking** must allow inbound on the `ui` service's bound port (defaults to `127.0.0.1:80`; override with `UI_PORT`, e.g. for rootless Podman). A reverse proxy or tunneling service terminates TLS.
 - **Workspace folder path**: `${LOCAL_WORKSPACE_FOLDER:-.}` is set by the devcontainer (`remoteEnv` in `devcontainer.json`) so bind mounts resolve to the host path, not the path inside the devcontainer. Outside the devcontainer, it falls back to the repo root directory.
 
 ---

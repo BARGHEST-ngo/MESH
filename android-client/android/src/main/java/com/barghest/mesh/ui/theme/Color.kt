@@ -48,40 +48,62 @@ object LightColors {
     val Chart5 = Color(0xFFFF6B35)
 }
 
+// Dark warm-neutral palette with a terracotta signal accent.
 object DarkColors {
-    val Background = Color(0xFF2E2E2E)  
-    val Foreground = Color(0xFFFAFAFA)
-    val Card = Color(0xFF2D2D2D)
-    val CardForeground = Color(0xFFFAFAFA)
-    val Popover = Color(0xFF262626)
-    val PopoverForeground = Color(0xFFFAFAFA)
-    val Primary = Color(0xFF5B7FFF)
-    val PrimaryForeground = Color(0xFFFAFAFA)
-    val Secondary = Color(0xFF404040)
-    val SecondaryForeground = Color(0xFFFAFAFA)
-    val Muted = Color(0xFF383838)
-    val MutedForeground = Color(0xFFA6A6A6)
-    val Accent = Color(0xFF525252)
-    val AccentForeground = Color(0xFFFAFAFA)
-    val Destructive = Color(0xFFDC2626)
-    val DestructiveForeground = Color(0xFFFAFAFA)
-    val Border = Color(0xFF4D4D4D)
-    val Input = Color(0xFF333333)
-    val Ring = Color(0xFF5B7FFF)
-    val Sidebar = Color(0xFF2D2D2D)
-    val SidebarForeground = Color(0xFFFAFAFA)
-    val SidebarPrimary = Color(0xFF5B7FFF)
-    val SidebarPrimaryForeground = Color(0xFFFAFAFA)
-    val SidebarAccent = Color(0xFF404040)
-    val SidebarAccentForeground = Color(0xFFFAFAFA)
-    val SidebarBorder = Color(0xFF4D4D4D)
-    val SidebarRing = Color(0xFF5B7FFF)  
+    val Background = Color(0xFF171614) // warm charcoal base
+    val Foreground = Color(0xFFF4F2ED) // warm off-white
+    val Card = Color(0xFF232220)
+    val CardForeground = Color(0xFFF4F2ED)
+    val Popover = Color(0xFF1E1D1A) // raised
+    val PopoverForeground = Color(0xFFF4F2ED)
+    val Primary = Color(0xFFE08453) // terracotta signal accent
+    val PrimaryForeground = Color(0xFFFFFFFF)
+    val Secondary = Color(0xFF2A2926) // cardHi
+    val SecondaryForeground = Color(0xFFF4F2ED)
+    val Muted = Color(0xFF1E1D1A)
+    val MutedForeground = Color(0xFF7C766C)
+    val Accent = Color(0xFF2A2926)
+    val AccentForeground = Color(0xFFF4F2ED)
+    val Destructive = Color(0xFFFF6F61) // warm coral red
+    val DestructiveForeground = Color(0xFFFFFFFF)
+    val Border = Color(0xFF34322E)
+    val Input = Color(0xFF232220)
+    val Ring = Color(0xFFE08453)
+    val Sidebar = Color(0xFF1E1D1A)
+    val SidebarForeground = Color(0xFFF4F2ED)
+    val SidebarPrimary = Color(0xFFE08453)
+    val SidebarPrimaryForeground = Color(0xFFFFFFFF)
+    val SidebarAccent = Color(0xFF2A2926)
+    val SidebarAccentForeground = Color(0xFFF4F2ED)
+    val SidebarBorder = Color(0xFF34322E)
+    val SidebarRing = Color(0xFFE08453)
 
-    val Chart1 = Color(0xFF7C7CFF)
-    val Chart2 = Color(0xFF00D9FF)
-    val Chart3 = Color(0xFF00FF99)
-    val Chart4 = Color(0xFFFFD700)
-    val Chart5 = Color(0xFFFF8C42)
+    val Chart1 = Color(0xFFE08453)
+    val Chart2 = Color(0xFF54C6C4)
+    val Chart3 = Color(0xFF4FD39B)
+    val Chart4 = Color(0xFFF0B43F)
+    val Chart5 = Color(0xFFE9786A)
+}
+
+/** MESH design tokens outside Material's ColorScheme slots; surfaced via MeshTokens.kt. */
+object MeshPalette {
+    val Bg = Color(0xFF171614)
+    val BgRaised = Color(0xFF1E1D1A)
+    val Card = Color(0xFF232220)
+    val CardHi = Color(0xFF2A2926)
+    val Border = Color(0xFF34322E)
+    val BorderHi = Color(0xFF45433D)
+    val Text = Color(0xFFF4F2ED)
+    val Text2 = Color(0xFFACA79E)
+    val Muted = Color(0xFF7C766C)
+    val MonoText = Color(0xFFD3CFC6)
+
+    val Accent = Color(0xFFE08453) // terracotta
+
+    val Green = Color(0xFF4FD39B)
+    val Cyan = Color(0xFF54C6C4)
+    val Amber = Color(0xFFF0B43F)
+    val Red = Color(0xFFFF6F61)
 }
 
 val ts_color_light_blue = Color(0xFF4B70CC)

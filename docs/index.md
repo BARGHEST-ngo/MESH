@@ -8,7 +8,7 @@ hide:
 
 !!! warning
 
-    Please be aware this project is currently in public alpha. We take security seriously, and we recommend not using this in production till we have conducted a full penetration-test. This is scheduled at the start of 2026. Features and APIs may change. Please report issues on [GitHub](https://github.com/BARGHEST-ngo/mesh).
+    Please be aware this project is currently in public beta. We take security seriously, and we recommend not using this in production till we have conducted a full penetration-test. This is scheduled at the start of 2026. Features and APIs may change. Please report issues on [GitHub](https://github.com/BARGHEST-ngo/mesh).
 
 MESH is a censorship-resisting, peer-to-peer first, end-to-end encrypted overlay network for digital forensics. It's a fork of the [Tailscale](https://github.com/tailscale/tailscale) protocol, but is self-hostable and heavily modified for civil society and forensic operations.
 

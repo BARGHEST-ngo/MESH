@@ -14,6 +14,9 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import com.barghest.mesh.ui.theme.MeshMono
+import com.barghest.mesh.ui.theme.onSuccess
+import com.barghest.mesh.ui.theme.success
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
@@ -25,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -47,6 +51,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -188,7 +193,7 @@ fun OnboardingScreen(
     }
 
     Scaffold(
-        containerColor = Color.Black
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -303,7 +308,7 @@ fun QRScanStep(
     ) {
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.Black),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -314,25 +319,25 @@ fun QRScanStep(
                     text = "Join Network",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        fontFamily = JetBrainsMonoFamily,
+                        fontFamily = MeshMono,
                     ),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = "Scan the QR code your analyst sent you to join the network automatically.",
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = JetBrainsMonoFamily,
+                        fontFamily = MeshMono,
                     ),
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
                 if (error != null) {
                     Text(
                         text = error!!,
-                        color = Color(0xFFE03131),
+                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall.copy(
-                            fontFamily = JetBrainsMonoFamily,
+                            fontFamily = MeshMono,
                         ),
                         textAlign = TextAlign.Center,
                     )
@@ -357,13 +362,13 @@ fun QRScanStep(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            contentColor = Color.White,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
                         ),
                     ) {
                         Text(
                             "Camera",
                             fontWeight = FontWeight.SemiBold,
-                            fontFamily = JetBrainsMonoFamily,
+                            fontFamily = MeshMono,
                         )
                     }
                     Button(
@@ -377,13 +382,13 @@ fun QRScanStep(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            contentColor = Color.White,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
                         ),
                     ) {
                         Text(
                             "Upload",
                             fontWeight = FontWeight.SemiBold,
-                            fontFamily = JetBrainsMonoFamily,
+                            fontFamily = MeshMono,
                         )
                     }
                 }
@@ -393,10 +398,10 @@ fun QRScanStep(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
-                        contentColor = Color.White.copy(alpha = 0.6f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     ),
                 ) {
-                    Text("Skip", fontFamily = JetBrainsMonoFamily)
+                    Text("Skip", fontFamily = MeshMono)
                 }
             }
         }
@@ -404,7 +409,7 @@ fun QRScanStep(
 }
 
 @Composable
-private fun QuizDialog(
+internal fun QuizDialog(
     title: String,
     question: String,
     onAnswer: (Boolean) -> Unit
@@ -415,14 +420,18 @@ private fun QuizDialog(
 
     val isCorrect = answerIsTrue
 
-    val quizBlue = MaterialTheme.colorScheme.surfaceContainer
-    val contentColor = MaterialTheme.colorScheme.onPrimary
-    val quizGreen = Color(0xFF2F9E44)
-    val quizRed = Color(0xFFE03131)
+    // Semantic tokens, each paired with its correct on-colour so the white/black
+    // content reads against the bright (dark-mode) or dark (light-mode) fill.
+    val quizSurface = MaterialTheme.colorScheme.surfaceContainer
+    val onQuizSurface = MaterialTheme.colorScheme.onSurface
+    val quizGreen = MaterialTheme.colorScheme.success
+    val onQuizGreen = MaterialTheme.colorScheme.onSuccess
+    val quizRed = MaterialTheme.colorScheme.error
+    val onQuizRed = MaterialTheme.colorScheme.onError
 
     val containerColor by animateColorAsState(
         targetValue = when (phase) {
-            QuizDialogPhase.Question -> quizBlue
+            QuizDialogPhase.Question -> quizSurface
             QuizDialogPhase.Feedback -> if (isCorrect) quizGreen else quizRed
         },
         animationSpec = tween(180),
@@ -451,7 +460,11 @@ private fun QuizDialog(
         feedbackAlpha.animateTo(1f, animationSpec = tween(120))
         feedbackScale.animateTo(
             1f,
-            animationSpec = spring(dampingRatio = 0.55f, stiffness = 500f)
+            // Calm, no overshoot: a critically-damped settle, not an elastic bounce.
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            )
         )
     }
 
@@ -494,9 +507,9 @@ private fun QuizDialog(
                                     .fillMaxWidth()
                                     .padding(8.dp),
                                 style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontFamily = JetBrainsMonoFamily
+                                    fontFamily = MeshMono
                                 ),
-                                color = contentColor,
+                                color = onQuizSurface,
                                 textAlign = TextAlign.Center
                             )
 
@@ -504,7 +517,7 @@ private fun QuizDialog(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(1.dp)
-                                    .background(contentColor)
+                                    .background(onQuizSurface)
                             )
 
                             Column(
@@ -516,9 +529,9 @@ private fun QuizDialog(
                                 Text(
                                     text = question,
                                     style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontFamily = JetBrainsMonoFamily
+                                        fontFamily = MeshMono
                                     ),
-                                    color = contentColor,
+                                    color = onQuizSurface,
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -534,11 +547,11 @@ private fun QuizDialog(
                                     shape = RoundedCornerShape(bottomStart = 16.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = quizGreen,
-                                        contentColor = contentColor
+                                        contentColor = onQuizGreen
                                     ),
                                     contentPadding = PaddingValues(0.dp)
                                 ) {
-                                    Text("True", fontWeight = FontWeight.SemiBold, fontFamily = JetBrainsMonoFamily)
+                                    Text("True", fontWeight = FontWeight.SemiBold, fontFamily = MeshMono)
                                 }
 
                                 Button(
@@ -547,11 +560,11 @@ private fun QuizDialog(
                                     shape = RoundedCornerShape(bottomEnd = 16.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = quizRed,
-                                        contentColor = contentColor
+                                        contentColor = onQuizRed
                                     ),
                                     contentPadding = PaddingValues(0.dp)
                                 ) {
-                                    Text("False", fontWeight = FontWeight.SemiBold, fontFamily = JetBrainsMonoFamily)
+                                    Text("False", fontWeight = FontWeight.SemiBold, fontFamily = MeshMono)
                                 }
                             }
                         }
@@ -569,7 +582,7 @@ private fun QuizDialog(
                                     scaleX = feedbackScale.value,
                                     scaleY = feedbackScale.value
                                 ),
-                            tint = contentColor
+                            tint = if (isCorrect) onQuizGreen else onQuizRed
                         )
                     }
                 }
@@ -579,7 +592,7 @@ private fun QuizDialog(
 }
 
 @Composable
-private fun WarningDialog(
+internal fun WarningDialog(
     message: String,
     onDismiss: () -> Unit
 ) {
@@ -590,7 +603,7 @@ private fun WarningDialog(
         Card(
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.Black
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Column(
@@ -598,28 +611,28 @@ private fun WarningDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Check,
+                    imageVector = Icons.Outlined.Info,
                     contentDescription = null,
                     modifier = Modifier.size(36.dp),
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = "Important",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        fontFamily = JetBrainsMonoFamily
+                        fontFamily = MeshMono
                     ),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontFamily = JetBrainsMonoFamily
+                        fontFamily = MeshMono
                     ),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(20.dp))
@@ -629,13 +642,13 @@ private fun WarningDialog(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        contentColor = Color.White
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     )
                 ) {
                     Text(
                         "Understood",
                         fontWeight = FontWeight.SemiBold,
-                        fontFamily = JetBrainsMonoFamily
+                        fontFamily = MeshMono
                     )
                 }
             }

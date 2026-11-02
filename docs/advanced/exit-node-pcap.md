@@ -31,82 +31,72 @@ An exit node routes all internet traffic from endpoint devices through the analy
 Before configuring exit node functionality:
 
 1. **Working MESH deployment** - Complete the [Getting started guide](../setup/index.md)
-2. **Analyst node** - A locked down, virutal linux node with sufficient storage for packet captures
-3. **Root access** - Required for configuring routing and packet capture
-4. **Technical skills** - Familiar with networking, iptables, and packet analysis
+2. **Analyst node** - The containerised analyst from `compose.yml`, with sufficient storage for packet captures
+3. **Technical skills** - Familiar with networking and packet analysis
+
+!!! note "No root or sudo required"
+    The analyst runs as the unprivileged `mesh` user inside a Docker container
+    with `NET_ADMIN`/`NET_RAW` capabilities. Everything on this page runs
+    without `sudo`. Host-level `sysctl` changes are **not needed and have no
+    effect** on the analyst: IP forwarding is per network namespace, and the
+    container's namespace is configured by compose (below).
 
 ## Configure analyst node as exit node
 
-### Enable IP forwarding
+### IP forwarding
 
-Enable IP forwarding on the analyst node:
+IP forwarding is enabled inside the analyst's network namespace by the
+`sysctls` block on the `analyst` service in `compose.yml`:
 
-```bash
-# Enable IP forwarding temporarily
-sudo sysctl -w net.ipv4.ip_forward=1
-sudo sysctl -w net.ipv6.conf.all.forwarding=1
-
-# Make permanent (survives reboot)
-echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
+```yaml
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
 ```
 
-### Configure NAT for exit node traffic (optional)
+This ships with MESH — there is nothing to run. Do **not** follow generic
+Tailscale guides that set `net.ipv4.ip_forward` on the host; the analyst's
+namespace does not inherit it.
 
-Set up NAT (Network Address Translation) to route endpoint traffic:
-
-```bash
-# Get your primary network interface
-PRIMARY_INTERFACE=$(ip route | grep default | awk '{print $5}')
-echo "Primary interface: $PRIMARY_INTERFACE"
-
-# Get MESH interface (usually mesh0 or tailscale0)
-MESH_INTERFACE=$(ip link | grep -E 'mesh0|tailscale0' | awk -F: '{print $2}' | tr -d ' ')
-echo "MESH interface: $MESH_INTERFACE"
-
-# Configure NAT for MESH traffic
-sudo iptables -t nat -A POSTROUTING -o $PRIMARY_INTERFACE -j MASQUERADE
-sudo iptables -A FORWARD -i $MESH_INTERFACE -o $PRIMARY_INTERFACE -j ACCEPT
-sudo iptables -A FORWARD -i $PRIMARY_INTERFACE -o $MESH_INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
-
-# Save iptables rules (Ubuntu/Debian)
-sudo apt install -y iptables-persistent
-sudo netfilter-persistent save
-
-# Save iptables rules (RHEL/CentOS)
-# sudo service iptables save
-```
+NAT is also automatic: the MESH daemon installs its own MASQUERADE rule for
+exit-node traffic inside the container. No manual `iptables` configuration is
+required.
 
 ### Advertise exit node to MESH network
 
-Configure the analyst workstation to advertise as an exit node using this sub command:
+Advertising is **opt-in** — the analyst never advertises itself by default.
+From your analyst shell (`task analyst`), enable it with a single command:
 
 ```bash
-# Advertise as exit node
-meshcli up --advertise-exit-node
-
-# Advertise as exit node when already connected
-meshcli set --advertise-exit-node
-
-# Verify exit node is advertised
-meshcli status
-# Should show: "Exit node: advertising"
+mesh set --advertise-exit-node
 ```
 
-### Enable exit node on control plane
-
-On the control plane, approve the exit node:
+The setting is stored in the analyst's state volume and survives container
+restarts and recreates. To stop advertising:
 
 ```bash
-# List nodes
-docker compose exec headscale headscale nodes list
-
-# Find your analyst workstation node ID
-# Enable exit node for that node
-docker compose exec headscale headscale routes enable --node <NODE_ID> --route 0.0.0.0/0
-docker compose exec headscale headscale routes enable --node <NODE_ID> --route ::/0
+mesh set --advertise-exit-node=false
 ```
+
+### Approve the exit node on the control plane
+
+On the control plane, approve the advertised routes:
+
+```bash
+# List nodes and their advertised routes
+docker compose exec headscale headscale nodes list-routes
+
+# Approve both default routes for the analyst's node ID
+docker compose exec headscale headscale nodes approve-routes \
+  --identifier <NODE_ID> --routes 0.0.0.0/0,::/0
+```
+
+!!! warning "ACLs must allow internet egress"
+    If you have configured an ACL policy, tag-to-tag rules alone are not
+    enough: endpoints can only use the exit node if the policy also allows
+    them to reach the internet, e.g. `"dst": ["tag:<your-net>:*",
+    "autogroup:internet:*"]`. A policy without internet egress silently
+    drops all exit-node traffic while the nodes still show as online.
 
 ### Configure endpoint to use exit node
 
@@ -119,8 +109,12 @@ On the endpoint device (Android), configure it to use the exit node:
 3. Select your analyst node
 4. Enable "Use exit node"
 
-!!! warning "You should instruct the user to disable Magic DNS in the settings"
-    Using MESH's Magic DNS (which supports connectivity between nodes) will make DNS queries on the device fail since the device needs to use it's own DNS configuration. Thus disabling Magic DNS in the setting tap will make regular DNS queries allowable.
+!!! warning "Magic DNS must be off while using an exit node"
+    With Magic DNS enabled, DNS queries on the device fail behind an exit
+    node (the tailnet has no global upstream resolver), which looks like "no
+    internet". Current MESH app builds disable Magic DNS automatically when
+    an exit node is selected; on older builds, disable it manually in the
+    Settings tab.
 
 **Via meshcli (if available on endpoint):**
 
@@ -142,36 +136,36 @@ Capture network traffic from endpoint devices for forensic analysis.
 **Wireshark** - GUI packet analyser (recommended for analysis)
 **tshark** - Command-line Wireshark (good for scripting)
 
-### Install packet capture tools
+### Capture tools in the analyst container
 
-```bash
-# Ubuntu/Debian
-sudo apt install -y tcpdump wireshark tshark
+`tcpdump` and `suricata` ship in the analyst image, and `tcpdump` carries the
+`cap_net_admin`/`cap_net_raw` file capabilities, so the `mesh` user captures
+without `sudo`. Write captures to `~/acquisitions` — it is bind-mounted to
+`~/mesh-acquisitions` on the host (or `ACQUISITION_DIR` from `.env`), so the
+files land outside the container automatically.
 
-# RHEL/CentOS
-sudo yum install -y tcpdump wireshark
-
-# Allow non-root users to capture packets (optional)
-sudo usermod -aG wireshark $USER
-# Log out and back in for group membership to take effect
-```
+All capture commands below run from your analyst shell (`task analyst`).
 
 ### Capture all traffic from specific endpoint
 
-Capture all traffic from a specific endpoint device:
+Capture on `tailscale0`, where the endpoint's traffic is visible
+**decrypted and pre-NAT**, with the endpoint's mesh IP as the source:
 
 ```bash
 # Get endpoint's mesh IP address
 ENDPOINT_IP="100.64.2.1"  # Replace with actual endpoint mesh IP
 
 # Capture all traffic to/from endpoint
-sudo tcpdump -i any -w endpoint-capture.pcap \
+tcpdump -i tailscale0 -w ~/acquisitions/endpoint-capture.pcap \
   "host $ENDPOINT_IP"
 
 # Capture with rotation (new file every 100MB, keep 10 files)
-sudo tcpdump -i any -w endpoint-capture.pcap -C 100 -W 10 \
+tcpdump -i tailscale0 -w ~/acquisitions/endpoint-capture.pcap -C 100 -W 10 \
   "host $ENDPOINT_IP"
 ```
+
+Capturing on `eth0` instead shows the same traffic post-MASQUERADE (source
+rewritten to the container's address), mixed with the analyst's own traffic.
 
 ### Capture only exit node traffic
 
@@ -481,33 +475,43 @@ find /var/captures -name "*.pcap" -mtime +90 -delete
 
 **Solutions:**
 
-1. **Verify IP forwarding is enabled:**
+1. **Verify IP forwarding inside the container** (not on the host), from
+   your analyst shell (`task analyst`):
 
    ```bash
-   sysctl net.ipv4.ip_forward
-   # Should show: net.ipv4.ip_forward = 1
+   cat /proc/sys/net/ipv4/ip_forward /proc/sys/net/ipv6/conf/all/forwarding
+   # Should print 1 on both lines
    ```
 
-2. **Check iptables rules:**
+2. **Check the NAT rule** (analyst shell):
 
    ```bash
-   sudo iptables -t nat -L -n -v
-   # Should show MASQUERADE rule
+   iptables-save -t nat | grep -i masquerade
+   # Should show the ts-postrouting MASQUERADE rule
    ```
 
-3. **Verify exit node is advertised:**
+3. **Verify advertisement and approval together** (on the control plane):
 
    ```bash
-   meshcli status
-   # Should show: "Exit node: advertising"
+   docker compose exec headscale headscale nodes list-routes
+   # The analyst row should show 0.0.0.0/0 and ::/0 in BOTH the
+   # Available and Approved columns.
    ```
 
-4. **Check control plane approved routes:**
+   Empty *Available* means the analyst is not advertising — re-run
+   `mesh set --advertise-exit-node` in the analyst shell.
 
-   ```bash
-   docker compose exec headscale headscale routes list
-   # Should show 0.0.0.0/0 and ::/0 enabled
-   ```
+4. **Check the ACL policy** allows internet egress
+   (`autogroup:internet:*`) and that both nodes carry the tags your rules
+   reference (`headscale nodes list` shows tags). An ACL mismatch blocks the
+   data path while control traffic and `ping` keep working.
+
+5. **Kick the endpoint's tunnel.** After retagging, policy changes, or an
+   analyst recreate, the endpoint may hold a stale netmap: toggle the MESH
+   VPN off and on (or Wi-Fi off/on) on the device, then test again. Verify
+   data is actually flowing with `tcpdump -i tailscale0 -nn -c 10` in the
+   analyst shell — control-plane "online" status and ping replies do not
+   prove the data path works.
 
 ### Packet capture not capturing traffic
 

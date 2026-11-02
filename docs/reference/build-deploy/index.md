@@ -32,7 +32,6 @@ Reproducibility is a security benefit on its own. F-Droid has argued that VPN ap
 ### 5. Supply-chain hardening
 
 - GitHub Actions are pinned to commit SHAs via [frizbee](https://github.com/stacklok/frizbee), refreshed on demand with `task pinGithubActions`.
-- Go vulnerability scanning (`govulncheck`) and linting (`golangci-lint`) run on pushes to `main` and on PRs that modify Go sources.
 - The tailscale submodule is tagged separately with a `mesh-v*` prefix to prevent collisions with upstream Tailscale tags in a shared remote.
 
 ### 6. Config via `.env`, never committed

@@ -90,11 +90,11 @@ MESH is purpose-built for remote mobile device forensics, providing seamless acc
 
 ### Forensic tool integration
 
-MESH works seamlessly with industry-standard forensic tools:
+MESH works with these forensic tools:
 
-- **AndroidQF** - Automated Android forensics artifact collection
-- **MVT (Mobile Verification Toolkit)** - iOS and Android forensics
-- **libimobiledevice** - iOS device communication
+- **AndroidQF** - Automated Android forensics artifact collection (built into `meshcli adbcollect`)
+- **MVT (Mobile Verification Toolkit)** - iOS and Android forensics (installed in the analyst container)
+- **libimobiledevice** - iOS device communication (planned, Q4 2026 — not yet installed)
 - **Custom scripts** - Any tool that works over ADB
 
 !!! example "Example: Remote AndroidQF collection"

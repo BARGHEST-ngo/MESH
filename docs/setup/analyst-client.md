@@ -2,6 +2,11 @@
 
 Now let's set up the MESH analyst client on your acquisition workstation. This will allow you to connect to the mesh network and conduct forensic collections.
 
+The analyst client runs on a secure forensics node and provides the MESH CLI for managing connections and running forensic tools.
+
+!!! WARNING
+While MESH locks down ports and services between the analyst node and the compromised device, you must treat that network path as untrusted. The analyst node must therefore be a hardened, dedicated system that can be snapshotted after forensic collection, and must not be your everyday personal workstation. Although it would require a very complex attack to achieve lateral movement from a mobile device to a Linux-based analyst node, you should still assume the risk exists and use a secure, controlled node for this purpose.”
+
 ## Step 1: Clone and build
 
 Clone the MESH repository and build the analyst client if you haven't already:
@@ -16,7 +21,7 @@ task build
 ```
 
 !!! tip "Build Time"
-    The build process may take 5-10 minutes depending on your system.
+The build process may take 5-10 minutes depending on your system.
 
 ## Step 2: Start the MESH analyst container
 
@@ -26,7 +31,7 @@ The MESH analyst container runs in the background and maintains your connection 
 task analyst
 ```
 
-This will start the analyst container and open an interactive shell in the container. The analyst client will be running in the background and you can use the `meshcli` command to manage your connection to the mesh network, among other things.
+This will start the analyst container and open an interactive shell in the container. The analyst client will be running in the background and you can use the `mesh` command to manage your connection to the mesh network, among other things.
 
 ## Step 3: Verify Connection
 
@@ -34,11 +39,19 @@ Check that your analyst client is connected to the mesh:
 
 ```bash
 # Check connection status
-meshcli status
+mesh status
 
 # Check your MESH IP
-meshcli ip
+mesh ip
 ```
+
+## Step 4: Know where acquisitions are stored
+
+Acquisitions are written to `/home/mesh/acquisitions` in the container, which is
+bind-mounted from the host at `${ACQUISITION_DIR:-$HOME/mesh-acquisitions}`. This is
+the only container path that survives a recreate, and it is where evidence lands on
+the host. See **[Acquisitions and evidence handling](../user-guide/acquisitions.md)**
+for collecting, retrieving, and analysing acquisitions.
 
 ## Troubleshooting
 

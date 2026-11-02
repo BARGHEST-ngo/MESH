@@ -53,7 +53,6 @@ client/web/build/assets
 /[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]/
 
 /analyst/mesh
-/analyst/src/generator
 
 # pnpm
 .pnpm-store
@@ -61,6 +60,8 @@ client/web/build/assets
 # Task
 .task
 .env
+.env.local
+.provisioner.env
 .authkey
 
 # MkDocs build output
@@ -71,3 +72,4 @@ site/
 
 # Log files
 *.log
+/acquisitions/

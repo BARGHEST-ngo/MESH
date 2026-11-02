@@ -1,0 +1,18 @@
+<!-- Splash-screen icon: the MESH wordmark, sized larger than the launcher foreground and
+     with a large intrinsic size so the system rasterizes it crisply (a small intrinsic
+     size made the thin pixel strokes alias on the launch animation). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="288dp"
+    android:height="288dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="13"
+        android:translateY="45.3"
+        android:scaleX="0.1053"
+        android:scaleY="0.1053">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M0,3 h41 v164 h-41 z M91,40 h42 v127 h-42 z M183,40 h42 v127 h-42 z M0,3 h183 v37 h-183 z M251,0 h42 v166 h-42 z M251,0 h141 v37 h-141 z M251,64 h141 v37 h-141 z M251,129 h141 v37 h-141 z M419,0 h113 v37 h-113 z M419,0 h42 v101 h-42 z M419,64 h150 v37 h-150 z M527,101 h42 v65 h-42 z M419,129 h150 v37 h-150 z M594,0 h42 v166 h-42 z M740,0 h42 v166 h-42 z M594,64 h188 v37 h-188 z" />
+    </group>
+</vector>

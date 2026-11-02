@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import { Plus, Network, RefreshCw, Filter } from 'lucide-react'
 import { Button } from '../components/ui/button'
+import { Card } from '../components/ui/card'
 import { useNetworks } from '../api/useNetworks'
 import { NetworkCard } from '../components/NetworkCard'
 import { CreateNetworkDialog } from '../components/CreateNetworkDialog'
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/')({
 function Index() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [selectedEmail, setSelectedEmail] = useState<string>('all')
-  
+
   const { data: networks = [], isLoading: networksLoading, refetch } = useNetworks()
 
   const uniqueEmails = useMemo(() => {
@@ -45,120 +46,107 @@ function Index() {
   const isLoading = networksLoading
 
   return (
-    <div className="90-vh bg-background">
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground font-mono mb-2">
-                &gt; MESH_CONTROL
-              </h1>
-              <p className="text-muted-foreground">
-                Manage your networks and connected clients
-              </p>
-            </div>
-	            <div className="flex gap-3">
-	              <Button
-	                variant="outline"
-	                onClick={() => refetch()}
-	                disabled={isLoading}
-	                className="flex items-center gap-2"
-	              >
-	                <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-	                [ REFRESH ]
-	              </Button>
-	              <Button
-	                onClick={() => setCreateDialogOpen(true)}
-	                className="flex items-center gap-2"
-	              >
-	                <Plus size={16} />
-	                [ NEW NETWORK ]
-	              </Button>
-	            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-card border border-border rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <Network size={24} className="text-primary" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {filteredNetworks.length}
-                    {selectedEmail !== 'all' && (
-                      <span className="text-base text-muted-foreground"> / {networks.length}</span>
-                    )}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedEmail !== 'all' ? 'Filtered Networks' : 'Networks'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+    <div className="px-8 py-7 max-w-[1100px] mx-auto">
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-[26px] font-bold text-foreground tracking-tight mb-1.5">Networks</h1>
+          <p className="text-sm text-text2 leading-relaxed">
+            Manage your forensic networks and the clients connected to them.
+          </p>
         </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-foreground font-mono">
-              &gt; NETWORKS
-            </h2>
-
-            {uniqueEmails.length > 0 && (
-              <div className="flex items-center gap-3">
-                <Filter size={16} className="text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Filter by analyst email:</span>
-                <Select value={selectedEmail} onValueChange={setSelectedEmail}>
-                  <SelectTrigger className="w-[280px]">
-                    <SelectValue placeholder="Select email" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      <span className="font-mono">[ ALL EMAILS ]</span>
-                    </SelectItem>
-                    {uniqueEmails.map((email) => (
-                      <SelectItem key={email} value={email}>
-                        <span className="font-mono">{email}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-
-          {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <RefreshCw size={32} className="animate-spin mx-auto mb-4" />
-              Loading networks...
-            </div>
-          ) : networks.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-border rounded-lg">
-              <Network size={48} className="mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">No networks found</p>
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus size={16} className="mr-2" />
-                [ CREATE YOUR FIRST NETWORK ]
-              </Button>
-            </div>
-          ) : filteredNetworks.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-border rounded-lg">
-              <Network size={48} className="mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">
-                No networks found for email: <span className="font-mono font-semibold">{selectedEmail}</span>
-              </p>
-              <Button onClick={() => setSelectedEmail('all')} variant="outline">
-                [ CLEAR FILTER ]
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredNetworks.map((network) => (
-                <NetworkCard key={network.id} network={network} />
-              ))}
-            </div>
-          )}
+        <div className="flex gap-2.5 shrink-0">
+          <Button variant="secondary" onClick={() => refetch()} disabled={isLoading}>
+            <RefreshCw size={17} className={isLoading ? 'animate-spin' : ''} />
+            Refresh
+          </Button>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus size={17} />
+            New network
+          </Button>
         </div>
       </div>
+
+      <Card className="p-[18px] mb-6">
+        <div className="flex items-center gap-3.5">
+          <div className="w-[42px] h-[42px] rounded-[11px] bg-primary/15 flex items-center justify-center shrink-0">
+            <Network size={20} className="text-primary" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-foreground leading-none">
+              {filteredNetworks.length}
+              {selectedEmail !== 'all' && (
+                <span className="text-base font-semibold text-soft"> / {networks.length}</span>
+              )}
+            </div>
+            <div className="text-[12.5px] text-text2 mt-1">
+              {selectedEmail !== 'all' ? 'Filtered networks' : 'Networks'}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="flex items-center justify-between gap-4 mb-3.5">
+        <h2 className="text-[15px] font-semibold text-foreground tracking-tight">All networks</h2>
+
+        {uniqueEmails.length > 0 && (
+          <div className="flex items-center gap-2.5">
+            <Filter size={15} className="text-soft" />
+            <span className="text-[13px] text-text2">Filter by analyst</span>
+            <Select value={selectedEmail} onValueChange={setSelectedEmail}>
+              <SelectTrigger className="w-[260px]">
+                <SelectValue placeholder="Select analyst" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All analysts</SelectItem>
+                {uniqueEmails.map((email) => (
+                  <SelectItem key={email} value={email}>
+                    <span className="font-mono text-[13px]">{email}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-16 text-text2">
+          <RefreshCw size={28} className="animate-spin mb-3" />
+          Loading networks…
+        </div>
+      ) : networks.length === 0 ? (
+        <div className="flex flex-col items-center text-center py-16 border border-dashed border-border rounded-[var(--radius-card)]">
+          <div className="w-12 h-12 rounded-xl bg-inset flex items-center justify-center mb-4">
+            <Network size={24} className="text-soft" />
+          </div>
+          <p className="text-foreground font-semibold mb-1">No networks yet</p>
+          <p className="text-sm text-text2 mb-5 max-w-[320px]">
+            Create your first network to start onboarding forensic devices.
+          </p>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus size={17} />
+            Create your first network
+          </Button>
+        </div>
+      ) : filteredNetworks.length === 0 ? (
+        <div className="flex flex-col items-center text-center py-16 border border-dashed border-border rounded-[var(--radius-card)]">
+          <div className="w-12 h-12 rounded-xl bg-inset flex items-center justify-center mb-4">
+            <Filter size={22} className="text-soft" />
+          </div>
+          <p className="text-text2 mb-5">
+            No networks for <span className="font-mono font-semibold text-foreground">{selectedEmail}</span>
+          </p>
+          <Button onClick={() => setSelectedEmail('all')} variant="secondary">
+            Clear filter
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3.5">
+          {filteredNetworks.map((network) => (
+            <NetworkCard key={network.id} network={network} />
+          ))}
+        </div>
+      )}
 
       <CreateNetworkDialog
         open={createDialogOpen}

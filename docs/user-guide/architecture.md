@@ -68,7 +68,7 @@ The analyst client is the forensic acquisition node used by investigators to con
 
 - Connect to the MESH network
 - Establish peer-to-peer tunnels to endpoint devices
-- Run forensic tools (ADB, AndroidQF, MVT, libimobiledevice)
+- Run forensic tools (ADB, AndroidQF, MVT)
 - Collect and analyse artifacts
 - Manage network configuration
 

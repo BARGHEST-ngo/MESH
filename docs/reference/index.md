@@ -19,7 +19,7 @@ This section provides reference documentation for:
 
     ---
 
-    Complete reference for all MESH CLI commands, including meshcli, headscale, and related tools.
+    Complete reference for all MESH CLI commands, including `mesh`, headscale, and related tools.
 
     [:octicons-arrow-right-24: View CLI reference](cli-reference.md)
 
@@ -37,18 +37,18 @@ This section provides reference documentation for:
 
 ### Common commands
 
-#### Mesh Client (meshcli)
+#### Mesh Client (mesh)
 
 ```bash
 # Check status
-meshcli status
+mesh status
 
 # Enable/disable routes
-meshcli up --advertise-routes=10.0.0.0/24
-meshcli down
+mesh up --advertise-routes=10.0.0.0/24
+mesh down
 
 # Check version
-./meshcli version
+mesh version
 ```
 
 #### Control plane (headscale)
@@ -73,11 +73,12 @@ docker compose exec headscale headscale policy check
 # Connect to device
 adb connect 100.64.x.x:5555
 
-# Run AndroidQF
-androidqf --adb 100.64.x.x:5555 --output ./artifacts/
+# Collect an acquisition (AndroidQF/WARD) into the bind-mounted directory
+mesh adbcollect --output /home/mesh/acquisitions/<case>
 
-# Run MVT
-mvt-android check-adb --output ./mvt-output/
+# Analyse the acquisition with MVT
+mvt-android download-iocs
+mvt-android check-androidqf /home/mesh/acquisitions/<case>
 ```
 
 ### Common issues
@@ -87,7 +88,7 @@ mvt-android check-adb --output ./mvt-output/
 | Can't connect to control plane | Check firewall, verify URL, check logs |
 | Nodes can't see each other | Check ACL policy, verify routes |
 | ADB connection fails | Enable ADB over network on device |
-| Web UI not accessible | Check port 8443, verify TLS certificate |
+| Web UI not accessible | Check port 80, verify reverse proxy |
 | High latency | Check if using DERP relay, prefer P2P |
 
 [:octicons-arrow-right-24: Full Troubleshooting guide](troubleshooting.md)
@@ -97,7 +98,7 @@ mvt-android check-adb --output ./mvt-output/
 | Port | Service | Protocol | Purpose |
 |------|---------|----------|---------|
 | 8080 | Headscale | HTTP | Control plane API |
-| 8443 | Headscale-UI | HTTPS | Web management interface |
+| 80 | Headscale-UI | HTTPS | Web management interface (reverse proxy handles TLS)|
 | 3478 | DERP | UDP/TCP | STUN for NAT traversal |
 | 41641 | WireGuard | UDP | Encrypted mesh traffic |
 | 5555 | ADB | TCP | Android Debug Bridge |
@@ -117,7 +118,7 @@ mvt-android check-adb --output ./mvt-output/
 
 Complete documentation for all command-line tools:
 
-- **meshcli** - MESH client commands
+- **mesh** - MESH client commands
 - **headscale** - Control plane management
 - **Docker commands** - Container management
 - **Forensic tools** - ADB, AndroidQF, MVT integration

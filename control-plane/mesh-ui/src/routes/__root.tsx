@@ -1,6 +1,7 @@
 import { Outlet, createRootRouteWithContext, useRouterState } from '@tanstack/react-router'
 
-import Header from '../components/Header'
+import Sidebar from '../components/Sidebar'
+import { useAuth } from '../lib/auth'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -15,12 +16,20 @@ interface MyRouterContext {
 function RootComponent() {
   const routerState = useRouterState()
   const isLoginPage = routerState.location.pathname === '/login'
+  const { isAuthenticated } = useAuth()
+  const showSidebar = isAuthenticated && !isLoginPage
+
+  if (!showSidebar) {
+    return <Outlet />
+  }
 
   return (
-    <>
-      {!isLoginPage && <Header />}
-      <Outlet />
-    </>
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      <main className="flex-1 min-w-0 overflow-auto">
+        <Outlet />
+      </main>
+    </div>
   )
 }
 

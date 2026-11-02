@@ -66,6 +66,11 @@ class UseExitNodeWorker(appContext: Context, workerParams: WorkerParameters) :
       val prefsOut = Ipn.MaskedPrefs()
       prefsOut.ExitNodeID = exitNodeId
       prefsOut.ExitNodeAllowLANAccess = allowLanAccess
+      if (exitNodeId != null) {
+        // Same as ExitNodePickerViewModel.setExitNode: MagicDNS breaks
+        // behind an exit node, so disable it with the selection.
+        prefsOut.CorpDNS = false
+      }
 
       val scope = CoroutineScope(Dispatchers.Default + Job())
       var result: String? = null

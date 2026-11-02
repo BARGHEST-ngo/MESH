@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { Lock, AlertTriangle } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import { Card } from './ui/card'
+import { Wordmark } from './Wordmark'
 import { useAuth } from '../lib/auth'
 import { useLogin } from '../api/useLogin'
 
@@ -18,15 +21,15 @@ export default function LoginForm() {
     setError('')
 
     if (!authKey.trim()) {
-      setError('Please enter an authentication key')
+      setError('Enter your authentication key to continue.')
       return
     }
 
     try {
       await loginMutation.mutateAsync({ authKey })
-      
+
       const success = await authLogin(authKey)
-      
+
       if (success) {
         navigate({ to: '/' })
       } else {
@@ -38,52 +41,58 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-full max-w-md p-8 space-y-6 bg-card rounded border border-border shadow-2xl">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2 font-mono">
-            &gt; MESH_CONTROL_PLANE
-          </h1>
+    <div className="flex items-center justify-center min-h-screen bg-background p-6">
+      <div className="w-full max-w-[400px]">
+        <div className="flex flex-col items-center mb-7">
+          <Wordmark height={40} className="text-foreground" />
+          <div className="text-[15px] font-semibold text-text2 tracking-[0.3px] mt-3.5">Control Plane</div>
+          <p className="text-sm text-text2 mt-1.5">Sign in to manage your forensic networks</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="authKey" className="font-mono">&gt; AUTH_KEY:</Label>
+        <Card className="p-6">
+          <form onSubmit={handleSubmit}>
+            <Label htmlFor="authKey" className="mb-2">Authentication key</Label>
             <Input
               id="authKey"
               type="password"
               placeholder="••••••••••••••••"
               value={authKey}
-              onChange={(e) => setAuthKey(e.target.value)}
+              onChange={(e) => {
+                setAuthKey(e.target.value)
+                setError('')
+              }}
               disabled={loginMutation.isPending}
-              className="w-full font-mono"
+              className="font-mono"
               aria-invalid={!!error}
             />
-          </div>
 
-          {error && (
-            <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive rounded font-mono">
-              [ ERROR ] {error}
+            {error && (
+              <div className="flex items-center gap-2 mt-3 px-3 py-2.5 rounded-[9px] bg-destructive-dim border border-destructive/30">
+                <AlertTriangle size={15} className="text-destructive shrink-0" />
+                <span className="text-sm text-foreground">{error}</span>
+              </div>
+            )}
+
+            <Button type="submit" size="lg" className="w-full mt-4" disabled={loginMutation.isPending}>
+              <Lock size={17} />
+              {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
+            </Button>
+          </form>
+
+          <div className="mt-5 pt-[18px] border-t border-border">
+            <div className="text-[12.5px] text-text2 mb-2">
+              Need a key? Generate one from your server terminal:
             </div>
-          )}
+            <div className="font-mono text-[12.5px] text-text2 bg-inset border border-border rounded-[9px] px-3.5 py-2.5">
+              <span className="text-soft">$</span> task apikey
+            </div>
+          </div>
+        </Card>
 
-          <Button
-            type="submit"
-            className="w-full font-mono"
-            disabled={loginMutation.isPending}
-          >
-            {loginMutation.isPending ? '[ AUTHENTICATING... ]' : '[ ACCESS SYSTEM ]'}
-          </Button>
-        </form>
-
-        <div className="text-center text-xs text-muted-foreground font-mono space-y-1">
-          <div>Run the following command from the terminal to generate auth key:</div>
-          <code className="block bg-muted px-2 py-1 rounded text-[10px]">
-            task apikey
-          </code>
+        <div className="text-center mt-[18px] text-xs text-soft">
+          Self-hosted · the control plane never carries forensic traffic
         </div>
       </div>
     </div>
   )
 }
-

@@ -25,35 +25,30 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.barghest.mesh.R
-
-internal val JetBrainsMonoFamily = FontFamily(
-    Font(R.font.jetbrains_mono_regular, FontWeight.Normal),
-    Font(R.font.jetbrains_mono_bold, FontWeight.Bold)
-)
+import com.barghest.mesh.ui.theme.MeshMono
 
 @Composable
 internal fun WelcomePage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
         Spacer(Modifier.weight(1f))
         Image(
-            painter = painterResource(id = R.drawable.mesh_playstore),
+            painter = painterResource(id = R.drawable.mesh_wordmark),
             contentDescription = "MESH Logo",
-            modifier = Modifier.size(160.dp)
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+            modifier = Modifier.height(72.dp)
         )
         Spacer(Modifier.height(24.dp))
         Spacer(Modifier.height(12.dp))
@@ -65,9 +60,9 @@ internal fun WelcomePage() {
                     "MESH is developed by the civil society group BARGHEST. " +
                     "It is fully open-source and independently audited.",
             style = MaterialTheme.typography.bodyLarge.copy(
-                fontFamily = JetBrainsMonoFamily
+                fontFamily = MeshMono
             ),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.weight(2f))

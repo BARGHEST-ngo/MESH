@@ -26,7 +26,8 @@ enum class ErrorDialogType {
   ADD_PROFILE_FAILED,
   SHARE_DEVICE_NOT_CONNECTED,
   SHARE_FAILED,
-  INVALID_AUTH_KEY;
+  INVALID_AUTH_KEY,
+  RESET_FAILED;
 
   val message: Int
     get() {
@@ -38,6 +39,7 @@ enum class ErrorDialogType {
         SHARE_DEVICE_NOT_CONNECTED -> R.string.share_device_not_connected
         SHARE_FAILED -> R.string.taildrop_share_failed
         INVALID_AUTH_KEY -> R.string.invalidAuthKey
+        RESET_FAILED -> R.string.reset_failed
       }
     }
 
@@ -51,6 +53,7 @@ enum class ErrorDialogType {
         SHARE_DEVICE_NOT_CONNECTED -> R.string.share_device_not_connected_title
         SHARE_FAILED -> R.string.taildrop_share_failed_title
         INVALID_AUTH_KEY -> R.string.invalidAuthKeyTitle
+        RESET_FAILED -> R.string.reset_failed_title
       }
     }
 

@@ -11,11 +11,6 @@ silent: true
 
 tasks:
 
-  promptConfirmDotEnv:
-    prompt: Does the above configuration look correct?
-    deps:
-      - printDotEnv
-
 #################################
 # Development tasks
 #################################
@@ -57,7 +52,7 @@ tasks:
   clean:
     desc: Clean up build artifacts
     cmds:
-      - rm -f analyst/mesh
+      - rm -f analyst/mesh analyst/tailscale analyst/tailscaled
       - make -C android-client clean
 
   tagRelease:
@@ -98,10 +93,6 @@ tasks:
 # Internal tasks
 #################################
 
-  printDotEnv:
-    internal: true
-    cmd: echo ""; cat .env; echo ""
-  
   submoduleInit:
     internal: true
     cmd: git submodule update --init --recursive

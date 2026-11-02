@@ -6,6 +6,10 @@ set -eo pipefail
 # keeping NET_ADMIN/NET_RAW ambient so iptables etc. still work.
 if [ "$(id -u)" = "0" ]; then
     chown -R mesh:mesh /home/mesh/.tailscale
+    if ! su -s /bin/sh mesh -c 'test -w /home/mesh/acquisitions'; then
+        chown mesh:mesh /home/mesh/acquisitions ||
+            echo "warning: cannot chown /home/mesh/acquisitions; acquisitions may not be writable" >&2
+    fi
     export HOME=/home/mesh USER=mesh
     exec setpriv \
         --reuid=mesh --regid=mesh --init-groups \
@@ -15,26 +19,44 @@ if [ "$(id -u)" = "0" ]; then
 fi
 
 MESH_STATE_DIR="${MESH_STATE_DIR:-$HOME/.tailscale}"
-
+# Fixed WireGuard/MagicSock UDP port so the container can be reached on a
+# predictable host port (published in compose.yml). Required for p2p without
+# host networking, since UPnP/PMP can't be done from inside a bridged netns.
+MESH_PORT="${MESH_PORT:-41641}"
 if [ -z "${LOGIN_URL}" ] || [ -z "${AUTH_KEY}" ]; then
     echo "Set the LOGIN_URL and AUTH_KEY environment variables in .env to run the MESH analyst client." >&2
     exit 1
 fi
 
-HOSTNAME_LEN=$(( (RANDOM % 10) + 6 ))
+HOSTNAME_LEN=$(((RANDOM % 10) + 6))
 RANDOM_HOSTNAME=$(LC_ALL=C head -c 512 /dev/urandom | tr -dc 'a-z0-9')
 RANDOM_HOSTNAME="${RANDOM_HOSTNAME:0:$HOSTNAME_LEN}"
 
-/usr/bin/mesh \
+/usr/bin/tailscaled \
     --statedir="${MESH_STATE_DIR}" \
+    --port="${MESH_PORT}" \
     2>&1 | tee "${MESH_STATE_DIR}/mesh.log" &
 
-/usr/bin/mesh cli up \
-    --login-server="${LOGIN_URL}" \
-    --auth-key="${AUTH_KEY}" \
-    --hostname="${RANDOM_HOSTNAME}" \
-    --accept-dns=false \
-    --timeout=10s \
-    2>&1 | tee "${MESH_STATE_DIR}/meshcli.log"
+# wait for the daemon socket, then enroll only when this node has no login
+# yet; an enrolled node reconnects from persisted state, so operator-set
+# preferences (e.g. `mesh set --advertise-exit-node`) survive restarts
+BACKEND_STATE=""
+for _ in $(seq 1 20); do
+    BACKEND_STATE=$(/usr/bin/tailscale status --json 2>/dev/null |
+        sed -n 's/.*"BackendState": *"\([^"]*\)".*/\1/p' | head -1) || true
+    [ -n "${BACKEND_STATE}" ] && break
+    sleep 0.5
+done
+
+if [ "${BACKEND_STATE}" = "NeedsLogin" ] || [ -z "${BACKEND_STATE}" ]; then
+    /usr/bin/tailscale up \
+        --reset \
+        --login-server="${LOGIN_URL}" \
+        --auth-key="${AUTH_KEY}" \
+        --hostname="${RANDOM_HOSTNAME}" \
+        --accept-dns=false \
+        --timeout=10s \
+        2>&1 | tee "${MESH_STATE_DIR}/meshcli.log"
+fi
 
 exec tail -f "${MESH_STATE_DIR}/mesh.log" "${MESH_STATE_DIR}/meshcli.log"

@@ -166,6 +166,10 @@ class Client(private val scope: CoroutineScope) {
     get(Endpoint.FILE_TARGETS, responseHandler = responseHandler)
   }
 
+  fun resetAuth(responseHandler: (Result<Unit>) -> Unit) {
+      return post(Endpoint.RESET_AUTH, responseHandler = responseHandler)
+  }
+
   fun putTaildropFiles(
       context: Context,
       peerId: StableNodeID,

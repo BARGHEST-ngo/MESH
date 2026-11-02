@@ -64,15 +64,15 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>&gt; CREATE_NETWORK</DialogTitle>
+            <DialogTitle>Create network</DialogTitle>
             <DialogDescription>
               Create a new network namespace for organizing devices.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 my-6">
+          <div className="space-y-4 my-5">
             <div>
-              <Label htmlFor="name">Network Name (required)</Label>
+              <Label htmlFor="name" className="mb-2">Network name</Label>
               <Input
                 id="name"
                 value={name}
@@ -82,33 +82,33 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
                 }}
                 placeholder="network-1"
                 required
-                className={`mt-1 ${error || isInvalid ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                className="font-mono"
+                aria-invalid={!!error || isInvalid}
               />
               {error ? (
-                <p className="text-xs text-red-500 mt-1 font-semibold">
+                <p className="text-xs text-destructive mt-1.5 font-semibold">
                   {error}
                 </p>
               ) : (
-                <p className={`text-xs mt-1 ${isInvalid ? 'text-red-500 font-semibold' : 'text-muted-foreground'}`}>
+                <p className={`text-xs mt-1.5 ${isInvalid ? 'text-destructive font-semibold' : 'text-soft'}`}>
                   {networkNameText}
                 </p>
               )}
             </div>
 
             <div>
-              <Label htmlFor="displayName">Display Name (required)</Label>
+              <Label htmlFor="displayName" className="mb-2">Display name</Label>
               <Input
                 id="displayName"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Network 1"
                 required
-                className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="email">Analyst Email (required)</Label>
+              <Label htmlFor="email" className="mb-2">Analyst email</Label>
               <Input
                 id="email"
                 type="email"
@@ -116,16 +116,15 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@example.com"
                 required
-                className="mt-1"
               />
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-              <Shield aria-hidden className="mt-0.5 h-4 w-4 text-primary" />
+            <div className="flex items-start gap-3 p-3.5 bg-primary/10 border border-primary/20 rounded-xl">
+              <Shield aria-hidden className="mt-0.5 h-4 w-4 text-primary shrink-0" />
               <div className="text-sm">
-                <p className="font-medium text-foreground">Network isolation enabled</p>
-                <p className="text-muted-foreground mt-1">
-                  Devices in this network will only be able to communicate with other devices in the same network.
+                <p className="font-semibold text-foreground">Network isolation enabled</p>
+                <p className="text-text2 mt-1 leading-relaxed">
+                  Devices in this network can only reach other devices in the same network.
                   Cross-network traffic is blocked by ACL policy.
                 </p>
               </div>
@@ -135,14 +134,14 @@ export function CreateNetworkDialog({ open, onOpenChange }: CreateNetworkDialogP
           <DialogFooter>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={() => onOpenChange(false)}
               disabled={createNetwork.isPending}
             >
-              [ CANCEL ]
+              Cancel
             </Button>
             <Button type="submit" disabled={createNetwork.isPending || !trimmedName || isInvalid}>
-              {createNetwork.isPending ? '[ CREATING... ]' : '[ CREATE ]'}
+              {createNetwork.isPending ? 'Creating…' : 'Create network'}
             </Button>
           </DialogFooter>
         </form>
