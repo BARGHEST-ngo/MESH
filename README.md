@@ -1,220 +1,115 @@
-<h1><div align="center">
-  <img width="269" height="188" alt="MESH" src="https://github.com/user-attachments/assets/03d0b879-ca5e-4a20-af72-533ea3ae2b52" />
-</div></h1>
-
 <div align="center">
+  <img width="269" height="188" alt="MESH" src="https://github.com/user-attachments/assets/03d0b879-ca5e-4a20-af72-533ea3ae2b52" />
+
   <p>
     <a href="https://docs.meshforensics.org/"><img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square" alt="Documentation" /></a>
-    <a href="#"><img src="https://img.shields.io/badge/status-public%20beta-orange?style=flat-square" alt="Public Beta Status" /></a>
-    <a href="https://deepwiki.com/BARGHEST-ngo/MESH"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/status-public%20beta-blueviolet?style=flat-square" alt="Public Beta Status" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/BARGHEST-ngo/MESH?style=flat-square" alt="License" /></a>
     <a href="https://github.com/BARGHEST-ngo/MESH/releases"><img src="https://img.shields.io/github/v/release/BARGHEST-ngo/MESH?include_prereleases&style=flat-square" alt="Latest Release" /></a>
   </p>
-  <p>
-    <a href="https://play.google.com/store/apps/details?id=com.barghest.mesh"><img height="60" alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" /></a>
-    <a href="https://f-droid.org/en/packages/com.barghest.mesh/"><img height="60" alt="Get it on F-Droid" src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" /></a>
-  </p>
+  <p><a href="https://docs.meshforensics.org/">DOCS</a> &nbsp;|&nbsp; <a href="https://Barghest.asia">BARGHEST</a></p>
 </div>
 
-<h3><div align="center">
-  <h3>
-    <a href="https://docs.meshforensics.org/">
-      DOCS
-    </a>
-    <span>  |  </span>
-    <a href="https://Barghest.asia">
-      BARGHEST
-    </a>
-  </h3>
-</div>
-<br/></h3>
+**MESHforensics enables internet-routable wireless debugging for mobile devices over an encrypted, censorship-resistant peer-to-peer mesh network.**
 
-**MESH is a networking tool, to support remote logical forensics acquision on mobile devices**
+Mobile devices are often trapped behind NAT, firewalls, or restrictive carrier networks that block direct inbound access. MESHforensics creates an encrypted peer-to-peer overlay and assigns each node a CGNAT-range address via a virtual TUN interface, so devices behave as if they share a private subnet, with no central VPN, port forwarding, or permanent infrastructure.
 
-MESH gives analysts a direct, encrypted path to mobile devices for wireless debugging, network monitoring and forensic acquisition, even when those devices sit behind NAT, firewalls, or restrictive mobile networks. It builds a private overlay so a remote device behaves as if it were on the same local subnet. It does not require central VPN servers, no port forwarding, and no permanent infrastructure to maintain or defend. This allows for seemless and easy remote, over the internet, network monitoring and acquision with the likes of [MVT](https://github.com/mvt-project/mvt) and [AndroidQF](https://github.com/mvt-project/androidqf).
+This lets analysts run remote mobile forensics over ADB Wireless Debugging and libimobiledevice, using tools like [WARD](https://github.com/BARGHEST-ngo/WARD), [MVT](https://github.com/mvt-project/mvt), and [AndroidQF](https://github.com/mvt-project/androidqf) as if the device were local. MESHforensics also supports remote network monitoring, including PCAP capture and Suricata intrusion detection over the same mesh.
 
-## What it does
-
-- Remote mobile forensics over ADB Wireless Debugging and libimobiledevice: run WARD, MVT, AndroidQF, and other ADB/iOS tooling as if the device were local.
-- Remote network monitoring: PCAP capture and Suricata intrusion detection over the same encrypted mesh.
-
-## What it doesn't
-
-- MESH provides the networking necessary for remote acquision, but isn't the acquision tool.
-- We include [AndroidQF](https://github.com/mvt-project/androidqf) and [MVT](https://github.com/mvt-project/mvt) in the suite.
-
-## How it's hardened
-
-- Direct peer-to-peer first WireGuard transport when a path exists.
-- Optional AmneziaWG to obfuscate WireGuard against DPI and national firewalls.
-- Automatic fallback to encrypted HTTPS relays when UDP is blocked.
-
-Meshes are ephemeral and analyst-controlled: bring devices online, collect, then tear the network down. Nothing is left running, which supports the avoidance of fingerprinting activity.
+Meshes are ephemeral and analyst-controlled: bring devices online, collect, then tear the network down, so nothing is left running to fingerprint.
 
 > [!IMPORTANT]
-> **Public Beta**: Currently in **public beta** and under active development. A full third-party penetration has been completed and we have patched all major vulnerabilities. Things may change and breaking changes should be expected. It currently requires some level of technical expertise. Please report bugs or security concerns via GitHub Issues."
+> **Public Beta**: under active development. A full penetration test has been completed and major vulnerabilities patched. Breaking changes should be expected, and some technical expertise is required. Report bugs or security concerns via GitHub Issues.
 
-## Quick start
+## Getting started
 
-For full documentation:  
-https://docs.meshforensics.org/
+Full documentation: https://docs.meshforensics.org/
 
-### Prerequisites
-
-- **Git**
-- **Docker Engine** with the Compose V2 plugin (`docker compose`, not legacy `docker-compose`). [Install instructions](https://docs.docker.com/get-docker/).
-- **Task (go-task)** for build orchestration and interactive setup. [Install instructions](https://taskfile.dev/docs/installation). Short version:
-  - Linux: `sudo snap install task --classic`
-  - macOS: `brew install go-task`
-
-> [!NOTE]
-> Most runtime operations work with plain `docker compose`, but the interactive setup tasks (`.env` management, config templating, auth-key rotation) require go-task.
-
-### 1. Clone the repository
+Clone the repo first:
 
 ```
-git clone https://github.com/BARGHEST-ngo/mesh.git --recurse-submodules
+git clone https://github.com/BARGHEST-ngo/mesh.git
 cd MESH
 ```
 
-> NOTE: There is a single git submodule in this repo at `/tailscale`. Make sure you run the initial `git clone` with `--recurse-submodules` as above, or `git submodule update --init --recursive` after a clone.
+Then pick how your control plane is reached from the internet.
 
-### 2. Start control plane
+### Option A: Provisioner service (hosted reverse proxy)
+
+Run the control plane on your workstation and expose it through the MESHforensics provisioner, a hosted reverse-proxy tunnel. Request a provisioner API key from BARGHEST (see https://docs.meshforensics.org/). The provisioner auto-assigns an ephemeral `*.tunnels.meshforensics.app` subdomain and issues your API credentials, so **`task apikey` is not needed** on this path.
 
 ```
+# Choose the "Ephemeral" control plane when prompted
 task build
 task controlPlane
+
+# Open the web UI at the provisioner-assigned URL and log in
 ```
 
-`task controlPlane` walks you through setup interactively and starts all required services. For most users selecting **Ephemeral** with an **Automatic** domain is the recommended route - it requires no server or DNS configuration.
+### Option B: Self-hosted reverse proxy
 
-**Choose a deployment type.** An ephemeral control plane runs on your workstation and is accessible over the internet via a secure tunnel. A persistent control plane runs on a dedicated internet-facing server you manage.
-<img src="https://github.com/user-attachments/assets/4633a0e4-95e9-4db9-b85b-606075c0e8c3" />
+Bring your own ingress (a reverse proxy on an internet-facing server, or a tunneling service such as [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) or [ngrok](https://ngrok.com/)), then mint an API key locally.
 
-**Choose a domain.** Selecting Automatic lets MESH provision a public HTTPS address for you. Select Manual if you want to use your own domain.
-
-<img src="https://github.com/user-attachments/assets/5c76c30d-8821-4efa-8f5f-3e4c6db7b932" />
-
-**Enter API key.** If you have chosen an Automatic domain then you will be prompted to enter an API key. This will be provided to you by the team at Barghest, contact us to request access.
-
-<img src="https://github.com/user-attachments/assets/144a83f2-8e1a-45c6-9e49-7e97cde67f1c" />
-
-**Confirm configuration.** Review the generated settings before MESH starts.  
-If these settings are incorrect, or if setup was interrupted, delete `.env` and run `task controlPlane` to start again.
 ```
-CONTROL_PLANE_TYPE=Ephemeral
-PROXY_DOMAIN_TYPE=Automatic
-MESH_SUBDOMAIN=<random 10 character slug>
-FRP_AUTH_TOKEN=<secret token>
-CONTROL_PLANE_URL=https://<slug>.tunnels.meshforensics.app
-LOGIN_URL=https://<slug>.tunnels.meshforensics.app
+# Choose the "Persistent" control plane when prompted, and your own domain
+# (or the hostname your Cloudflare Tunnel / ngrok endpoint provides)
+task build
+task controlPlane
+task apikey
+
+# Open the web UI and log in with the API key
+#    Local:  https://localhost
+#    Remote: https://your-domain:8443/login
 ```
 
-**Containers start and an API key is generated.** Once all services are healthy, MESH prints a one-time API key to log into the web UI.
-```
-Control plane API key (enter this in the web UI to log in):
-<SECRET API KEY>
-```
-
-### 3. Access the web UI
-
-Navigate to your control plane URL and enter the API key when prompted to log in.
-
-`https://<slug>.tunnels.meshforensics.app`
-
-The web UI is served over HTTPS with a certificate issued automatically by Let's Encrypt.
+The web UI uses a self-signed certificate by default. Once logged in, your MESHforensics network is ready to accept nodes. See the docs for node enrollment and forensic workflows.
 
 > [!IMPORTANT]
-> The default ACL allows nodes in each network talk to each other.
-> Production deployments should use restrictive policies. Modify these via the ACL tab.
+> The default ACL lets all nodes in a network talk to each other. Production deployments should use restrictive policies, set via the ACL tab.
 
-<img width="1035" height="868" alt="image" src="https://github.com/user-attachments/assets/52bb4020-18fe-4b49-9b33-516250055278" />
+## Architecture
 
-Your MESH network is now ready to accept nodes.  
-See the documentation for node enrollment and forensic workflows.
+MESHforensics is a heavily modified fork of [Tailscale](https://github.com/tailscale/tailscale) that does not require Tailscale infrastructure. Peers connect directly via end-to-end encrypted WireGuard using UDP hole punching. When UDP is blocked, traffic fails over to E2EE HTTPS [DERP](https://github.com/tailscale/tailscale/tree/main/derp) relays, which transport packets without visibility into their contents.
 
-### 4. Teardown
-`task down` destroys the MESH network, disconnecting all users, and if you chose an **Ephemeral** deployment with an **Automatic** domain, these and all traces are removed and can no longer be accessed.
-
-## Architecture summary
-
-MESH is a heavily modified fork of the [Tailscale protocol](https://github.com/tailscale/tailscale), but does not require Tailscale infrastructure.
-
-To establish peer-to-peer, end-to-end encrypted channel is created using UDP hole punching. If UDP is unavailable or blocked, it will fail over to E2EE HTTPs relays called DERP relays. The DERP protocol [DERP (Designated Encrypted Relay for Packets)](https://github.com/tailscale/tailscale/tree/main/derp) servers relay traffic between nodes when a direct peer-to-peer connection cannot be established.
-
-MESH follows the same model. By default, if an operator has not configured their own DERP infrastructure (which can be done using MESH's control plane), MESH uses Tailscale’s public DERP servers to ensure reliable connectivity, particularly in restrictive network environments. However, MESH does not require Tailscale infrastructure: operators can deploy and use their own DERP servers via the control plane, which includes an embedded DERP implementation. This makes MESH fully self-hostable when desired.
-
-DERP servers act purely as transport relays. They facilitate connectivity between devices but do not have visibility into the data exchanged, which remains end-to-end encrypted.
-
-Enhancements include (but are not limited to):
-
-- Self-hostable coordination server with a UI tailored for forensic operations
-- Automatic WireGuard key distribution
-- Optional AmneziaWG-based transport obfuscation
-- Encrypted HTTPS relay fallback
-
-The control plane is responsible only for peer discovery and key exchange.
-Forensic traffic flows directly between endpoints whenever possible.
+The control plane handles only peer discovery and key exchange, and forensic traffic flows directly between endpoints whenever possible. Operators can run their own DERP servers (the control plane embeds an implementation), making MESHforensics fully self-hostable. Otherwise it falls back to Tailscale's public DERP servers for connectivity.
 
 ## Key capabilities
 
-- Peer-to-peer encrypted forensic subnets
-- Automatic WireGuard / AmneziaWG key management
+- Peer-to-peer encrypted forensic subnets with CGNAT-assigned TUN interfaces
+- Automatic WireGuard / AmneziaWG key management, with optional transport obfuscation against DPI
 - Self-hostable control plane with ACL enforcement
-- CGNAT-assigned virtual TUN interfaces
-- ADB-over-WiFi & libimobiledevice compatibility
-- AndroidQF + MVT integration
-- Secure transfer of forensic artifacts
-- Optional kill-switch containment
+- ADB-over-WiFi and libimobiledevice compatibility, plus AndroidQF + MVT integration
+- Secure forensic artifact transfer, optional kill-switch containment
 - Rapid mesh creation and teardown
 
-<img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/2e539f33-d46a-4396-b25e-43c23e9e4040" />
+## Why not a VPN like WireGuard?
 
-<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/31947724-d826-4807-b984-9b87473e6847" />
+MESHforensics is built on WireGuard, but a plain WireGuard VPN is the wrong shape for hostile networks. WireGuard speaks only UDP, and UDP is exactly what censored and restrictive carrier networks degrade or block first. When that happens a raw WireGuard tunnel simply fails, which is unacceptable when an analyst needs to reach a device in the field.
 
-<img width="1920" height="1080" alt="3" src="https://github.com/user-attachments/assets/1d95e6ff-2361-42b8-af8a-9d01c18c6b3b" />
+MESHforensics keeps WireGuard for its fast, modern, end-to-end encrypted transport, then adds the connectivity WireGuard lacks on its own. Peers attempt a direct UDP connection via hole punching, and when UDP is blocked they fail over to end-to-end encrypted HTTPS DERP relays. HTTPS relaying is the critical piece: it is indistinguishable from ordinary web traffic, so it survives DPI and UDP censorship that would strand a conventional VPN, while the relay still carries packets without visibility into their contents.
 
-## Why not a VPN?
+Traditional VPN and hub-and-spoke designs also add persistent infrastructure risk, centralized traffic-analysis points, single points of failure, and operational exposure. MESHforensics separates coordination from transport. The control plane carries no forensic traffic, peer connections are direct, relays are fallbacks rather than hubs, and meshes are disposable and task-scoped. It is optimized for transient, high-risk environments rather than permanent enterprise networking.
 
-Traditional VPN and hub-and-spoke architectures introduce:
+## Repository structure
 
-- Persistent infrastructure risk
-- Centralized traffic analysis points
-- Single points of failure
-- Increased operational exposure
+- `android-client`: Android endpoint APK
+- `control-plane`: Coordination server
+- `analyst`: Analyst CLI client
 
-MESH separates coordination from data transport:
+## Developer notes
 
-- The control plane does not carry forensic traffic
-- Peer connections are direct whenever possible
-- Relays are transport fallbacks, not architectural hubs
-- Meshes are disposable and task-scoped
-
-MESH is optimized for transient, high-risk environments rather than permanent enterprise networking.
-
-### Repository structure
-
-- `android-client` — Android endpoint APK
-- `control-plane` — Coordination server
-- `analyst` — Analyst CLI client
-
-### Developer notes
-
-**Workflow:**
-
-- Development happens on branches and is merged via PRs.
-- Releases are cut as versioned tags.
+- Development happens on branches, merged via PRs. Releases are cut as versioned tags.
 - GitHub Actions mirrors tagged releases to `mesh-analyst-client`.
 - External Go projects should depend on explicit version tags, not `main`.
 
+## Supported by
+
+<img width="312" height="109" alt="image" src="https://github.com/user-attachments/assets/d9476c43-7414-46e0-b6a5-1956bd6ca1b5" />
+
+MESHforensics is supported by the [Open Technology Fund](https://www.opentech.fund/) to support the consensual remote forensics of spyware and surveillance targeting Human Right Defenders.
+
 ## License
 
-MESH is licensed under the [GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)](LICENSE).
+MESHforensics is licensed under the [GNU Affero General Public License v3.0 or later](LICENSE) (AGPL-3.0-or-later). All modifications and additions by BARGHEST are Copyright (c) BARGHEST.
 
-Portions of this software are a derivative work of [Tailscale](https://github.com/tailscale/tailscale), which is licensed under the BSD 3-Clause License. The original Tailscale copyright and license are preserved in accordance with the BSD-3-Clause requirements. AmneziaWG/Wireguard code is licensed under MIT license. See `.licenses/` for details.
-
-All modifications and additions by BARGHEST are Copyright (c) BARGHEST and licensed under AGPL-3.0-or-later.
-
-### Legal
-
-WireGuard is a registered trademark of Jason A. Donenfeld.
+Portions are a derivative work of [Tailscale](https://github.com/tailscale/tailscale) (BSD 3-Clause). AmneziaWG/WireGuard code is MIT-licensed. Original copyrights and licenses are preserved in `.licenses/`. WireGuard is a registered trademark of Jason A. Donenfeld.
