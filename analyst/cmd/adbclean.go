@@ -5,49 +5,46 @@ package cmd
 
 import (
 	"context"
-	"flag"
+	"errors"
 	"fmt"
 
+	"github.com/BARGHEST-ngo/MESH/analyst/session"
 	"github.com/BARGHEST-ngo/androidqf_mesh/adb"
 	"github.com/peterbourgon/ff/v3/ffcli"
 )
 
-var adbcleanArgs struct {
-	serial string
-}
-
-func AdbcleanCmd() *ffcli.Command {
-	fs := flag.NewFlagSet("adbclean", flag.ContinueOnError)
-	fs.StringVar(&adbcleanArgs.serial, "serial", "", "Device serial number")
+func AdbcleanCmd(s *session.Session, in *Input) *ffcli.Command {
 
 	return &ffcli.Command{
 		Name:       "adbclean",
-		ShortUsage: "mesh adbclean [flags]",
+		ShortUsage: "adbclean",
 		ShortHelp:  "Clears as much logging as possible from the session",
 		LongHelp: `In situations where you want to clean up after a session (for removing traces of forensics in case of seizure), adbclean will clear the logcat ring buffers and reset shell-accessible telemetry counters.
 
 [IMPORTANT] This should only be used AFTER a forensics backup. If used before, you will tamper with evidence.
 
 This is best-effort scrub of shell-accessible state only. Paired ADB key, wireless debugging history, and any root-only logs (tombstones, dropbox, pstore) are NOT removed and remain recoverable by a forensic examiner — only factory reset clears the paired-keys store.
-
-Examples:
-  mesh adbclean
-  mesh adbclean --serial devicename
 `,
-		FlagSet: fs,
-		Exec:    runcleanCmd,
+		Exec: func(ctx context.Context, args []string) error {
+			return runcleanCmd(ctx, args, s, in)
+		},
 	}
 }
 
-func runcleanCmd(ctx context.Context, args []string) error {
-	adbClient, err := adb.New()
+func runcleanCmd(ctx context.Context, args []string, s *session.Session, in *Input) error {
+	dev, err := chooseDevice(ctx, s, in)
 	if err != nil {
-		return fmt.Errorf("impossible to initialize ADB: %v", err)
+		return err
 	}
-	adb.Client = adbClient
-	if adbcleanArgs.serial != "" {
-		adb.Client.Serial = adbcleanArgs.serial
+
+	addr := s.ADBAddr(dev.ID)
+	if addr == "" {
+		return errors.New("device not connected over ADB, run adbpair")
 	}
+	if err := initADB(); err != nil {
+		return err
+	}
+	adb.Client.Serial = addr
 
 	fmt.Printf("Resetting battery stats history\n")
 	out, err := adb.Client.Shell("dumpsys", "batterystats", "--reset")
